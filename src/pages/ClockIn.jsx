@@ -98,7 +98,7 @@ export default function ClockIn() {
         <div style={{
           fontSize: 'clamp(3rem, 16vw, 5rem)', fontWeight: 800, letterSpacing: '-2px',
           fontVariantNumeric: 'tabular-nums', lineHeight: 1,
-          background: 'linear-gradient(135deg, #0f172a, #047857)',
+          background: '#1e3a8a',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
           {hours}<span style={{ opacity: 0.5, animation: 'blink 1s step-end infinite' }}>:</span>{mins}
@@ -110,16 +110,16 @@ export default function ClockIn() {
       <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px',
-          background: isClockedIn ? 'rgba(4,120,87,0.12)' : 'rgba(100,116,139,0.1)',
-          border: `1px solid ${isClockedIn ? 'rgba(4,120,87,0.3)' : 'rgba(100,116,139,0.18)'}`,
+          background: isClockedIn ? 'rgba(29,78,216,0.12)' : 'rgba(100,116,139,0.1)',
+          border: `1px solid ${isClockedIn ? 'rgba(29,78,216,0.3)' : 'rgba(100,116,139,0.18)'}`,
           borderRadius: 99,
         }}>
           <span style={{
             width: 8, height: 8, borderRadius: '50%',
-            background: isClockedIn ? '#047857' : '#64748b',
-            boxShadow: isClockedIn ? '0 0 8px #047857' : 'none',
+            background: isClockedIn ? '#1d4ed8' : '#64748b',
+            boxShadow: isClockedIn ? '0 0 8px #1d4ed8' : 'none',
           }} />
-          <span style={{ color: isClockedIn ? '#047857' : '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
+          <span style={{ color: isClockedIn ? '#1d4ed8' : '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
             {isClockedIn ? 'Currently Clocked In' : 'Not Clocked In'}
           </span>
         </div>
@@ -130,18 +130,18 @@ export default function ClockIn() {
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div ref={ringRef} style={{
             position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-            border: `2px solid ${isClockedIn ? '#022c22' : '#047857'}`,
+            border: `2px solid ${isClockedIn ? '#022c22' : '#1d4ed8'}`,
             opacity: 0.3,
           }} />
           <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
             width: 148, height: 148, borderRadius: '50%', border: 'none', cursor: punching ? 'wait' : 'pointer',
             background: isClockedIn
-              ? 'linear-gradient(135deg, #065f46, #022c22)'
-              : 'linear-gradient(135deg, #059669, #047857)',
+              ? '#1e40af'
+              : '#2563eb',
             color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em',
             boxShadow: isClockedIn
               ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
-              : '0 0 60px rgba(4,120,87,0.4), 0 8px 32px rgba(15,23,42,0.25)',
+              : '0 0 60px rgba(29,78,216,0.4), 0 8px 32px rgba(15,23,42,0.25)',
             transition: 'box-shadow 0.4s',
           }}>
             {punching ? '...' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
@@ -172,7 +172,7 @@ export default function ClockIn() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {todayLogs.map(log => (
               <div key={log.logId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'rgba(15,23,42,0.035)', borderRadius: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: log.type === 'IN' ? '#047857' : '#dc2626', flexShrink: 0 }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: log.type === 'IN' ? '#1d4ed8' : '#dc2626', flexShrink: 0 }} />
                 <span style={{ color: '#1e293b', fontWeight: 600, fontSize: '0.85rem', flex: 1 }}>Clock {log.type === 'IN' ? 'In' : 'Out'}</span>
                 <span style={{ color: 'rgba(100,116,139,0.7)', fontSize: '0.82rem' }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
               </div>

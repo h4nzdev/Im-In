@@ -39,20 +39,19 @@ export default function BottomNav() {
           return (
             <Link key={to} to={to} style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 4, textDecoration: 'none',
-              color: active ? '#047857' : 'rgba(100,116,139,0.65)',
-              transition: 'color 0.2s',
-              position: 'relative',
+              justifyContent: 'center', gap: 3, textDecoration: 'none',
+              color: active ? '#2563eb' : '#64748b',
+              transition: 'all 0.2s', position: 'relative'
             }}>
-              {active && (
-                <span style={{
-                  position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-                  width: 32, height: 2, background: 'linear-gradient(90deg,#047857,#34d399)',
-                  borderRadius: '0 0 4px 4px',
-                }} />
-              )}
-              <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
-              <span style={{ fontSize: '0.68rem', fontWeight: active ? 700 : 500, letterSpacing: '0.02em' }}>
+              <div style={{
+                padding: '4px 16px', borderRadius: 16,
+                background: active ? 'rgba(37,99,235,0.12)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}>
+                <Icon size={20} strokeWidth={active ? 2.4 : 1.8} />
+              </div>
+              <span style={{ fontSize: '0.68rem', fontWeight: active ? 800 : 500, letterSpacing: '0.01em' }}>
                 {label}
               </span>
             </Link>

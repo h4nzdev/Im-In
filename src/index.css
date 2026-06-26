@@ -6,10 +6,6 @@
 body {
   margin: 0;
   background-color: #f1f5f9;
-  background-image:
-    radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.1) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
   min-height: 100vh;
   color: #0f172a;
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -64,7 +60,7 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #059669 !important;
+  border-color: #2563eb !important;
   background: #ffffff !important;
   box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.14);
 }
@@ -79,7 +75,7 @@ select option {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #2563eb;
   color: white;
   border: none;
   border-radius: 12px;
@@ -89,14 +85,14 @@ select option {
   width: 100%;
   font-size: 0.95rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
   font-family: inherit;
 }
 
 .btn-primary:hover { 
   transform: translateY(-1px); 
-  box-shadow: 0 8px 28px rgba(5, 150, 105, 0.45); 
-  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.45); 
+  background: #1d4ed8;
 }
 .btn-primary:active { transform: translateY(0); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -123,6 +119,36 @@ select option {
   gap: 12px;
 }
 
+.cal-card {
+  padding: 26px;
+  border-radius: 24px;
+  box-shadow: none !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cal-day {
+  min-height: 110px;
+  padding: 12px;
+  border-radius: 18px;
+}
+
+.cal-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Responsive Sidebars & Main Content */
 .sidebar    { display: none; }
 .bottom-nav { display: none; }
@@ -131,11 +157,27 @@ select option {
   .top-header          { display: flex !important; }
   .bottom-nav          { display: flex !important; }
   .layout-content-area { margin-left: 0 !important; width: 100%; }
-  .main-content        { padding-bottom: 115px !important; padding-left: 14px !important; padding-right: 14px !important; margin: 0 auto !important; width: 100%; }
+  .main-content        { padding-bottom: 115px !important; padding-left: 10px !important; padding-right: 10px !important; margin: 0 auto !important; width: 100%; }
   .dashboard-grid      { grid-template-columns: 1fr !important; }
   .leaves-grid         { grid-template-columns: 1fr !important; gap: 18px !important; }
   .leave-date-grid     { grid-template-columns: 1fr !important; gap: 10px !important; }
-  .cal-card            { padding: 14px !important; }
+  .cal-card            { padding: 8px !important; border-radius: 16px !important; }
+  .cal-grid            { gap: 4px !important; }
+  .cal-day             { min-height: 48px !important; padding: 4px 2px !important; border-radius: 10px !important; align-items: center !important; }
+  .cal-badges-area     { flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; gap: 3px !important; margin-top: 2px !important; }
+  .mobile-dot          { display: block !important; }
+  .desktop-badge       { display: none !important; }
+  .table-card          { border-radius: 16px !important; }
+  .data-table          { min-width: 100% !important; width: 100% !important; }
+  .data-table th, .data-table td { padding: 6px 4px !important; font-size: 0.62rem !important; }
+}
+
+.mobile-dot { display: none; }
+
+.table-card {
+  width: 100%;
+  max-width: 100%;
+  box-shadow: none !important;
 }
 
 @media (min-width: 769px) {
@@ -146,7 +188,9 @@ select option {
 }
 
 @media (max-width: 480px) {
-  .stats-grid     { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-  .stat-card      { padding: 14px !important; }
+  .stats-grid     { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+  .stat-card      { padding: 10px 4px !important; border-radius: 12px !important; }
+  .stat-card p:first-child { font-size: 0.6rem !important; letter-spacing: 0 !important; }
+  .stat-card p:last-child  { font-size: 1.35rem !important; }
   .stat-status    { grid-column: 1 / -1; }
 }

@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import { LogIn, Shield, User, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
-import stompLogo from '../assets/stomp.png';
+import realynkLogo from '../assets/realynk.png';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -61,9 +61,9 @@ export default function Login() {
       <div ref={cardRef} className="glass" style={{ width: '100%', maxWidth: 440, borderRadius: 28, padding: 40, boxShadow: '0 16px 48px rgba(15,23,42,0.1)' }}>
 
         <div className="field" style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img src={stompLogo} alt="Stomp" style={{ height: 56, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
-          <div style={{ fontSize: 42, fontWeight: 800, background: 'linear-gradient(135deg,#059669,#065f46)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4, letterSpacing: '-1px' }}>
-            Stomp
+          <img src={realynkLogo} alt="Realynk" style={{ height: 56, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
+          <div style={{ fontSize: 42, fontWeight: 800, color: '#2563eb', marginBottom: 4, letterSpacing: '-1px' }}>
+            Realynk
           </div>
           <p style={{ color: '#64748b', fontSize: '0.92rem', fontWeight: 500, margin: 0 }}>Enterprise Attendance Portal</p>
         </div>
@@ -91,8 +91,8 @@ export default function Login() {
         </form>
 
         {/* Quick One-Click Login Shortcuts */}
-        <div className="field" style={{ marginTop: 28, padding: '18px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#047857', fontSize: '0.8rem', fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="field" style={{ marginTop: 28, padding: '18px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1d4ed8', fontSize: '0.8rem', fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             <Zap size={15} /> Instant Demo Access
           </div>
           
@@ -101,13 +101,13 @@ export default function Login() {
               type="button"
               onClick={() => handleQuickLogin('admin@imin.com', 'admin123')}
               style={{
-                padding: '10px 12px', borderRadius: 12, border: '1px solid #059669',
-                background: 'white', color: '#047857', fontWeight: 800, fontSize: '0.84rem',
+                padding: '10px 12px', borderRadius: 12, border: '1px solid #2563eb',
+                background: 'white', color: '#1d4ed8', fontWeight: 800, fontSize: '0.84rem',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                boxShadow: '0 2px 8px rgba(5,150,105,0.15)', transition: 'all 0.15s'
+                boxShadow: '0 2px 8px rgba(37,99,235,0.15)', transition: 'all 0.15s'
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.color = 'white'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#047857'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.color = 'white'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#1d4ed8'; }}
             >
               <Shield size={15} /> Login Admin
             </button>
@@ -130,7 +130,7 @@ export default function Login() {
         </div>
 
         <p className="field" style={{ textAlign: 'center', marginTop: 24, color: '#64748b', fontSize: '0.88rem', fontWeight: 500 }}>
-          No corporate account? <Link to="/signup" style={{ color: '#047857', textDecoration: 'none', fontWeight: 800 }}>Sign up</Link>
+          No corporate account? <Link to="/signup" style={{ color: '#1d4ed8', textDecoration: 'none', fontWeight: 800 }}>Sign up</Link>
         </p>
       </div>
     </div>

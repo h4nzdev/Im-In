@@ -88,12 +88,12 @@ export default function AdminApprovals() {
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 999,
-          padding: '14px 22px', borderRadius: 16, background: '#065f46',
+          padding: '14px 22px', borderRadius: 16, background: '#1e40af',
           color: 'white', fontWeight: 700, fontSize: '0.92rem',
           boxShadow: '0 12px 36px rgba(6,95,70,0.35)', display: 'flex', alignItems: 'center', gap: 10,
           animation: 'fadeIn 0.25s ease-out'
         }}>
-          <Check size={18} color="#34d399" /> {toast}
+          <Check size={18} color="#60a5fa" /> {toast}
         </div>
       )}
 
@@ -126,7 +126,7 @@ export default function AdminApprovals() {
               onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }}
               style={{
                 border: 'none', background: activeTab === tab.id ? 'white' : 'transparent',
-                color: activeTab === tab.id ? '#047857' : '#64748b',
+                color: activeTab === tab.id ? '#1d4ed8' : '#64748b',
                 fontWeight: 700, fontSize: '0.82rem', padding: '8px 16px', borderRadius: 10, cursor: 'pointer',
                 boxShadow: activeTab === tab.id ? '0 2px 10px rgba(0,0,0,0.06)' : 'none',
                 transition: 'all 0.15s'
@@ -139,44 +139,45 @@ export default function AdminApprovals() {
       </div>
 
       {/* Controls Bar */}
-      <div className="card glass" style={{ padding: '16px 20px', borderRadius: 20, marginBottom: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 320px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+      <div className="card glass controls-bar" style={{ padding: '14px 16px', borderRadius: 18, marginBottom: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ position: 'relative', width: '100%' }}>
             <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             <input 
               type="text"
-              placeholder="Search queue by employee name, ID, email, or leave reason..."
+              placeholder="Search queue by name, ID, email, or reason..."
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none' }}
+              style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none', margin: 0 }}
             />
           </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>Limit per page:</span>
-          <select
-            value={limit}
-            onChange={e => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
-            style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Show:</span>
+            <select
+              value={limit}
+              onChange={e => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
+              style={{ padding: '6px 10px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', width: 'auto' }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Table Card */}
       <div className="card glass" style={{ padding: 0, borderRadius: 24, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 780, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.04)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Request Type</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Employee / Applicant</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Details & Timeline</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>Executive Action</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Request Type</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Employee / Applicant</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Details & Timeline</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right', whiteSpace: 'nowrap' }}>Executive Action</th>
               </tr>
             </thead>
             <tbody>
@@ -237,9 +238,9 @@ export default function AdminApprovals() {
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => isUser ? handleApproveUser(item.userId, name) : handleApproveLeave(item.leaveId, name)}
-                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#059669', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.84rem', transition: 'background 0.15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#047857'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#059669'}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.84rem', transition: 'background 0.15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
                           >
                             <Check size={16} /> Approve
                           </button>

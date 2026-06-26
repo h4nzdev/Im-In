@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
-import stompLogo from '../assets/stomp.png';
+import realynkLogo from '../assets/realynk.png';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export default function Signup() {
 
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', color: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(59,130,246,0.15)', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <ShieldCheck size={36} />
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px' }}>
@@ -63,10 +63,10 @@ export default function Signup() {
             <button 
               onClick={() => navigate('/login')}
               style={{
-                width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg,#10b981,#059669)',
+                width: '100%', padding: '14px 24px', background: '#2563eb',
                 color: 'white', fontWeight: 700, borderRadius: 14, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: '0.95rem',
-                boxShadow: '0 4px 16px rgba(16,185,129,0.3)', transition: 'all 0.2s'
+                boxShadow: '0 4px 16px rgba(59,130,246,0.3)', transition: 'all 0.2s'
               }}
             >
               Return to Login <ArrowRight size={18} />
@@ -75,9 +75,9 @@ export default function Signup() {
         ) : (
           <>
             <div className="field" style={{ textAlign: 'center', marginBottom: 32 }}>
-              <img src={stompLogo} alt="Stomp" style={{ height: 48, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
-              <div style={{ fontSize: 36, fontWeight: 800, background: 'linear-gradient(135deg,#059669,#065f46)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 6 }}>
-                Join Stomp
+              <img src={realynkLogo} alt="Realynk" style={{ height: 48, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#2563eb', marginBottom: 6 }}>
+                Join Realynk
               </div>
               <p style={{ color: 'rgba(100,116,139,0.85)', fontSize: '0.9rem' }}>Create your corporate account</p>
             </div>
@@ -110,7 +110,7 @@ export default function Signup() {
             </form>
 
             <p className="field" style={{ textAlign: 'center', marginTop: 24, color: 'rgba(100,116,139,0.8)', fontSize: '0.85rem' }}>
-              Already have an account? <Link to="/login" style={{ color: '#047857', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+              Already have an account? <Link to="/login" style={{ color: '#1d4ed8', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
             </p>
           </>
         )}

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon } from 'lucide-react';
+import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const context = useOutletContext();
   const { user, logout } = useAuthStore();
   const [positions] = useState(() => db.getPositions());
   const [logs] = useState(() => db.getUserLogs(user.userId));
@@ -78,10 +79,10 @@ export default function Profile() {
       <div className="card glass" style={{ ...cardStyle, textAlign: 'center', paddingTop: 40, paddingBottom: 36, marginBottom: 20 }}>
         <div style={{
           width: 96, height: 96, borderRadius: '50%', margin: '0 auto 18px',
-          background: 'linear-gradient(135deg, #059669, #065f46)',
+          background: '#2563eb',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '2.2rem', fontWeight: 800, color: 'white',
-          boxShadow: '0 8px 32px rgba(4,120,87,0.35)',
+          boxShadow: '0 8px 32px rgba(37,99,235,0.35)',
         }}>
           {initials}
         </div>
@@ -91,8 +92,8 @@ export default function Profile() {
           <button 
             onClick={() => setEditing(true)} 
             style={{
-              background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-              cursor: 'pointer', color: '#047857', padding: '6px 12px', borderRadius: 10,
+              background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)',
+              cursor: 'pointer', color: '#2563eb', padding: '6px 12px', borderRadius: 10,
               fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6,
               transition: 'all 0.15s'
             }}
@@ -104,8 +105,8 @@ export default function Profile() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span style={{
             padding: '4px 14px', borderRadius: 99, fontSize: '0.78rem', fontWeight: 800,
-            background: user?.role === 'Admin' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
-            color: user?.role === 'Admin' ? '#b45309' : '#047857',
+            background: user?.role === 'Admin' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)',
+            color: user?.role === 'Admin' ? '#b45309' : '#1d4ed8',
           }}>{user?.role}</span>
           {position && (
             <span style={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 600 }}>
@@ -117,7 +118,7 @@ export default function Profile() {
 
       {/* Edit Profile Form Modal / Expand */}
       {editing && (
-        <form onSubmit={handleSaveProfile} className="card glass" style={{ ...cardStyle, marginBottom: 20, border: '2px solid #10b981' }}>
+        <form onSubmit={handleSaveProfile} className="card glass" style={{ ...cardStyle, marginBottom: 20, border: '2px solid #3b82f6' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Edit Profile Information</h2>
             <button type="button" onClick={() => setEditing(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
@@ -154,8 +155,8 @@ export default function Profile() {
         <p style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Personal Attendance Record</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
           {[
-            { label: 'Hours Worked', value: `${totalHoursLogged()}h`, color: '#047857' },
-            { label: 'Total Punches', value: logs.length, color: '#059669' },
+            { label: 'Hours Worked', value: `${totalHoursLogged()}h`, color: '#1d4ed8' },
+            { label: 'Total Punches', value: logs.length, color: '#2563eb' },
             { label: 'Leave Bookings', value: leaves.length, color: '#d97706' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ textAlign: 'center', padding: '18px 8px', background: 'rgba(15,23,42,0.03)', borderRadius: 16 }}>
@@ -169,7 +170,7 @@ export default function Profile() {
       {/* Preferences & Settings */}
       <div className="card glass" style={{ ...cardStyle, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <SettingsIcon size={18} color="#059669" />
+          <SettingsIcon size={18} color="#2563eb" />
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Preferences & System Settings</h2>
         </div>
 
@@ -187,7 +188,7 @@ export default function Profile() {
               onClick={() => togglePref('notifs')}
               style={{
                 width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative',
-                background: prefs.notifs ? '#10b981' : '#cbd5e1', transition: 'background 0.2s'
+                background: prefs.notifs ? '#3b82f6' : '#cbd5e1', transition: 'background 0.2s'
               }}
             >
               <div style={{
@@ -210,7 +211,7 @@ export default function Profile() {
               onClick={() => togglePref('autoLocation')}
               style={{
                 width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative',
-                background: prefs.autoLocation ? '#10b981' : '#cbd5e1', transition: 'background 0.2s'
+                background: prefs.autoLocation ? '#3b82f6' : '#cbd5e1', transition: 'background 0.2s'
               }}
             >
               <div style={{
@@ -221,7 +222,7 @@ export default function Profile() {
           </div>
 
           {/* Password Action */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Key size={18} color="#64748b" />
               <div>
@@ -234,6 +235,23 @@ export default function Profile() {
               style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', color: '#334155' }}
             >
               Reset Password
+            </button>
+          </div>
+
+          {/* Install App Action */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Smartphone size={18} color="#2563eb" />
+              <div>
+                <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>Install Realynk Enterprise App</span>
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Add 1-tap check-in app to home screen</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => context?.openInstallModal?.()}
+              style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#2563eb', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}
+            >
+              Install App
             </button>
           </div>
         </div>
@@ -251,7 +269,7 @@ export default function Profile() {
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'; }}
       >
-        <LogOut size={18} /> Sign Out of Stomp
+        <LogOut size={18} /> Sign Out of Realynk
       </button>
     </div>
   );

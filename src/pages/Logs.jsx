@@ -88,99 +88,102 @@ export default function Logs() {
             color: '#0f172a', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
             boxShadow: '0 2px 12px rgba(15,23,42,0.04)', transition: 'all 0.2s'
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#059669'; e.currentTarget.style.color = '#047857'; }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)'; e.currentTarget.style.color = '#0f172a'; }}
         >
-          <Download size={16} color="#059669" /> Export CSV
+          <Download size={16} color="#2563eb" /> Export CSV
         </button>
       </div>
 
       {/* Stats */}
-      <div className="card stats-grid" style={{ gap: 16, marginBottom: 20 }}>
+      <div className="card stats-grid" style={{ gap: 10, marginBottom: 16 }}>
         {[
           { label: 'Total Records', value: totalEntries, color: '#0f172a' },
-          { label: 'Time-In Count', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#047857' },
-          { label: 'Time-Out Count', value: filteredLogs.filter(l => l.type === 'OUT').length, color: '#dc2626' },
+          { label: 'Time-In', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#1d4ed8' },
+          { label: 'Time-Out', value: filteredLogs.filter(l => l.type === 'OUT').length, color: '#dc2626' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="stat-card glass" style={{ padding: 18, borderRadius: 18 }}>
-            <p style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>{label}</p>
-            <p style={{ color, fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>{value}</p>
+          <div key={label} className="stat-card glass" style={{ padding: '14px 10px', borderRadius: 16, textAlign: 'center' }}>
+            <p style={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 4px' }}>{label}</p>
+            <p style={{ color, fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>{value}</p>
           </div>
         ))}
       </div>
 
       {/* Controls Bar: Search + Limit + Filter */}
-      <div className="card glass" style={{ padding: '16px 20px', borderRadius: 20, marginBottom: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 280px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+      <div className="card glass controls-bar" style={{ padding: '14px 16px', borderRadius: 18, marginBottom: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Top row: 100% full width search */}
+          <div style={{ position: 'relative', width: '100%' }}>
             <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             <input 
               type="text" 
               placeholder={isAdmin ? "Search employee, ID, or device..." : "Search punch ID or device..."}
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none' }}
+              style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none', margin: 0 }}
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>Show:</span>
-            <select
-              value={limit}
-              onChange={e => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
-              style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-        </div>
+          {/* Bottom row: Filter tabs on left, Rows selector on right */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Filter size={14} color="#64748b" />
+              <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 3, borderRadius: 12, gap: 2 }}>
+                {['ALL', 'IN', 'OUT'].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => { setTypeFilter(t); setCurrentPage(1); }}
+                    style={{
+                      border: 'none', background: typeFilter === t ? 'white' : 'transparent',
+                      color: typeFilter === t ? (t === 'IN' ? '#2563eb' : t === 'OUT' ? '#dc2626' : '#0f172a') : '#64748b',
+                      fontWeight: 800, fontSize: '0.78rem', padding: '6px 12px', borderRadius: 9, cursor: 'pointer',
+                      boxShadow: typeFilter === t ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {t === 'ALL' ? 'All' : t === 'IN' ? 'Time In' : 'Time Out'}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
-            <Filter size={15} /> Type:
-          </div>
-          <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 4, borderRadius: 12, gap: 4 }}>
-            {['ALL', 'IN', 'OUT'].map(t => (
-              <button
-                key={t}
-                onClick={() => { setTypeFilter(t); setCurrentPage(1); }}
-                style={{
-                  border: 'none', background: typeFilter === t ? 'white' : 'transparent',
-                  color: typeFilter === t ? (t === 'IN' ? '#047857' : t === 'OUT' ? '#dc2626' : '#0f172a') : '#64748b',
-                  fontWeight: 700, fontSize: '0.8rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
-                  boxShadow: typeFilter === t ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s'
-                }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Show:</span>
+              <select
+                value={limit}
+                onChange={e => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
+                style={{ padding: '6px 10px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', width: 'auto' }}
               >
-                {t === 'ALL' ? 'All' : t === 'IN' ? 'Time In' : 'Time Out'}
-              </button>
-            ))}
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Data Table Card */}
-      <div className="card glass" style={{ padding: 0, borderRadius: 24, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 780, whiteSpace: 'nowrap' }}>
+      <div className="card glass table-card" style={{ padding: 0, borderRadius: 24, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: isAdmin ? 840 : 660, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.04)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Log ID</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Log Ref ID</th>
                 {isAdmin && <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Employee</th>}
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Punch Type</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Date & Time</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>GPS Geolocation</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Captured Device</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Date</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Exact Time</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Biometric Location</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Terminal Device</th>
               </tr>
             </thead>
             <tbody>
               {pageLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
-                    <Clock size={36} strokeWidth={1.5} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.5 }} />
-                    <span style={{ fontSize: '1rem', fontWeight: 600 }}>No biometric records found</span>
+                  <td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.92rem', fontWeight: 600 }}>
+                    No biometric logs match your current query.
                   </td>
                 </tr>
               ) : (
@@ -192,7 +195,7 @@ export default function Logs() {
 
                   return (
                     <tr key={log.logId} style={{ borderBottom: idx === pageLogs.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', background: idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.06)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.06)'}
                       onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'}>
                       
                       <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem', color: '#334155', whiteSpace: 'nowrap' }}>
@@ -209,21 +212,24 @@ export default function Logs() {
                         <span style={{
                           display: 'inline-block', whiteSpace: 'nowrap',
                           padding: '5px 12px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 800,
-                          background: isIn ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                          color: isIn ? '#047857' : '#dc2626'
+                          background: isIn ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: isIn ? '#2563eb' : '#dc2626'
                         }}>
                           {isIn ? 'TIME IN' : 'TIME OUT'}
                         </span>
                       </td>
 
                       <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a', display: 'block', whiteSpace: 'nowrap' }}>{dateStr}</span>
+                      </td>
+
+                      <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a', display: 'block', whiteSpace: 'nowrap' }}>{timeStr}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', whiteSpace: 'nowrap' }}>{dateStr}</span>
                       </td>
 
                       <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#475569', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                          <MapPin size={14} color="#059669" />
+                          <MapPin size={14} color="#2563eb" />
                           {log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'}
                         </div>
                       </td>

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 
 const badge = (status) => {
-  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#047857','rgba(4,120,87,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
+  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#1d4ed8','rgba(29,78,216,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
   const [color, bg] = map[status] || ['#64748b','rgba(100,116,139,0.15)'];
   return <span style={{ color, background: bg, border: `1px solid ${color}40`, borderRadius: 20, padding: '3px 12px', fontSize: '0.75rem', fontWeight: 600 }}>{status}</span>;
 };
@@ -74,31 +74,43 @@ export default function Leaves() {
               <textarea value={form.reason} onChange={e => set('reason', e.target.value)} rows={3} placeholder="Optional reason..." style={{ resize: 'vertical' }} />
             </div>
             {error && <p style={{ color: '#dc2626', fontSize: '0.82rem' }}>{error}</p>}
-            {success && <p style={{ color: '#047857', fontSize: '0.82rem' }}>{success}</p>}
+            {success && <p style={{ color: '#1d4ed8', fontSize: '0.82rem' }}>{success}</p>}
             <button type="submit" className="btn-primary">Submit Request</button>
           </form>
         </div>
 
-        <div className="card" style={cardStyle}>
-          <p style={{ color: '#334155', fontWeight: 600, fontSize: '1rem', marginBottom: 20 }}>Your Requests</p>
-          {leaves.length === 0 ? (
-            <p style={{ color: 'rgba(100,116,139,0.6)', fontSize: '0.85rem', textAlign: 'center', padding: '40px 0' }}>No requests yet.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[...leaves].reverse().map(l => (
-                <div key={l.leaveId} style={{ padding: '16px 20px', background: 'rgba(15,23,42,0.035)', borderRadius: 12, border: '1px solid rgba(15,23,42,0.07)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <div>
-                      <span style={{ color: '#1e293b', fontWeight: 600, fontSize: '0.9rem' }}>{l.leaveType}</span>
-                      <p style={{ color: 'rgba(100,116,139,0.75)', fontSize: '0.8rem', marginTop: 2 }}>{l.startDate} → {l.endDate}</p>
-                    </div>
-                    {badge(l.status)}
-                  </div>
-                  {l.reason && <p style={{ color: 'rgba(100,116,139,0.7)', fontSize: '0.8rem', marginTop: 4 }}>{l.reason}</p>}
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="card glass" style={{ padding: 0, borderRadius: 24, overflow: 'hidden' }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(15,23,42,0.08)', background: 'rgba(255,255,255,0.4)' }}>
+            <p style={{ color: '#0f172a', fontWeight: 700, fontSize: '1.05rem', margin: 0 }}>Your Requests History</p>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 520, whiteSpace: 'nowrap' }}>
+              <thead>
+                <tr style={{ background: 'rgba(15,23,42,0.04)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
+                  <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Type</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Duration</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Reason</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaves.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: 'center', padding: '36px 20px', color: '#94a3b8', fontSize: '0.88rem' }}>No leave requests submitted yet.</td>
+                  </tr>
+                ) : (
+                  [...leaves].reverse().map((l, idx) => (
+                    <tr key={l.leaveId} style={{ borderBottom: idx === leaves.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)' }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 700, color: '#1e293b' }}>{l.leaveType}</td>
+                      <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '0.85rem' }}>{l.startDate} → {l.endDate}</td>
+                      <td style={{ padding: '16px 20px', color: '#475569', fontSize: '0.85rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.reason || '—'}</td>
+                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>{badge(l.status)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -154,9 +154,9 @@ export default function Dashboard() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 20, background: 'white', border: '1px solid rgba(15,23,42,0.1)', color: '#0f172a', fontSize: '0.92rem', fontWeight: 800, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-            <Clock size={16} color="#059669" /> {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            <Clock size={16} color="#2563eb" /> {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 20, background: 'rgba(16,185,129,0.12)', color: '#047857', fontSize: '0.88rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 20, background: 'rgba(59,130,246,0.12)', color: '#2563eb', fontSize: '0.88rem', fontWeight: 700 }}>
             <Sparkles size={16} /> Ready to work
           </div>
         </div>
@@ -165,9 +165,9 @@ export default function Dashboard() {
       {/* Stat cards */}
       <div className="card stats-grid" style={{ gap: 20, marginBottom: 24 }}>
         {[
-          { label: 'Today Worked', value: `${hoursToday(logs, user.userId)}h`, color: '#047857', bg: 'rgba(16,185,129,0.1)' },
-          { label: 'Weekly Total', value: `${hoursWeek(logs, user.userId)}h`, color: '#059669', bg: 'rgba(16,185,129,0.08)' },
-          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#059669' : '#64748b', bg: isClockedIn ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.1)', wide: true },
+          { label: 'Today Worked', value: `${hoursToday(logs, user.userId)}h`, color: '#1d4ed8', bg: 'rgba(59,130,246,0.1)' },
+          { label: 'Weekly Total', value: `${hoursWeek(logs, user.userId)}h`, color: '#2563eb', bg: 'rgba(59,130,246,0.08)' },
+          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#2563eb' : '#64748b', bg: isClockedIn ? 'rgba(59,130,246,0.15)' : 'rgba(100,116,139,0.1)', wide: true },
         ].map(({ label, value, color, bg, wide }) => (
           <div key={label} className={`stat-card glass glass-hover${wide ? ' stat-status' : ''}`} style={{ padding: 22, borderRadius: 20, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -183,29 +183,29 @@ export default function Dashboard() {
 
         {/* Shift Timer / Clock card */}
         <div className="card glass" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '44px 28px', borderRadius: 24, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(16,185,129,0.08)' : 'rgba(59,130,246,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
           
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              <Timer size={16} color={isClockedIn ? "#059669" : "#64748b"} /> Active Shift Elapsed
+              <Timer size={16} color={isClockedIn ? "#2563eb" : "#64748b"} /> Active Shift Elapsed
             </span>
-            <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#047857' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 36px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+            <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#1d4ed8' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 36px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
               {formatElapsed(shiftMs)}
             </p>
 
             <div style={{ position: 'relative', marginBottom: 32 }}>
               <div ref={ringRef} style={{
                 position: 'absolute', inset: -20, borderRadius: '50%',
-                border: `3px solid ${isClockedIn ? '#10b981' : '#059669'}`,
+                border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
                 opacity: 0.3, pointerEvents: 'none'
               }} />
               <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
                 width: 136, height: 136, borderRadius: '50%', border: 'none', cursor: punching ? 'not-allowed' : 'pointer',
                 background: isClockedIn
-                  ? 'linear-gradient(135deg,#047857,#022c22)'
-                  : 'linear-gradient(135deg,#10b981,#047857)',
+                  ? '#1d4ed8'
+                  : '#2563eb',
                 color: 'white', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px',
-                boxShadow: isClockedIn ? '0 12px 36px rgba(4,120,87,0.45)' : '0 12px 36px rgba(16,185,129,0.45)',
+                boxShadow: isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}>
                 {punching ? '...' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
@@ -227,7 +227,7 @@ export default function Dashboard() {
         {/* Map */}
         <div className="card glass" style={{ padding: 0, overflow: 'hidden', borderRadius: 24, minHeight: 340, display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '18px 24px', borderBottom: '1px solid rgba(15,23,42,0.08)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.4)' }}>
-            <MapPin size={18} color="#059669" />
+            <MapPin size={18} color="#2563eb" />
             <p style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>Live Geolocation</p>
           </div>
           <MapContainer center={[mapCenter.lat, mapCenter.lng]} zoom={14} style={{ flex: 1, minHeight: 280, width: '100%' }}>
@@ -262,8 +262,8 @@ export default function Dashboard() {
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: log.type === 'IN' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#10b981' : '#ef4444' }} />
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: log.type === 'IN' ? 'rgba(59,130,246,0.12)' : 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#3b82f6' : '#ef4444' }} />
                   </div>
                   <div>
                     <span style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.92rem', display: 'block' }}>Clock {log.type === 'IN' ? 'In' : 'Out'}</span>

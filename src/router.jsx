@@ -20,7 +20,7 @@ const AdminApprovals = lazy(() => import('./pages/AdminApprovals'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <p style={{ color: '#94a3b8', fontWeight: 600 }}>Loading Stomp...</p>
+    <p style={{ color: '#94a3b8', fontWeight: 600 }}>Loading Realynk...</p>
   </div>
 );
 
@@ -32,7 +32,7 @@ const ErrorFallback = () => (
       <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '0 0 28px', lineHeight: 1.5 }}>
         We couldn't find the page you're looking for. It may have been moved or deleted.
       </p>
-      <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: 'linear-gradient(135deg,#10b981,#059669)', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
+      <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: '#2563eb', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
         Back to Dashboard
       </Link>
     </div>

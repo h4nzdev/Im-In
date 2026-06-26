@@ -10,7 +10,7 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div style={{ background: '#ffffff', border: '1px solid rgba(15,23,42,0.08)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 4px 16px rgba(15,23,42,0.12)' }}>
       <p style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 4 }}>{label}</p>
-      <p style={{ color: '#047857', fontWeight: 700 }}>{payload[0].value} clock-ins</p>
+      <p style={{ color: '#1d4ed8', fontWeight: 700 }}>{payload[0].value} clock-ins</p>
     </div>
   );
 }
@@ -63,15 +63,15 @@ export default function AdminDashboard() {
   const weeklyHours = (weekMs / 3600000).toFixed(1);
 
   const stats = [
-    { label: 'Total Employees', value: users.filter(u => u.role === 'User').length, color: '#047857', bg: 'rgba(4,120,87,0.1)' },
-    { label: 'Clocked In Today', value: clockedInToday, color: '#059669', bg: 'rgba(5,150,105,0.1)' },
+    { label: 'Total Employees', value: users.filter(u => u.role === 'User').length, color: '#1d4ed8', bg: 'rgba(29,78,216,0.1)' },
+    { label: 'Clocked In Today', value: clockedInToday, color: '#2563eb', bg: 'rgba(37,99,235,0.1)' },
     { label: 'Pending Queue', value: totalPending, color: '#d97706', bg: 'rgba(245,158,11,0.14)' },
     { label: 'Weekly Hours', value: `${weeklyHours}h`, color: '#2563eb', bg: 'rgba(37,99,235,0.1)' },
   ];
 
   const shortcuts = [
     { label: 'Review Approvals', desc: `${totalPending} items waiting`, icon: UserCheck, to: '/admin/approvals', color: '#d97706', bg: 'rgba(245,158,11,0.14)' },
-    { label: 'Audit Shift Logs', desc: `${logs.length} biometric records`, icon: Clock, to: '/admin/logs', color: '#047857', bg: 'rgba(16,185,129,0.12)' },
+    { label: 'Audit Shift Logs', desc: `${logs.length} biometric records`, icon: Clock, to: '/admin/logs', color: '#1d4ed8', bg: 'rgba(59,130,246,0.12)' },
     { label: 'Manage Leaves', desc: `${leaves.length} total bookings`, icon: FileText, to: '/admin/leaves', color: '#2563eb', bg: 'rgba(37,99,235,0.12)' },
     { label: 'Positions & Depts', desc: 'Organizational hierarchy', icon: Briefcase, to: '/admin/positions', color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
   ];
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
       {totalPending > 0 && (
         <div className="card glass" style={{
           padding: '20px 24px', borderRadius: 22, marginBottom: 28,
-          background: 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(255,255,255,0.9))',
+          background: 'rgba(245,158,11,0.12)',
           border: '2px solid #f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 16, boxShadow: '0 8px 32px rgba(245,158,11,0.15)'
         }}>
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
       <div className="card glass" style={{ padding: 28, borderRadius: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <span style={{ color: '#0f172a', fontWeight: 800, fontSize: '1.05rem' }}>Company Attendance Volume — Last 7 Days</span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#047857', background: 'rgba(16,185,129,0.12)', padding: '4px 12px', borderRadius: 20 }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1d4ed8', background: 'rgba(59,130,246,0.12)', padding: '4px 12px', borderRadius: 20 }}>
             Biometric activity
           </span>
         </div>
@@ -189,12 +189,12 @@ export default function AdminDashboard() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} allowDecimals={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(4,120,87,0.06)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(29,78,216,0.06)' }} />
             <Bar dataKey="clockIns" fill="url(#barGrad)" radius={[6,6,0,0]} />
             <defs>
               <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#059669" />
-                <stop offset="100%" stopColor="#065f46" />
+                <stop offset="0%" stopColor="#2563eb" />
+                <stop offset="100%" stopColor="#1e40af" />
               </linearGradient>
             </defs>
           </BarChart>
