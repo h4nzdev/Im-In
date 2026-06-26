@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -7,8 +7,15 @@ import { db } from '../lib/db';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const context = useOutletContext();
-  const { user, logout } = useAuthStore();
+  const { user: loggedInUser, logout } = useAuthStore();
+
+  const targetId = searchParams.get('userId');
+  const targetUser = targetId ? db.getUserById(targetId) : null;
+  const user = targetUser || loggedInUser;
+  const isInspectingOther = Boolean(targetUser && targetUser.userId !== loggedInUser?.userId);
+
   const [positions] = useState(() => db.getPositions());
   const [logs] = useState(() => db.getUserLogs(user.userId));
   const [leaves] = useState(() => db.getUserLeaves(user.userId));
@@ -74,6 +81,17 @@ export default function Profile() {
 
   return (
     <div ref={pageRef} style={{ maxWidth: 620, margin: '0 auto', paddingBottom: 40 }}>
+      {isInspectingOther && (
+        <div style={{ padding: '14px 18px', borderRadius: 16, background: '#1e3a8a', color: 'white', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(30,58,138,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Shield size={18} color="#93c5fd" />
+            <span style={{ fontSize: '0.88rem', fontWeight: 800 }}>Admin View: Inspecting {user.name}</span>
+          </div>
+          <button onClick={() => navigate('/admin/employees')} style={{ padding: '6px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
+            ← Back to Directory
+          </button>
+        </div>
+      )}
       
       {/* Avatar + name card */}
       <div className="card glass" style={{ ...cardStyle, textAlign: 'center', paddingTop: 40, paddingBottom: 36, marginBottom: 20 }}>
