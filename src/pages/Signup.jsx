@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
+import stompLogo from '../assets/stomp.png';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -74,8 +75,9 @@ export default function Signup() {
         ) : (
           <>
             <div className="field" style={{ textAlign: 'center', marginBottom: 32 }}>
+              <img src={stompLogo} alt="Stomp" style={{ height: 48, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
               <div style={{ fontSize: 36, fontWeight: 800, background: 'linear-gradient(135deg,#059669,#065f46)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 6 }}>
-                Join Im'In
+                Join Stomp
               </div>
               <p style={{ color: 'rgba(100,116,139,0.85)', fontSize: '0.9rem' }}>Create your corporate account</p>
             </div>

@@ -4,6 +4,8 @@ import { gsap } from 'gsap';
 import { LogIn, Shield, User, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
+import stompLogo from '../assets/stomp.png';
+
 export default function Login() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
@@ -59,8 +61,9 @@ export default function Login() {
       <div ref={cardRef} className="glass" style={{ width: '100%', maxWidth: 440, borderRadius: 28, padding: 40, boxShadow: '0 16px 48px rgba(15,23,42,0.1)' }}>
 
         <div className="field" style={{ textAlign: 'center', marginBottom: 32 }}>
+          <img src={stompLogo} alt="Stomp" style={{ height: 56, width: 'auto', margin: '0 auto 10px', display: 'block' }} />
           <div style={{ fontSize: 42, fontWeight: 800, background: 'linear-gradient(135deg,#059669,#065f46)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4, letterSpacing: '-1px' }}>
-            Im'In
+            Stomp
           </div>
           <p style={{ color: '#64748b', fontSize: '0.92rem', fontWeight: 500, margin: 0 }}>Enterprise Attendance Portal</p>
         </div>

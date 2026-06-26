@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
+import stompLogo from '../assets/stomp.png';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -52,9 +53,12 @@ export default function Layout() {
         borderRight: '1px solid rgba(15,23,42,0.08)', borderLeft: 'none', borderTop: 'none', borderBottom: 'none',
         flexDirection: 'column', padding: '24px 16px', borderRadius: 0,
       }}>
-        <span style={{ fontSize: 24, fontWeight: 800, background: 'linear-gradient(135deg,#10b981,#059669)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 32, paddingLeft: 8, letterSpacing: '-0.5px' }}>
-          Im'In
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, paddingLeft: 8 }}>
+          <img src={stompLogo} alt="Stomp Logo" style={{ height: 34, width: 'auto' }} />
+          <span style={{ fontSize: 24, fontWeight: 800, background: 'linear-gradient(135deg,#10b981,#059669)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.5px' }}>
+            Stomp
+          </span>
+        </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
           {links.map(({ to, icon: Icon, label }) => (
@@ -74,7 +78,7 @@ export default function Layout() {
           <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', padding: 8, borderRadius: 12, marginBottom: 6, transition: 'background 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(15,23,42,0.04)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 700, color: 'white', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.95rem', flexShrink: 0 }}>
               {user?.name?.[0] || '?'}
             </div>
             <div style={{ overflow: 'hidden' }}>
@@ -97,19 +101,18 @@ export default function Layout() {
       {/* Mobile top header */}
       <nav className="glass top-header" style={{ position: 'sticky', top: 0, zIndex: 50, borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
         <div style={{ padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <span style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(135deg,#10b981,#059669)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', flexShrink: 0 }}>
-            Im'In
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src={stompLogo} alt="Stomp Logo" style={{ height: 28, width: 'auto' }} />
+            <span style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(135deg,#10b981,#059669)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', flexShrink: 0 }}>
+              Stomp
+            </span>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link to="/profile" style={{ textDecoration: 'none' }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: 'white', cursor: 'pointer' }}>
                 {user?.name?.[0] || '?'}
               </div>
             </Link>
-            <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: 6, borderRadius: 8, transition: 'color 0.15s' }}
-              onMouseEnter={e => e.target.style.color='#0f172a'} onMouseLeave={e => e.target.style.color='#64748b'}>
-              <LogOut size={18} />
-            </button>
           </div>
         </div>
       </nav>

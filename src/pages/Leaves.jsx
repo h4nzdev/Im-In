@@ -45,7 +45,7 @@ export default function Leaves() {
     <div ref={containerRef}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', marginBottom: 24 }}>Leave Requests</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 24 }}>
+      <div className="leaves-grid">
 
         <div className="card" style={cardStyle}>
           <p style={{ color: '#334155', fontWeight: 600, fontSize: '1rem', marginBottom: 20 }}>New Request</p>
@@ -59,7 +59,7 @@ export default function Leaves() {
                 <option>Personal</option>
               </select>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="leave-date-grid">
               <div>
                 <label style={{ display: 'block', color: 'rgba(51,65,85,0.85)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Start</label>
                 <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} required />

@@ -111,6 +111,18 @@ select option {
   grid-template-columns: 1fr 1.4fr;
 }
 
+.leaves-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+.leave-date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 /* Responsive Sidebars & Main Content */
 .sidebar    { display: none; }
 .bottom-nav { display: none; }
@@ -119,8 +131,11 @@ select option {
   .top-header          { display: flex !important; }
   .bottom-nav          { display: flex !important; }
   .layout-content-area { margin-left: 0 !important; width: 100%; }
-  .main-content        { padding-bottom: 84px !important; padding-left: 16px !important; padding-right: 16px !important; margin: 0 auto !important; width: 100%; }
+  .main-content        { padding-bottom: 115px !important; padding-left: 14px !important; padding-right: 14px !important; margin: 0 auto !important; width: 100%; }
   .dashboard-grid      { grid-template-columns: 1fr !important; }
+  .leaves-grid         { grid-template-columns: 1fr !important; gap: 18px !important; }
+  .leave-date-grid     { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .cal-card            { padding: 14px !important; }
 }
 
 @media (min-width: 769px) {

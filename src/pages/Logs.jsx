@@ -164,15 +164,15 @@ export default function Logs() {
       {/* Data Table Card */}
       <div className="card glass" style={{ padding: 0, borderRadius: 24, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 780, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.04)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Log ID</th>
-                {isAdmin && <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee</th>}
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Punch Type</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date & Time</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GPS Geolocation</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Captured Device</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Log ID</th>
+                {isAdmin && <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Employee</th>}
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Punch Type</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Date & Time</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>GPS Geolocation</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Captured Device</th>
               </tr>
             </thead>
             <tbody>
@@ -195,12 +195,12 @@ export default function Logs() {
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.06)'}
                       onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'}>
                       
-                      <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem', color: '#334155' }}>
+                      <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem', color: '#334155', whiteSpace: 'nowrap' }}>
                         {log.logId}
                       </td>
 
                       {isAdmin && (
-                        <td style={{ padding: '16px 20px', fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
+                        <td style={{ padding: '16px 20px', fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', whiteSpace: 'nowrap' }}>
                           {u.name}
                         </td>
                       )}
@@ -216,20 +216,20 @@ export default function Logs() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>{timeStr}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{dateStr}</span>
+                      <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a', display: 'block', whiteSpace: 'nowrap' }}>{timeStr}</span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', whiteSpace: 'nowrap' }}>{dateStr}</span>
                       </td>
 
-                      <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#475569' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#475569', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                           <MapPin size={14} color="#059669" />
                           {log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'}
                         </div>
                       </td>
 
-                      <td style={{ padding: '16px 20px', fontSize: '0.85rem', color: '#64748b' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <td style={{ padding: '16px 20px', fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                           <Smartphone size={14} />
                           {log.deviceInfo || 'Web Browser'}
                         </div>

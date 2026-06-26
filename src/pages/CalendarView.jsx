@@ -113,67 +113,69 @@ export default function CalendarView() {
       </div>
 
       {/* Calendar Card Grid */}
-      <div className="card glass" style={{ padding: 26, borderRadius: 24, boxShadow: '0 8px 32px rgba(15,23,42,0.06)' }}>
-        {/* Days Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, marginBottom: 14, textAlign: 'center' }}>
-          {DAYS.map(day => (
-            <div key={day} style={{ fontSize: '0.82rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '6px 0' }}>
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Cells Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
-          {blanks.map((_, i) => (
-            <div key={`b_${i}`} style={{ minHeight: 110, background: 'rgba(241,245,249,0.5)', borderRadius: 18, border: '1px dashed rgba(15,23,42,0.08)' }} />
-          ))}
-
-          {monthDays.map(day => {
-            const today = isToday(day);
-            const events = getDayEvents(day);
-
-            return (
-              <div key={day} className="cal-day" style={{
-                minHeight: 110, padding: 14, borderRadius: 18,
-                background: today ? 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(255,255,255,0.95))' : '#ffffff',
-                border: today ? '2px solid #10b981' : '1px solid rgba(15,23,42,0.14)',
-                display: 'flex', flexDirection: 'column', gap: 8,
-                boxShadow: today ? '0 8px 24px rgba(16,185,129,0.18)' : '0 2px 10px rgba(15,23,42,0.03)',
-                transition: 'all 0.15s', opacity: 1 // explicitly ensure opacity is 1
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,0.08)'; e.currentTarget.style.borderColor = today ? '#10b981' : '#059669'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = today ? '0 8px 24px rgba(16,185,129,0.18)' : '0 2px 10px rgba(15,23,42,0.03)'; e.currentTarget.style.borderColor = today ? '#10b981' : 'rgba(15,23,42,0.14)'; }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{
-                    fontWeight: 800,
-                    fontSize: '1rem',
-                    color: today ? 'white' : '#0f172a',
-                    width: today ? 28 : 'auto', height: today ? 28 : 'auto', borderRadius: '50%',
-                    background: today ? '#10b981' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    {day}
-                  </span>
-                </div>
-
-                {/* Event badges */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1 }}>
-                  {events.map((ev, i) => (
-                    <div key={i} style={{
-                      padding: '4px 8px', borderRadius: 6, fontSize: '0.74rem', fontWeight: 800,
-                      color: ev.color, background: ev.bg,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      letterSpacing: '0.01em'
-                    }}>
-                      {ev.title}
-                    </div>
-                  ))}
-                </div>
+      <div className="card glass cal-card" style={{ padding: 26, borderRadius: 24, boxShadow: '0 8px 32px rgba(15,23,42,0.06)', overflowX: 'auto' }}>
+        <div style={{ minWidth: 620 }}>
+          {/* Days Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, marginBottom: 14, textAlign: 'center' }}>
+            {DAYS.map(day => (
+              <div key={day} style={{ fontSize: '0.82rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '6px 0' }}>
+                {day}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Cells Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+            {blanks.map((_, i) => (
+              <div key={`b_${i}`} style={{ minHeight: 110, background: 'rgba(241,245,249,0.5)', borderRadius: 18, border: '1px dashed rgba(15,23,42,0.08)' }} />
+            ))}
+
+            {monthDays.map(day => {
+              const today = isToday(day);
+              const events = getDayEvents(day);
+
+              return (
+                <div key={day} className="cal-day" style={{
+                  minHeight: 110, padding: 12, borderRadius: 18,
+                  background: today ? 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(255,255,255,0.95))' : '#ffffff',
+                  border: today ? '2px solid #10b981' : '1px solid rgba(15,23,42,0.14)',
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                  boxShadow: today ? '0 8px 24px rgba(16,185,129,0.18)' : '0 2px 10px rgba(15,23,42,0.03)',
+                  transition: 'all 0.15s', opacity: 1 // explicitly ensure opacity is 1
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,0.08)'; e.currentTarget.style.borderColor = today ? '#10b981' : '#059669'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = today ? '0 8px 24px rgba(16,185,129,0.18)' : '0 2px 10px rgba(15,23,42,0.03)'; e.currentTarget.style.borderColor = today ? '#10b981' : 'rgba(15,23,42,0.14)'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      color: today ? 'white' : '#0f172a',
+                      width: today ? 28 : 'auto', height: today ? 28 : 'auto', borderRadius: '50%',
+                      background: today ? '#10b981' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {day}
+                    </span>
+                  </div>
+
+                  {/* Event badges */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1 }}>
+                    {events.map((ev, i) => (
+                      <div key={i} style={{
+                        padding: '4px 8px', borderRadius: 6, fontSize: '0.74rem', fontWeight: 800,
+                        color: ev.color, background: ev.bg,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        letterSpacing: '0.01em'
+                      }}>
+                        {ev.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

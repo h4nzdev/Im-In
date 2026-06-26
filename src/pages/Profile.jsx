@@ -251,7 +251,7 @@ export default function Profile() {
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'; }}
       >
-        <LogOut size={18} /> Sign Out of Im'In
+        <LogOut size={18} /> Sign Out of Stomp
       </button>
     </div>
   );

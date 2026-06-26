@@ -20,7 +20,7 @@ const AdminApprovals = lazy(() => import('./pages/AdminApprovals'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <p style={{ color: '#94a3b8', fontWeight: 600 }}>Loading Im'In...</p>
+    <p style={{ color: '#94a3b8', fontWeight: 600 }}>Loading Stomp...</p>
   </div>
 );
 
