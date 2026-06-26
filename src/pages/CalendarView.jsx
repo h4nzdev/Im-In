@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
-import { ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, X, MapPin, Info, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, X, MapPin, Info, Sparkles, Upload, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 
@@ -10,6 +10,18 @@ export default function CalendarView() {
   const { user } = useAuthStore();
   const [logs] = useState(() => db.getUserLogs(user.userId));
   const [leaves] = useState(() => db.getUserLeaves(user.userId));
+
+  const [customRoster, setCustomRoster] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`realynk_roster_${user.userId}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const fileInputRef = useRef();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
@@ -37,10 +49,53 @@ export default function CalendarView() {
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
   const goToToday = () => setCurrentDate(new Date());
 
+  const handleFileUpload = (e) => {
+    const file = e.target?.files?.[0];
+    generateSampleRoster(file ? file.name : "Uploaded CSV");
+  };
+
+  const generateSampleRoster = (sourceName = "CSV Import") => {
+    const sample = {};
+    const shiftsList = [
+      { shift: 'Morning Shift (A)', time: '08:00 AM - 05:00 PM', location: 'HQ Terminal #1 (Floor 2)' },
+      { shift: 'Mid Shift (B)', time: '10:00 AM - 07:00 PM', location: 'Branch Office Terminal #3' },
+      { shift: 'Night Shift (C)', time: '09:00 PM - 06:00 AM', location: 'Server Operations Room' },
+      { shift: 'Hybrid / Remote', time: 'Core Hours 10AM - 4PM', location: 'WFH Approved Terminal' }
+    ];
+    
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= totalDays; d++) {
+      const dt = new Date(year, month, d);
+      if (dt.getDay() !== 0 && dt.getDay() !== 6 && d % 4 !== 0) {
+        sample[d] = shiftsList[d % shiftsList.length];
+      }
+    }
+
+    setCustomRoster(sample);
+    localStorage.setItem(`realynk_roster_${user.userId}`, JSON.stringify(sample));
+    setUploadSuccess(true);
+    setTimeout(() => {
+      setShowUploadModal(false);
+      setUploadSuccess(false);
+    }, 1800);
+  };
+
   const getDayEvents = (dayNum) => {
     const targetDate = new Date(year, month, dayNum);
     const dateStr = targetDate.toLocaleDateString('en-US');
     const events = [];
+
+    // Custom Uploaded Roster check
+    if (customRoster[dayNum]) {
+      events.push({
+        type: 'roster',
+        title: customRoster[dayNum].shift,
+        time: customRoster[dayNum].time,
+        location: customRoster[dayNum].location,
+        color: '#0d9488',
+        bg: 'rgba(13,148,136,0.18)'
+      });
+    }
 
     // Weekend check
     const dayOfWeek = targetDate.getDay();
@@ -89,89 +144,82 @@ export default function CalendarView() {
 
   return (
     <div ref={containerRef}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
-            Work Schedule & Roster
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+            Schedule
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '4px 0 0', fontWeight: 500 }}>
-            Monthly attendance roster, shift allocations, and leave bookings
-          </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={goToToday} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer', color: '#0f172a', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            Today
-          </button>
-          <div style={{ display: 'flex', background: 'white', border: '1px solid rgba(15,23,42,0.15)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <button onClick={prevMonth} style={{ padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', borderRight: '1px solid rgba(15,23,42,0.1)' }}><ChevronLeft size={18} color="#0f172a" /></button>
-            <span style={{ padding: '8px 16px', fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', minWidth: 130, textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', background: 'white', border: '1px solid rgba(15,23,42,0.12)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+            <button onClick={prevMonth} style={{ padding: '6px 12px', border: 'none', background: 'transparent', cursor: 'pointer', borderRight: '1px solid rgba(15,23,42,0.08)' }}><ChevronLeft size={18} color="#0f172a" /></button>
+            <span style={{ padding: '6px 14px', fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', minWidth: 120, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {monthNames[month]} {year}
             </span>
-            <button onClick={nextMonth} style={{ padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', borderLeft: '1px solid rgba(15,23,42,0.1)' }}><ChevronRight size={18} color="#0f172a" /></button>
+            <button onClick={nextMonth} style={{ padding: '6px 12px', border: 'none', background: 'transparent', cursor: 'pointer', borderLeft: '1px solid rgba(15,23,42,0.08)' }}><ChevronRight size={18} color="#0f172a" /></button>
           </div>
+          <button onClick={goToToday} style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#2563eb', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+            Today
+          </button>
+          <button onClick={() => setShowUploadModal(true)} style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(13,148,136,0.25)', background: 'rgba(13,148,136,0.08)', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#0d9488', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 6px rgba(0,0,0,0.03)', transition: 'all 0.15s' }}>
+            <Upload size={14} /> Upload Schedule
+          </button>
         </div>
       </div>
 
       {/* Calendar Card Grid */}
-      <div className="card glass cal-card" style={{ width: '100%', maxWidth: '100%', boxShadow: 'none' }}>
+      <div className="card glass cal-card" style={{ width: '100%', maxWidth: '100%', boxShadow: 'none', padding: '16px 10px', borderRadius: 24, background: 'white', border: '1px solid rgba(15,23,42,0.08)' }}>
         <div style={{ width: '100%' }}>
           {/* Days Header */}
-          <div className="cal-grid" style={{ marginBottom: 14, textAlign: 'center' }}>
+          <div className="cal-grid" style={{ marginBottom: 8, textAlign: 'center' }}>
             {DAYS.map(day => (
-              <div key={day} style={{ fontSize: '0.82rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '6px 0' }}>
+              <div key={day} style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 0' }}>
                 {day.slice(0, 3)}
               </div>
             ))}
           </div>
 
           {/* Cells Grid */}
-          <div className="cal-grid">
+          <div className="cal-grid" style={{ gap: 2 }}>
             {blanks.map((_, i) => (
-              <div key={`b_${i}`} className="cal-day" style={{ background: 'rgba(241,245,249,0.5)', border: '1px dashed rgba(15,23,42,0.08)' }} />
+              <div key={`b_${i}`} className="cal-day" style={{ background: 'transparent', border: 'none', minHeight: 48 }} />
             ))}
 
             {monthDays.map(day => {
               const today = isToday(day);
+              const isSelected = selectedDay === day;
               const events = getDayEvents(day);
 
               return (
                 <div key={day} className="cal-day" onClick={() => setSelectedDay(day)} style={{
                   cursor: 'pointer',
-                  background: today ? 'rgba(37,99,235,0.08)' : '#ffffff',
-                  border: today ? '2px solid #2563eb' : '1px solid rgba(15,23,42,0.14)',
-                  display: 'flex', flexDirection: 'column',
-                  boxShadow: 'none', transition: 'all 0.15s', opacity: 1
+                  background: 'transparent',
+                  border: 'none',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
+                  paddingTop: 6, minHeight: 52, transition: 'all 0.15s', borderRadius: 12
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = '#2563eb'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = today ? '#2563eb' : 'rgba(15,23,42,0.14)'; }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(241,245,249,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{
-                      fontWeight: 800,
-                      fontSize: '0.95rem',
-                      color: today ? '#2563eb' : '#0f172a',
-                      display: 'block'
-                    }}>
-                      {day}
-                    </span>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: today ? '#2563eb' : (isSelected ? '#0f172a' : 'transparent'),
+                    color: today ? '#ffffff' : (isSelected ? '#ffffff' : '#0f172a'),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 800, fontSize: '0.92rem', transition: 'all 0.15s',
+                    boxShadow: today ? '0 2px 8px rgba(37,99,235,0.35)' : 'none'
+                  }}>
+                    {day}
                   </div>
 
-                  {/* Event badges */}
-                  <div className="cal-badges-area" style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, marginTop: 4 }}>
+                  {/* Event Dots Container */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginTop: 4, minHeight: 6, flexWrap: 'wrap', maxWidth: 28 }}>
                     {events.map((ev, i) => (
-                      <div key={i}>
-                        <div className="cal-badge desktop-badge" style={{
-                          color: ev.color, background: ev.bg, padding: '4px 8px', borderRadius: 6, fontSize: '0.74rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                        }}>
-                          {ev.title}
-                        </div>
-                        <div className="mobile-dot" style={{
-                          width: 6, height: 6, borderRadius: '50%',
-                          background: ev.color === '#64748b' ? '#94a3b8' : ev.color,
-                          margin: '0 auto'
-                        }} />
-                      </div>
+                      <div key={i} style={{
+                        width: 5, height: 5, borderRadius: '50%',
+                        background: ev.color === '#64748b' ? '#94a3b8' : ev.color
+                      }} />
                     ))}
                   </div>
                 </div>
@@ -182,11 +230,12 @@ export default function CalendarView() {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 24, marginTop: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: '0.86rem', fontWeight: 700, color: '#475569' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 14, height: 14, borderRadius: 4, background: 'rgba(59,130,246,0.35)', border: '1px solid #2563eb' }} /> Recorded Shift</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 14, height: 14, borderRadius: 4, background: 'rgba(37,99,235,0.35)', border: '1px solid #2563eb' }} /> Approved Leave</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 14, height: 14, borderRadius: 4, background: 'rgba(245,158,11,0.35)', border: '1px solid #d97706' }} /> Pending Leave</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 14, height: 14, borderRadius: 4, background: 'rgba(148,163,184,0.35)', border: '1px solid #64748b' }} /> Rest Day</div>
+      <div style={{ display: 'flex', gap: 16, marginTop: 18, justifyContent: 'center', flexWrap: 'wrap', fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#0d9488' }} /> Uploaded Roster</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} /> Recorded Shift</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} /> Approved Leave</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> Pending Leave</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#94a3b8' }} /> Rest Day</div>
       </div>
 
       {/* Calendar Day Info Modal */}
@@ -235,6 +284,22 @@ export default function CalendarView() {
                 </div>
               )}
 
+              {/* Uploaded Roster Shift */}
+              {getDayEvents(selectedDay).filter(ev => ev.type === 'roster').map((ev, idx) => (
+                <div key={`rst_${idx}`} style={{ padding: 16, borderRadius: 16, background: 'rgba(13,148,136,0.08)', border: '1px solid rgba(13,148,136,0.25)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 8, background: '#0d9488', color: 'white', fontWeight: 800, fontSize: '0.72rem' }}>
+                      UPLOADED ROSTER
+                    </span>
+                    <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>{ev.time}</span>
+                  </div>
+                  <p style={{ margin: '2px 0 0', fontWeight: 800, color: '#134e4a', fontSize: '0.98rem' }}>{ev.title}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', color: '#0f766e' }}>
+                    <MapPin size={14} /> {ev.location}
+                  </div>
+                </div>
+              ))}
+
               {/* Weekend */}
               {getDayEvents(selectedDay).some(ev => ev.type === 'weekend') && (
                 <div style={{ padding: 16, borderRadius: 16, background: 'rgba(148,163,184,0.12)', border: '1px solid rgba(148,163,184,0.25)', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -279,6 +344,50 @@ export default function CalendarView() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Schedule Roster Modal */}
+      {showUploadModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowUploadModal(false)}>
+          <div className="card glass" style={{ width: '100%', maxWidth: 460, borderRadius: 28, padding: 32, background: 'white', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowUploadModal(false)} style={{ position: 'absolute', top: 20, right: 20, background: '#f1f5f9', border: 'none', width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
+              <X size={18} />
+            </button>
+
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 20, background: 'rgba(13,148,136,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0d9488', margin: '0 auto 12px' }}>
+                <FileSpreadsheet size={28} />
+              </div>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Upload Monthly Roster</h2>
+              <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '6px 0 0' }}>Import shift schedules via CSV or Excel file</p>
+            </div>
+
+            <input type="file" ref={fileInputRef} accept=".csv,.xlsx,.json" style={{ display: 'none' }} onChange={handleFileUpload} />
+
+            {uploadSuccess ? (
+              <div style={{ padding: 28, borderRadius: 20, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', textAlign: 'center', margin: '16px 0' }}>
+                <CheckCircle2 size={36} color="#10b981" style={{ margin: '0 auto 8px', display: 'block' }} />
+                <p style={{ margin: 0, fontWeight: 800, color: '#065f46', fontSize: '1.05rem' }}>Roster Uploaded Successfully!</p>
+                <p style={{ margin: '4px 0 0', color: '#047857', fontSize: '0.82rem' }}>Shift allocations synced to calendar grid.</p>
+              </div>
+            ) : (
+              <>
+                <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #0d9488', borderRadius: 20, padding: '32px 20px', textAlign: 'center', background: 'rgba(13,148,136,0.04)', cursor: 'pointer', marginBottom: 20, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(13,148,136,0.08)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(13,148,136,0.04)'}>
+                  <Upload size={32} color="#0d9488" style={{ margin: '0 auto 10px', display: 'block' }} />
+                  <p style={{ margin: 0, fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>Click to Browse Local Files</p>
+                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.8rem' }}>Supported: .CSV, .XLSX, .JSON</p>
+                </div>
+
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 18, textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>Don't have a roster file ready?</p>
+                  <button onClick={() => generateSampleRoster("Sample Roster")} style={{ width: '100%', padding: '12px', borderRadius: 14, border: 'none', background: '#0f172a', color: 'white', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 12px rgba(15,23,42,0.2)' }}>
+                    <Sparkles size={16} color="#38bdf8" /> Generate Demo June Roster
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

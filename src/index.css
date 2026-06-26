@@ -161,12 +161,9 @@ select option {
   .dashboard-grid      { grid-template-columns: 1fr !important; }
   .leaves-grid         { grid-template-columns: 1fr !important; gap: 18px !important; }
   .leave-date-grid     { grid-template-columns: 1fr !important; gap: 10px !important; }
-  .cal-card            { padding: 8px !important; border-radius: 16px !important; }
-  .cal-grid            { gap: 4px !important; }
-  .cal-day             { min-height: 48px !important; padding: 4px 2px !important; border-radius: 10px !important; align-items: center !important; }
-  .cal-badges-area     { flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; gap: 3px !important; margin-top: 2px !important; }
-  .mobile-dot          { display: block !important; }
-  .desktop-badge       { display: none !important; }
+  .cal-card            { padding: 12px 6px !important; border-radius: 20px !important; }
+  .cal-grid            { gap: 2px !important; }
+  .cal-day             { min-height: 46px !important; padding: 2px 0 !important; border: none !important; background: transparent !important; }
   .table-card          { border-radius: 16px !important; }
   .data-table          { min-width: 100% !important; width: 100% !important; }
   .data-table th, .data-table td { padding: 6px 4px !important; font-size: 0.62rem !important; }
