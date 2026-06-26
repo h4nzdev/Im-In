@@ -1,0 +1,64 @@
+import { Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Clock, Calendar, BarChart2, Briefcase, FileText, UserCheck } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+
+export default function BottomNav() {
+  const location = useLocation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'Admin';
+
+  const userLinks = [
+    { to: '/',          icon: LayoutDashboard, label: 'Home'      },
+    { to: '/logs',      icon: Clock,           label: 'Logs'      },
+    { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
+    { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+  ];
+
+  const adminLinks = [
+    { to: '/admin',           icon: LayoutDashboard, label: 'Admin'     },
+    { to: '/admin/approvals', icon: UserCheck,       label: 'Approvals' },
+    { to: '/calendar',        icon: Calendar,        label: 'Schedule'  },
+    { to: '/admin/logs',      icon: Clock,           label: 'Logs'      },
+  ];
+
+  const links = isAdmin ? adminLinks : userLinks;
+  const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(to + '/');
+
+  return (
+    <nav className="bottom-nav" style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+      background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderTop: '1px solid rgba(15,23,42,0.08)',
+      boxShadow: '0 -4px 20px rgba(15,23,42,0.04)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+    }}>
+      <div style={{ display: 'flex', width: '100%', height: 64 }}>
+        {links.map(({ to, icon: Icon, label }) => {
+          const active = isActive(to);
+          return (
+            <Link key={to} to={to} style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', gap: 4, textDecoration: 'none',
+              color: active ? '#047857' : 'rgba(100,116,139,0.65)',
+              transition: 'color 0.2s',
+              position: 'relative',
+            }}>
+              {active && (
+                <span style={{
+                  position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+                  width: 32, height: 2, background: 'linear-gradient(90deg,#047857,#34d399)',
+                  borderRadius: '0 0 4px 4px',
+                }} />
+              )}
+              <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+              <span style={{ fontSize: '0.68rem', fontWeight: active ? 700 : 500, letterSpacing: '0.02em' }}>
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
