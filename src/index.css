@@ -75,12 +75,12 @@ select option {
 }
 
 .btn-primary {
-  background: #2563eb;
-  color: white;
-  border: none;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
   border-radius: 12px;
   padding: 13px 24px;
-  font-weight: 600;
+  font-weight: 800 !important;
   cursor: pointer;
   width: 100%;
   font-size: 0.95rem;

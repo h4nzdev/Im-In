@@ -227,7 +227,7 @@ export default function Signup() {
                 </div>
               )}
 
-              <button className="field btn-primary" type="submit" disabled={loading || (form.email && !validateEmailDomain(form.email))} style={{ marginTop: 8, padding: '14px', borderRadius: 14, fontWeight: 800, fontSize: '0.98rem' }}>
+              <button className="field btn-primary" type="submit" disabled={loading || (form.email && !validateEmailDomain(form.email))} style={{ marginTop: 8, padding: '14px', borderRadius: 14, fontWeight: 800, fontSize: '0.98rem', background: '#2563eb', color: '#ffffff', border: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 {loading ? 'Registering Corporate Identity...' : 'Submit Onboarding Registration'}
               </button>
             </form>

@@ -97,7 +97,7 @@ export default function Login() {
             </div>
           )}
 
-          <button className="field btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px' }}>
+          <button className="field btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%' }}>
             <LogIn size={18} /> {loading ? 'Logging in...' : 'Sign In to Portal'}
           </button>
         </form>
