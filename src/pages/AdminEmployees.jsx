@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { Users, Search, Filter, Eye, Shield, User, Mail, Briefcase, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock } from 'lucide-react';
 import { db } from '../lib/db';
 
 const statusBadge = (status) => {
@@ -21,11 +21,18 @@ const statusBadge = (status) => {
 
 export default function AdminEmployees() {
   const navigate = useNavigate();
-  const [users] = useState(() => db.getUsers());
+  const [users, setUsers] = useState(() => db.getUsers());
   const [positions] = useState(() => db.getPositions());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  
+  // Deadline modal state
+  const [deadlineModalUser, setDeadlineModalUser] = useState(null);
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [deadlineTitle, setDeadlineTitle] = useState('');
+  const [toast, setToast] = useState('');
+
   const containerRef = useRef();
 
   useEffect(() => {
@@ -59,19 +66,100 @@ export default function AdminEmployees() {
       { label: 'Total Workforce', value: users.length, color: '#0f172a' },
       { label: 'Active Staff', value: users.filter(u => u.status === 'Active').length, color: '#10b981' },
       { label: 'Pending Approvals', value: users.filter(u => u.status === 'Pending').length, color: '#f59e0b' },
-      { label: 'Admin Controllers', value: users.filter(u => u.role === 'Admin').length, color: '#2563eb' }
+      { label: 'Assigned Deadlines', value: users.filter(u => !!u.deadlineDate).length, color: '#6366f1' }
     ];
   }, [users]);
 
+  const handleSaveDeadline = (e) => {
+    e.preventDefault();
+    if (!deadlineModalUser || !deadlineDate) return;
+    const upd = db.updateUserDeadline(deadlineModalUser.userId, deadlineDate, deadlineTitle || 'Complete Assigned Task');
+    setUsers(upd);
+    setToast(`Deadline (${deadlineDate}) successfully assigned to ${deadlineModalUser.name}`);
+    setDeadlineModalUser(null);
+    setDeadlineDate('');
+    setDeadlineTitle('');
+    setTimeout(() => setToast(''), 3500);
+  };
+
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      
+      {/* Toast Banner */}
+      {toast && (
+        <div style={{
+          position: 'fixed', top: 24, right: 24, zIndex: 9999, background: '#065f46', color: 'white',
+          padding: '12px 20px', borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+          display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: '0.88rem',
+          border: '2px solid rgba(255,255,255,0.2)'
+        }}>
+          <CheckCircle2 size={18} color="#6ee7b7" /> {toast}
+        </div>
+      )}
+
+      {/* Assign Deadline Modal */}
+      {deadlineModalUser && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <div className="glass" style={{ width: '100%', maxWidth: 440, borderRadius: 24, padding: 28, background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Calendar size={20} color="#2563eb" /> Assign Employee Deadline
+              </h3>
+              <button onClick={() => setDeadlineModalUser(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ margin: '0 0 16px', fontSize: '0.88rem', color: '#475569', fontWeight: 600 }}>
+              Set a target submission date or onboarding milestone for <strong>{deadlineModalUser.name}</strong> ({deadlineModalUser.userId}).
+            </p>
+
+            <form onSubmit={handleSaveDeadline} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Target Deadline Date</label>
+                <input
+                  type="date"
+                  value={deadlineDate}
+                  onChange={e => setDeadlineDate(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 700 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Task / Requirement Description</label>
+                <input
+                  type="text"
+                  value={deadlineTitle}
+                  onChange={e => setDeadlineTitle(e.target.value)}
+                  placeholder="e.g. Submit Biometric Profile Verification"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 600 }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" onClick={() => setDeadlineModalUser(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#2563eb', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
+                  Save Deadline
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
             Workforce Directory
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '4px 0 0', fontWeight: 500 }}>
-            Manage enterprise personnel records, system roles, and identity profiles
+            Manage enterprise personnel records, system roles, identity profiles, and target deadlines
           </p>
         </div>
       </div>
@@ -146,15 +234,15 @@ export default function AdminEmployees() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700, whiteSpace: 'nowrap' }}>
+          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 840, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Employee Profile</th>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Designation</th>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Contact Credentials</th>
-                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Access Level</th>
+                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Assigned Deadline</th>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -187,27 +275,49 @@ export default function AdminEmployees() {
                       </div>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 8, background: u.role === 'Admin' ? '#eff6ff' : '#f1f5f9', color: u.role === 'Admin' ? '#1d4ed8' : '#475569', fontWeight: 800, fontSize: '0.74rem', border: `1px solid ${u.role === 'Admin' ? '#bfdbfe' : '#e2e8f0'}` }}>
-                        {u.role.toUpperCase()}
-                      </span>
+                      {u.deadlineDate ? (
+                        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px', borderRadius: 10 }}>
+                          <span style={{ color: '#4f46e5', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Clock size={12} /> {u.deadlineDate}
+                          </span>
+                          {u.deadlineTitle && <span style={{ fontSize: '0.68rem', color: '#64748b', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.deadlineTitle}</span>}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: 600 }}>None Assigned</span>
+                      )}
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       {statusBadge(u.status || 'Active')}
                     </td>
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <button
-                        onClick={() => navigate(`/profile?userId=${u.userId}`)}
-                        style={{
-                          padding: '8px 16px', borderRadius: 10, background: '#2563eb', color: 'white',
-                          border: 'none', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer',
-                          display: 'inline-flex', alignItems: 'center', gap: 6,
-                          boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                      >
-                        <Eye size={15} /> View Profile
-                      </button>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); }}
+                          style={{
+                            padding: '8px 12px', borderRadius: 10, background: 'white', color: '#4f46e5',
+                            border: '1px solid #c7d2fe', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
+                            display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all 0.15s'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#4f46e5'; e.currentTarget.style.color = 'white'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#4f46e5'; }}
+                        >
+                          <Calendar size={14} /> Assign Deadline
+                        </button>
+
+                        <button
+                          onClick={() => navigate(`/profile?userId=${u.userId}`)}
+                          style={{
+                            padding: '8px 14px', borderRadius: 10, background: '#2563eb', color: 'white',
+                            border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.15s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                          <Eye size={14} /> Profile
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

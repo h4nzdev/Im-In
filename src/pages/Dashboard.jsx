@@ -41,7 +41,8 @@ function hoursWeek(logs, userId) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuthStore();
+  const { user: authUser } = useAuthStore();
+  const user = db.getUserById(authUser.userId) || authUser;
   const [logs, setLogs] = useState(() => db.getUserLogs(user.userId));
   const [time, setTime] = useState(new Date());
   const [location, setLocation] = useState(null);
@@ -161,6 +162,28 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Assigned Deadline Banner */}
+      {user.deadlineDate && (
+        <div className="card glass" style={{
+          padding: '16px 20px', borderRadius: 20, marginBottom: 24,
+          background: 'linear-gradient(135deg, #eef2ff, #e0e7ff)', border: '1px solid #c7d2fe',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#4f46e5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
+              <Timer size={22} />
+            </div>
+            <div>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Employee Deadline</span>
+              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e1b4b' }}>{user.deadlineTitle || 'Assigned Enterprise Milestone'}</h4>
+            </div>
+          </div>
+          <div style={{ background: 'white', padding: '8px 16px', borderRadius: 14, border: '1px solid #c7d2fe', color: '#4f46e5', fontWeight: 800, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(79,70,229,0.1)' }}>
+            📅 Due Date: {user.deadlineDate}
+          </div>
+        </div>
+      )}
 
       {/* Stat cards */}
       <div className="card stats-grid" style={{ gap: 20, marginBottom: 24 }}>

@@ -18,10 +18,15 @@ export const useAuthStore = create((set) => ({
     return pub;
   },
 
-  signup: ({ name, email, password, positionId }) => {
+  signup: ({ employeeId, name, email, password, department, assignedAccount, positionId }) => {
     if (db.getUserByEmail(email)) throw new Error('Email already in use');
-    const userId = `USR-${Date.now()}`;
-    const user = { userId, name, email, password, positionId, role: 'User', status: 'Pending', createdAt: new Date().toISOString() };
+    const userId = employeeId || `RLK-${Date.now().toString().slice(-4)}`;
+    if (db.getUserById(userId)) throw new Error('Employee ID already exists');
+    const user = {
+      userId, name, email, password, positionId: positionId || 'POS-002',
+      department: department || 'Shared Services', assignedAccount: assignedAccount || null,
+      role: 'User', status: 'Pending', createdAt: new Date().toISOString()
+    };
     db.createUser(user);
     return user;
   },

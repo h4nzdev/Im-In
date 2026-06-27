@@ -173,6 +173,7 @@ export default function Logs() {
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Log Ref ID</th>
                 {isAdmin && <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Employee</th>}
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Punch Type</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Status</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Date</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Exact Time</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Biometric Location</th>
@@ -182,7 +183,7 @@ export default function Logs() {
             <tbody>
               {pageLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.92rem', fontWeight: 600 }}>
+                  <td colSpan={isAdmin ? 8 : 7} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.92rem', fontWeight: 600 }}>
                     No biometric logs match your current query.
                   </td>
                 </tr>
@@ -216,6 +217,18 @@ export default function Logs() {
                           color: isIn ? '#2563eb' : '#dc2626'
                         }}>
                           {isIn ? 'TIME IN' : 'TIME OUT'}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          padding: '5px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 800,
+                          background: log.status === 'LATE' || log.status === 'UNDERTIME' ? '#fef2f2' : '#ecfdf5',
+                          color: log.status === 'LATE' || log.status === 'UNDERTIME' ? '#dc2626' : '#10b981',
+                          border: `1px solid ${log.status === 'LATE' || log.status === 'UNDERTIME' ? '#fca5a5' : '#a7f3d0'}`,
+                          display: 'inline-block'
+                        }}>
+                          {log.status === 'LATE' ? `⚠️ LATE (+${log.lateMinutes}m)` : log.status === 'UNDERTIME' ? `⚠️ EARLY OUT` : `🟢 ON TIME`}
                         </span>
                       </td>
 
