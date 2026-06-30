@@ -16,10 +16,7 @@ export default function Login() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(cardRef.current, { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' });
-      gsap.from(cardRef.current.querySelectorAll('.field'), {
-        y: 20, opacity: 0, duration: 0.5, stagger: 0.08, delay: 0.2, ease: 'power3.out',
-      });
+      gsap.fromTo(cardRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out' });
     });
     return () => ctx.revert();
   }, []);
@@ -97,7 +94,7 @@ export default function Login() {
             </div>
           )}
 
-          <button className="field btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%' }}>
+          <button className="btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%', opacity: 1 }}>
             <LogIn size={18} /> {loading ? 'Logging in...' : 'Sign In to Portal'}
           </button>
         </form>

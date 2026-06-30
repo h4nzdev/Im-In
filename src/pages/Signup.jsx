@@ -34,12 +34,7 @@ export default function Signup() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(cardRef.current, { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' });
-      if (!submitted) {
-        gsap.from(cardRef.current.querySelectorAll('.field'), {
-          y: 20, opacity: 0, duration: 0.5, stagger: 0.06, delay: 0.15, ease: 'power3.out',
-        });
-      }
+      gsap.fromTo(cardRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out' });
     });
     return () => ctx.revert();
   }, [submitted]);
@@ -227,7 +222,7 @@ export default function Signup() {
                 </div>
               )}
 
-              <button className="field btn-primary" type="submit" disabled={loading || (form.email && !validateEmailDomain(form.email))} style={{ marginTop: 8, padding: '14px', borderRadius: 14, fontWeight: 800, fontSize: '0.98rem', background: '#2563eb', color: '#ffffff', border: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <button className="btn-primary" type="submit" disabled={loading || (form.email && !validateEmailDomain(form.email))} style={{ marginTop: 8, padding: '14px', borderRadius: 14, fontWeight: 800, fontSize: '0.98rem', background: '#2563eb', color: '#ffffff', border: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 1 }}>
                 {loading ? 'Registering Corporate Identity...' : 'Submit Onboarding Registration'}
               </button>
             </form>
