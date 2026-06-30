@@ -22,6 +22,15 @@ function cleanInitialSetup() {
       { positionId: 'POS-004', positionName: 'Full-Stack Engineer', department: 'Engineering' }
     ]);
   }
+  const a = get('assignments');
+  if (a.length === 0) {
+    save('assignments', [
+      { id: 'SOP-001', title: 'Biometric Terminal Audit Protocol v2.4', type: 'SOP Protocol', target: 'Service Delivery', priority: 'High', status: 'Active', description: 'Mandatory daily terminal sanitation and calibration check before start of operations.', createdAt: '2026-06-25' },
+      { id: 'SOP-002', title: 'Q3 Shared Services Compliance Roadmap', type: 'Checklist', target: 'Shared Services', priority: 'Medium', status: 'Active', description: 'Complete quarterly internal security review and update asset ledger.', createdAt: '2026-06-26' },
+      { id: 'SOP-003', title: 'FinTech Global Account Escalation Procedure', type: 'SOP Protocol', target: 'FinTech Global Support', priority: 'High', status: 'Active', description: 'Severity 1 ticket response guidelines and stakeholder notification matrix.', createdAt: '2026-06-27' },
+      { id: 'SOP-004', title: 'Healthcare Billing HIPAA Data Security Guidelines', type: 'Mandatory Training', target: 'Healthcare Billing Operations', priority: 'High', status: 'Active', description: 'Required annual privacy compliance review for billing operations personnel.', createdAt: '2026-06-28' }
+    ]);
+  }
 }
 
 cleanInitialSetup();
@@ -121,6 +130,16 @@ export const db = {
     }
     return u;
   },
+  updateUser:(id, updates) => {
+    const u = get('users').map(x => x.userId === id ? { ...x, ...updates } : x); save('users', u);
+    if (isSupabaseConfigured && supabase) {
+      const su = {};
+      if (updates.isActive !== undefined) su.is_active = updates.isActive;
+      if (updates.status !== undefined) su.status = updates.status;
+      if (Object.keys(su).length > 0) supabase.from('profiles').update(su).eq('user_id', id).then();
+    }
+    return u;
+  },
 
   // Positions
   getPositions:    ()         => get('positions'),
@@ -181,4 +200,10 @@ export const db = {
     }
     return l;
   },
+
+  // Assignments / SOPs
+  getAssignments:    ()         => get('assignments'),
+  addAssignment:     (item)     => { const a = get('assignments'); a.push(item); save('assignments', a); return item; },
+  updateAssignment:  (id, upd)  => { const a = get('assignments').map(x => x.id === id ? { ...x, ...upd } : x); save('assignments', a); return a; },
+  deleteAssignment:  (id)       => { const a = get('assignments').filter(x => x.id !== id); save('assignments', a); return a; }
 };

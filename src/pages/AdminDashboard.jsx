@@ -32,6 +32,10 @@ export default function AdminDashboard() {
   const [logs] = useState(() => db.getLogs());
   const [leaves] = useState(() => db.getLeaves());
 
+  const [onlineMap, setOnlineMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+  const [activeShiftsMap, setActiveShiftsMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
+  const [now, setNow] = useState(Date.now());
+
   const containerRef = useRef();
 
   useEffect(() => {
@@ -41,6 +45,15 @@ export default function AdminDashboard() {
       });
     });
     return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setOnlineMap(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+      setActiveShiftsMap(JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(t);
   }, []);
 
   const today = new Date().toDateString();
@@ -171,6 +184,79 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Realtime Active Personnel Monitor */}
+      <div className="card glass" style={{ padding: 28, borderRadius: 24, marginBottom: 28, border: '1px solid rgba(16,185,129,0.3)', background: 'linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(240,253,244,0.35))' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+              <Activity size={24} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                Realtime Active Personnel Monitor
+              </h2>
+              <p style={{ color: '#047857', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>
+                Live active sessions (`isActive`) & biometric clock timers
+              </p>
+            </div>
+          </div>
+          <span style={{ padding: '6px 14px', borderRadius: 20, background: '#10b981', color: 'white', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'white', display: 'inline-block' }} /> Live Broadcast Active
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+          {users.map(u => {
+            const isOnline = onlineMap[u.userId] || u.isActive;
+            const activeShift = activeShiftsMap[u.userId];
+            let elapsedStr = null;
+            if (activeShift) {
+              const diffSec = Math.max(0, Math.floor((now - activeShift.startTime) / 1000));
+              const h = String(Math.floor(diffSec / 3600)).padStart(2, '0');
+              const m = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
+              const s = String(diffSec % 60).padStart(2, '0');
+              elapsedStr = `${h}:${m}:${s}`;
+            }
+
+            return (
+              <div key={u.userId} style={{
+                padding: 16, borderRadius: 16, background: 'white',
+                border: isOnline ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: isOnline ? '#10b981' : '#cbd5e1',
+                      boxShadow: isOnline ? '0 0 8px #10b981' : 'none',
+                      display: 'inline-block'
+                    }} />
+                    <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{u.name}</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{u.department} ({u.userId})</span>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{
+                    display: 'inline-block', padding: '3px 8px', borderRadius: 8,
+                    background: isOnline ? 'rgba(16,185,129,0.12)' : '#f1f5f9',
+                    color: isOnline ? '#047857' : '#64748b', fontWeight: 800, fontSize: '0.72rem'
+                  }}>
+                    {isOnline ? '🟢 isActive: true' : '⚪ Offline'}
+                  </span>
+                  {elapsedStr && (
+                    <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace' }}>
+                      ⏱️ {elapsedStr}
+                    </div>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>

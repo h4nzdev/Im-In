@@ -79,10 +79,30 @@ export default function ClockIn() {
     return () => ctx.revert();
   }, []);
 
+  const [activeElapsed, setActiveElapsed] = useState(null);
+
   useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000);
+    const t = setInterval(() => {
+      setTime(new Date());
+      const activeSaved = localStorage.getItem(`realynk_active_shift_${user.userId}`);
+      if (activeSaved) {
+        try {
+          const parsed = JSON.parse(activeSaved);
+          const diffMs = Date.now() - parsed.startTime;
+          const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
+          const h = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+          const m = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+          const s = String(totalSecs % 60).padStart(2, '0');
+          setActiveElapsed(`${h}:${m}:${s}`);
+        } catch {
+          setActiveElapsed(null);
+        }
+      } else {
+        setActiveElapsed(null);
+      }
+    }, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [user.userId]);
 
   const sortedLogs = [...logs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   const lastLog = sortedLogs[0];
@@ -119,6 +139,39 @@ export default function ClockIn() {
         status: validation.status,
         lateMinutes: validation.lateMinutes
       });
+
+      // Realtime Active Shift Management
+      if (nextType === 'IN') {
+        const sessionObj = {
+          startTime: nowObj.getTime(),
+          userName: user.name || user.email,
+          userId: user.userId,
+          department: user.department || 'General'
+        };
+        localStorage.setItem(`realynk_active_shift_${user.userId}`, JSON.stringify(sessionObj));
+        const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {};
+        activeAll[user.userId] = sessionObj;
+        localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));
+      } else {
+        localStorage.removeItem(`realynk_active_shift_${user.userId}`);
+        const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {};
+        delete activeAll[user.userId];
+        localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));
+        setActiveElapsed(null);
+      }
+
+      // Push Realtime Notification to Admin Header
+      const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
+      notifs.unshift({
+        id: `NTF-${Date.now()}`,
+        type: nextType === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
+        title: nextType === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
+        desc: `${user.name || user.email} punched ${nextType} (${validation.status}).`,
+        time: nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        unread: true
+      });
+      localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 30)));
+
       if (lat && lng) setLocation({ lat, lng });
       setLogs(db.getUserLogs(user.userId));
       setPunching(false);
@@ -191,6 +244,13 @@ export default function ClockIn() {
         }}>
           {hours}:{mins}<span style={{ fontSize: '0.45em', verticalAlign: 'super', marginLeft: 4, opacity: 0.6 }}>{secs}</span>
         </div>
+
+        {activeElapsed && (
+          <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 20, background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.2))', border: '1px solid rgba(16,185,129,0.35)', color: '#047857', fontWeight: 800, fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+            Active Realtime Shift: {activeElapsed}
+          </div>
+        )}
       </div>
 
       {/* Big Clock Button */}

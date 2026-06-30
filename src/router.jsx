@@ -18,6 +18,7 @@ const Logs = lazy(() => import('./pages/Logs'));
 const CalendarView = lazy(() => import('./pages/CalendarView'));
 const AdminApprovals = lazy(() => import('./pages/AdminApprovals'));
 const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
+const AdminAssignments = lazy(() => import('./pages/AdminAssignments'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -97,6 +98,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin/positions',
         element: wrap(<ProtectedRoute element={<AdminPositions />} requireAdmin />),
+      },
+      {
+        path: 'admin/assignments',
+        element: wrap(<ProtectedRoute element={<AdminAssignments />} requireAdmin />),
       },
       {
         path: 'profile',

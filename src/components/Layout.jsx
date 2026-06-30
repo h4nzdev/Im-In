@@ -1,10 +1,115 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
+
+function AdminNotificationHeader() {
+  const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState(() => JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
+      setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const markAllRead = () => {
+    const updated = notifications.map(n => ({ ...n, unread: false }));
+    setNotifications(updated);
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify(updated));
+  };
+
+  return (
+    <header className="card glass" style={{
+      padding: '14px 22px',
+      borderRadius: 20,
+      marginBottom: 24,
+      border: '1px solid rgba(15,23,42,0.08)',
+      background: 'rgba(255,255,255,0.92)',
+      boxShadow: '0 4px 20px rgba(15,23,42,0.05)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 16, flexWrap: 'wrap', width: '100%'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', display: 'inline-block' }} />
+        <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>Realtime Command Center</span>
+        <span style={{ padding: '3px 10px', borderRadius: 12, background: 'rgba(16,185,129,0.12)', color: '#047857', fontWeight: 800, fontSize: '0.78rem' }}>
+          {Object.keys(onlineUsers).length} Personnel Active Online
+        </span>
+      </div>
+
+      <div style={{ position: 'relative' }}>
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
+          style={{
+            position: 'relative', background: showDropdown ? '#eff6ff' : 'white',
+            border: '1px solid rgba(15,23,42,0.12)', borderRadius: 12, padding: '8px 14px',
+            display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', transition: 'all 0.2s',
+            fontWeight: 800, color: '#0f172a', fontSize: '0.85rem'
+          }}
+        >
+          <Bell size={18} color="#2563eb" />
+          Realtime Alerts
+          {unreadCount > 0 && (
+            <span style={{
+              padding: '2px 7px', borderRadius: 10, background: '#ef4444', color: 'white',
+              fontSize: '0.72rem', fontWeight: 800, boxShadow: '0 2px 6px rgba(239,68,68,0.4)'
+            }}>
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        {showDropdown && (
+          <div className="card glass" style={{
+            position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 360,
+            borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
+            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 100
+          }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+              <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
+              {unreadCount > 0 && (
+                <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
+                  Mark All Read
+                </button>
+              )}
+            </div>
+
+            <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div style={{ padding: 28, textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
+                  No notifications recorded yet.
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div key={n.id} style={{
+                    padding: '12px 18px', borderBottom: '1px solid #f1f5f9',
+                    background: n.unread ? 'rgba(59,130,246,0.06)' : 'white',
+                    transition: 'background 0.15s'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>{n.title}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{n.time}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569', lineHeight: 1.4 }}>{n.desc}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -36,6 +141,7 @@ export default function Layout() {
   const adminLinks = [
     { to: '/admin',           icon: Shield,    label: 'Overview'  },
     { to: '/admin/employees', icon: Users,     label: 'Employees' },
+    { to: '/admin/assignments', icon: BookOpen, label: 'SOP & Tasks' },
     { to: '/admin/approvals', icon: UserCheck, label: 'Approvals' },
     { to: '/calendar',        icon: Calendar,  label: 'Schedule'  },
     { to: '/admin/logs',      icon: Clock,     label: 'Logs'      },
@@ -126,7 +232,8 @@ export default function Layout() {
 
       {/* Center Main Content */}
       <div className="layout-content-area" style={{ minHeight: '100vh' }}>
-        <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', minHeight: 'calc(100vh - 60px)', width: '100%' }}>
+        <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
+          {isAdmin && <AdminNotificationHeader />}
           <Outlet context={{ openInstallModal: () => setShowModal(true) }} />
         </main>
       </div>

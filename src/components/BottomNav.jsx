@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Clock, Calendar, BarChart2, Briefcase, FileText, UserCheck, Users } from 'lucide-react';
+import { LayoutDashboard, Clock, Calendar, BarChart2, Briefcase, FileText, UserCheck, Users, BookOpen } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function BottomNav() {
@@ -15,10 +15,10 @@ export default function BottomNav() {
   ];
 
   const adminLinks = [
-    { to: '/admin',           icon: LayoutDashboard, label: 'Admin'     },
-    { to: '/admin/employees', icon: Users,           label: 'Staff'     },
-    { to: '/admin/approvals', icon: UserCheck,       label: 'Approvals' },
-    { to: '/calendar',        icon: Calendar,        label: 'Schedule'  },
+    { to: '/admin',             icon: LayoutDashboard, label: 'Admin' },
+    { to: '/admin/employees',   icon: Users,           label: 'Staff' },
+    { to: '/admin/assignments', icon: BookOpen,        label: 'SOPs'  },
+    { to: '/admin/approvals',   icon: UserCheck,       label: 'Approvals' },
   ];
 
   const links = isAdmin ? adminLinks : userLinks;
