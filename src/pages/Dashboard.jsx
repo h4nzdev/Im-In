@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [punching, setPunching] = useState(false);
   const [shiftMs, setShiftMs] = useState(0);
+  const [attendanceMode, setAttendanceMode] = useState('TAP');
 
   const containerRef = useRef();
   const btnRef = useRef();
@@ -216,24 +217,74 @@ export default function Dashboard() {
               {formatElapsed(shiftMs)}
             </p>
 
-            <div style={{ position: 'relative', marginBottom: 32 }}>
-              <div ref={ringRef} style={{
-                position: 'absolute', inset: -20, borderRadius: '50%',
-                border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
-                opacity: 0.3, pointerEvents: 'none'
-              }} />
-              <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
-                width: 136, height: 136, borderRadius: '50%', border: 'none', cursor: punching ? 'not-allowed' : 'pointer',
-                background: isClockedIn
-                  ? '#1d4ed8'
-                  : '#2563eb',
-                color: 'white', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px',
-                boxShadow: isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-              }}>
-                {punching ? '...' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
+            {/* Attendance Mode Switcher */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(15,23,42,0.06)', padding: 5, borderRadius: 18, width: '100%', maxWidth: 320 }}>
+              <button
+                type="button"
+                onClick={() => setAttendanceMode('TAP')}
+                style={{
+                  flex: 1, padding: '9px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                  background: attendanceMode === 'TAP' ? 'white' : 'transparent',
+                  color: attendanceMode === 'TAP' ? '#0f172a' : '#64748b',
+                  fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+                }}
+              >
+                📍 GPS Tap
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttendanceMode('FACE')}
+                style={{
+                  flex: 1, padding: '9px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                  background: attendanceMode === 'FACE' ? 'white' : 'transparent',
+                  color: attendanceMode === 'FACE' ? '#2563eb' : '#64748b',
+                  fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+                }}
+              >
+                👤 Face AI <span style={{ padding: '2px 6px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontSize: '0.65rem' }}>SOON</span>
               </button>
             </div>
+
+            {attendanceMode === 'FACE' ? (
+              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 24, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 340, boxShadow: '0 8px 24px rgba(37,99,235,0.06)' }}>
+                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '2rem', boxShadow: '0 6px 18px rgba(37,99,235,0.15)' }}>
+                  🧑‍💻
+                </div>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#1d4ed8', color: 'white', fontWeight: 800, fontSize: '0.72rem', display: 'inline-block', marginBottom: 10 }}>
+                  ⚡ COMING SOON
+                </span>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+                  AI Facial Verification
+                </h4>
+                <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '0 0 16px', lineHeight: 1.45 }}>
+                  Frictionless hands-free attendance check-in via 3D facial neural recognition is finalizing security audits.
+                </p>
+                <div style={{ padding: '8px 12px', borderRadius: 12, background: 'white', border: '1px solid #e2e8f0', fontSize: '0.75rem', color: '#334155', fontWeight: 700, display: 'inline-block' }}>
+                  🔒 Neural Biometric Template Engine v2.4
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: 'relative', marginBottom: 32 }}>
+                <div ref={ringRef} style={{
+                  position: 'absolute', inset: -20, borderRadius: '50%',
+                  border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
+                  opacity: 0.3, pointerEvents: 'none'
+                }} />
+                <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
+                  width: 136, height: 136, borderRadius: '50%', border: 'none', cursor: punching ? 'not-allowed' : 'pointer',
+                  background: isClockedIn
+                    ? '#1d4ed8'
+                    : '#2563eb',
+                  color: 'white', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px',
+                  boxShadow: isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  {punching ? '...' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
+                </button>
+              </div>
+            )}
 
             {lastLog && (
               <div style={{ background: 'rgba(15,23,42,0.04)', borderRadius: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
