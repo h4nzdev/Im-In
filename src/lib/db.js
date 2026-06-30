@@ -40,20 +40,27 @@ export async function initSupabaseSync() {
   try {
     const { data: profiles, error: pErr } = await supabase.from('profiles').select('*');
     if (!pErr && profiles && profiles.length > 0) {
-      const users = profiles.map(p => ({
-        userId: p.user_id,
-        name: p.name,
-        email: p.email,
-        password: p.password || 'user123',
-        department: p.department,
-        assignedAccount: p.assigned_account,
-        role: p.role,
-        status: p.status,
-        positionId: p.position_id,
-        deadlineDate: p.deadline_date || null,
-        deadlineTitle: p.deadline_title || null,
-        createdAt: p.created_at || new Date().toISOString()
-      }));
+      const currentUsers = get('users') || [];
+      const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
+      const users = profiles.map(p => {
+        const exist = currentUsers.find(u => u.userId === p.user_id);
+        const isOnline = Boolean(p.is_active !== undefined ? p.is_active : (exist?.isActive || onlineUsersMap[p.user_id]));
+        return {
+          userId: p.user_id,
+          name: p.name,
+          email: p.email,
+          password: p.password || 'user123',
+          department: p.department,
+          assignedAccount: p.assigned_account,
+          role: p.role,
+          status: p.status,
+          positionId: p.position_id,
+          deadlineDate: p.deadline_date || null,
+          deadlineTitle: p.deadline_title || null,
+          isActive: isOnline,
+          createdAt: p.created_at || new Date().toISOString()
+        };
+      });
       save('users', users);
     } else if (!pErr && profiles && profiles.length === 0) {
       // Seed default admin into Supabase if empty
