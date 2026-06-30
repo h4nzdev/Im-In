@@ -211,7 +211,7 @@ export default function AdminDashboard() {
                 Realtime Active Personnel Monitor
               </h2>
               <p style={{ color: '#047857', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>
-                Live active sessions (`isActive`) & biometric clock timers
+                Live active sessions ('Online') & biometric clock timers
               </p>
             </div>
           </div>
@@ -235,21 +235,23 @@ export default function AdminDashboard() {
 
             return (
               <div key={u.userId} style={{
-                padding: 16, borderRadius: 16, background: 'white',
-                border: isOnline ? '1.5px solid #10b981' : '1px solid #e2e8f0',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12
+                padding: '12px 16px', borderRadius: 16, background: isOnline ? '#ecfdf5' : 'white',
+                border: isOnline ? '1.5px solid #6ee7b7' : '1px solid #e2e8f0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                boxShadow: isOnline ? '0 4px 12px rgba(16,185,129,0.15)' : 'none',
+                transition: 'all 0.3s'
               }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{
-                      width: 10, height: 10, borderRadius: '50%',
-                      background: isOnline ? '#10b981' : '#cbd5e1',
-                      boxShadow: isOnline ? '0 0 8px #10b981' : 'none',
-                      display: 'inline-block'
-                    }} />
-                    <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{u.name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: isOnline ? '#10b981' : '#cbd5e1',
+                    boxShadow: isOnline ? '0 0 8px #10b981' : 'none',
+                    display: 'inline-block'
+                  }} />
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{u.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{u.department} ({u.userId})</div>
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{u.department} ({u.userId})</span>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
@@ -258,7 +260,7 @@ export default function AdminDashboard() {
                     background: isOnline ? 'rgba(16,185,129,0.12)' : '#f1f5f9',
                     color: isOnline ? '#047857' : '#64748b', fontWeight: 800, fontSize: '0.72rem'
                   }}>
-                    {isOnline ? '🟢 isActive: true' : '⚪ Offline'}
+                    {isOnline ? '🟢 Online' : '⚪ Offline'}
                   </span>
                   {elapsedStr && (
                     <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace' }}>

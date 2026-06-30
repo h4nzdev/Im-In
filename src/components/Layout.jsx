@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
 import { realtimeBus } from '../lib/realtime';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 function AdminNotificationHeader() {
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
@@ -13,6 +14,41 @@ function AdminNotificationHeader() {
   const [onlineUsers, setOnlineUsers] = useState(() => JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
 
   useEffect(() => {
+    const pollLogs = async () => {
+      if (!isSupabaseConfigured || !supabase) return;
+      try {
+        const { data: logs } = await supabase.from('attendance_logs').select('*').order('timestamp', { ascending: false }).limit(20);
+        if (logs && logs.length > 0) {
+          const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
+          let changed = false;
+          logs.forEach(l => {
+            const nId = `LOGNTF-${l.log_id}`;
+            if (!notifs.some(x => x.id === nId)) {
+              notifs.unshift({
+                id: nId,
+                type: l.type === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
+                title: l.type === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
+                desc: `User (${l.user_id}) punched ${l.type} (${l.status || 'ON TIME'}).`,
+                time: new Date(l.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                unread: true,
+                userId: l.user_id,
+                isActive: l.type === 'IN'
+              });
+              changed = true;
+            }
+          });
+          if (changed) {
+            const trimmed = notifs.slice(0, 30);
+            localStorage.setItem('realynk_admin_notifications', JSON.stringify(trimmed));
+            setNotifications(trimmed);
+          }
+        }
+      } catch (err) {}
+    };
+
+    pollLogs();
+    const pollInterval = setInterval(pollLogs, 3000);
+
     const unsub = realtimeBus.subscribe(() => {
       setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
       setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
@@ -26,6 +62,7 @@ function AdminNotificationHeader() {
     return () => {
       unsub();
       clearInterval(t);
+      clearInterval(pollInterval);
     };
   }, []);
 

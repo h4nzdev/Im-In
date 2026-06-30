@@ -319,7 +319,7 @@ export default function CalendarView() {
                       BIOMETRIC {log.type}
                     </span>
                     <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                      {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      {new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: '#475569', fontFamily: 'monospace' }}>

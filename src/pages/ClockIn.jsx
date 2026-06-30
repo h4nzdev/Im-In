@@ -167,7 +167,7 @@ export default function ClockIn() {
         type: nextType === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
         title: nextType === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
         desc: `${user.name || user.email} punched ${nextType} (${validation.status}).`,
-        time: nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: nowObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
         unread: true,
         userId: user.userId,
         userName: user.name || user.email,
@@ -305,7 +305,7 @@ export default function ClockIn() {
                   <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#2563eb' : '#dc2626', flexShrink: 0 }} />
                   <div>
                     <span style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.88rem', display: 'block' }}>Clock {log.type === 'IN' ? 'In' : 'Out'}</span>
-                    <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
                   </div>
                 </div>
                 <div>

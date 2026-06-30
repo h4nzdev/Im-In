@@ -155,7 +155,7 @@ export default function Dashboard() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 20, background: 'white', border: '1px solid rgba(15,23,42,0.1)', color: '#0f172a', fontSize: '0.92rem', fontWeight: 800, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-            <Clock size={16} color="#2563eb" /> {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            <Clock size={16} color="#2563eb" /> {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 20, background: 'rgba(59,130,246,0.12)', color: '#2563eb', fontSize: '0.88rem', fontWeight: 700 }}>
             <Sparkles size={16} /> Ready to work
@@ -239,7 +239,7 @@ export default function Dashboard() {
               <div style={{ background: 'rgba(15,23,42,0.04)', borderRadius: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Activity size={15} color="#64748b" />
                 <p style={{ color: '#64748b', fontSize: '0.82rem', margin: 0, fontWeight: 600 }}>
-                  Last punched <strong style={{ color: '#0f172a' }}>{lastLog.type}</strong> at {new Date(lastLog.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  Last punched <strong style={{ color: '#0f172a' }}>{lastLog.type}</strong> at {new Date(lastLog.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                 </p>
               </div>
             )}
@@ -293,7 +293,7 @@ export default function Dashboard() {
                     <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Captured via Browser Geolocation</span>
                   </div>
                 </div>
-                <span style={{ color: '#334155', fontWeight: 700, fontSize: '0.9rem', fontVariantNumeric: 'tabular-nums' }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span style={{ color: '#334155', fontWeight: 700, fontSize: '0.9rem', fontVariantNumeric: 'tabular-nums' }}>{new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
               </div>
             ))}
           </div>

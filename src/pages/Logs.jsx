@@ -192,7 +192,7 @@ export default function Logs() {
                   const isIn = log.type === 'IN';
                   const u = getUserInfo(log.userId);
                   const dateStr = new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-                  const timeStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  const timeStr = new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
 
                   return (
                     <tr key={log.logId} style={{ borderBottom: idx === pageLogs.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', background: idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent', transition: 'background 0.15s' }}
