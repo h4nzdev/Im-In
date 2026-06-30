@@ -9,9 +9,9 @@ export default function BottomNav() {
 
   const userLinks = [
     { to: '/',          icon: LayoutDashboard, label: 'Home'      },
+    { to: '/assignments', icon: BookOpen,      label: 'Tasks'     },
     { to: '/logs',      icon: Clock,           label: 'Logs'      },
     { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
-    { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
   ];
 
   const adminLinks = [

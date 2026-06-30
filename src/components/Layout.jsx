@@ -5,6 +5,7 @@ import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, 
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
+import { realtimeBus } from '../lib/realtime';
 
 function AdminNotificationHeader() {
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
@@ -12,11 +13,20 @@ function AdminNotificationHeader() {
   const [onlineUsers, setOnlineUsers] = useState(() => JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
 
   useEffect(() => {
+    const unsub = realtimeBus.subscribe(() => {
+      setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
+      setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+    });
+
     const t = setInterval(() => {
       setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
       setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
     }, 1000);
-    return () => clearInterval(t);
+
+    return () => {
+      unsub();
+      clearInterval(t);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -133,6 +143,7 @@ export default function Layout() {
 
   const userLinks = [
     { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
     { to: '/logs',      icon: Clock,           label: 'Logs'      },
     { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
     { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },

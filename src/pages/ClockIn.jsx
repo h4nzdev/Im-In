@@ -5,6 +5,7 @@ import L from 'leaflet';
 import { AlertTriangle, CheckCircle2, Clock, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
+import { realtimeBus } from '../lib/realtime';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -160,17 +161,19 @@ export default function ClockIn() {
         setActiveElapsed(null);
       }
 
-      // Push Realtime Notification to Admin Header
-      const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
-      notifs.unshift({
+      // Push Realtime Broadcast Notification across windows/tabs/devices
+      realtimeBus.broadcast({
         id: `NTF-${Date.now()}`,
         type: nextType === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
         title: nextType === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
         desc: `${user.name || user.email} punched ${nextType} (${validation.status}).`,
         time: nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        unread: true
+        unread: true,
+        userId: user.userId,
+        userName: user.name || user.email,
+        department: user.department || 'Shared Services',
+        isActive: nextType === 'IN'
       });
-      localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 30)));
 
       if (lat && lng) setLocation({ lat, lng });
       setLogs(db.getUserLogs(user.userId));

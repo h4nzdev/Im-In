@@ -19,6 +19,7 @@ const CalendarView = lazy(() => import('./pages/CalendarView'));
 const AdminApprovals = lazy(() => import('./pages/AdminApprovals'));
 const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
 const AdminAssignments = lazy(() => import('./pages/AdminAssignments'));
+const UserAssignments = lazy(() => import('./pages/UserAssignments'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -74,6 +75,10 @@ export const router = createBrowserRouter([
       {
         path: 'leaves',
         element: wrap(<ProtectedRoute element={<Leaves />} />),
+      },
+      {
+        path: 'assignments',
+        element: wrap(<ProtectedRoute element={<UserAssignments />} />),
       },
       {
         path: 'admin',

@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Shield, UserCheck, Calendar, Clock, ArrowRight, Activity, Users, Briefcase, FileText } from 'lucide-react';
 import { db } from '../lib/db';
+import { realtimeBus } from '../lib/realtime';
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -48,12 +49,21 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    const unsub = realtimeBus.subscribe(() => {
+      setOnlineMap(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+      setActiveShiftsMap(JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
+    });
+
     const t = setInterval(() => {
       setOnlineMap(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
       setActiveShiftsMap(JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
       setNow(Date.now());
     }, 1000);
-    return () => clearInterval(t);
+
+    return () => {
+      unsub();
+      clearInterval(t);
+    };
   }, []);
 
   const today = new Date().toDateString();

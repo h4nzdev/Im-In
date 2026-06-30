@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { db } from '../lib/db';
+import { realtimeBus } from '../lib/realtime';
 
 export const useAuthStore = create((set, get) => ({
   token: localStorage.getItem('token') || null,
@@ -11,16 +12,20 @@ export const useAuthStore = create((set, get) => ({
     if (user.status === 'Pending') throw new Error('Your account is pending Admin verification');
     if (user.status !== 'Active') throw new Error('Account is not active');
     
-    // Set user as active in realtime
     db.updateUser(user.userId, { isActive: true });
-    const activeUsers = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-    activeUsers[user.userId] = { userId: user.userId, name: user.name, department: user.department, loginTime: Date.now() };
-    localStorage.setItem('realynk_live_online_users', JSON.stringify(activeUsers));
 
-    // Push realtime notification to admin header
-    const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
-    notifs.unshift({ id: `NTF-${Date.now()}`, type: 'LOGIN', title: 'User Online', desc: `${user.name} logged in to portal.`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), unread: true });
-    localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 30)));
+    realtimeBus.broadcast({
+      id: `NTF-${Date.now()}`,
+      type: 'LOGIN',
+      title: 'User Online',
+      desc: `${user.name} logged in to portal.`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      unread: true,
+      userId: user.userId,
+      userName: user.name,
+      department: user.department,
+      isActive: true
+    });
 
     // eslint-disable-next-line no-unused-vars
     const { password: _p1, ...pub } = { ...user, isActive: true };
@@ -41,10 +46,17 @@ export const useAuthStore = create((set, get) => ({
     };
     db.createUser(user);
 
-    // Push notification to admin header
-    const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
-    notifs.unshift({ id: `NTF-${Date.now()}`, type: 'SIGNUP', title: 'New Registration', desc: `${name} (${userId}) signed up for ${department || 'Enterprise'}.`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), unread: true });
-    localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 30)));
+    realtimeBus.broadcast({
+      id: `NTF-${Date.now()}`,
+      type: 'SIGNUP',
+      title: 'New Registration',
+      desc: `${name} (${userId}) signed up for ${department || 'Enterprise'}.`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      unread: true,
+      userId,
+      userName: name,
+      department
+    });
 
     return user;
   },
@@ -53,13 +65,17 @@ export const useAuthStore = create((set, get) => ({
     const cur = get().user;
     if (cur) {
       db.updateUser(cur.userId, { isActive: false });
-      const activeUsers = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-      delete activeUsers[cur.userId];
-      localStorage.setItem('realynk_live_online_users', JSON.stringify(activeUsers));
-
-      const notifs = JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
-      notifs.unshift({ id: `NTF-${Date.now()}`, type: 'LOGOUT', title: 'User Offline', desc: `${cur.name} logged out.`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), unread: true });
-      localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 30)));
+      realtimeBus.broadcast({
+        id: `NTF-${Date.now()}`,
+        type: 'LOGOUT',
+        title: 'User Offline',
+        desc: `${cur.name} logged out.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        unread: true,
+        userId: cur.userId,
+        userName: cur.name,
+        isActive: false
+      });
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
