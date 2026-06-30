@@ -66,6 +66,7 @@ export default function ClockIn() {
   const [location, setLocation] = useState(null);
   const [punching, setPunching] = useState(false);
   const [punchResultModal, setPunchResultModal] = useState(null);
+  const [attendanceMode, setAttendanceMode] = useState('TAP');
   const btnRef = useRef();
   const ringRef = useRef();
   const pulseAnim = useRef(null);
@@ -256,27 +257,77 @@ export default function ClockIn() {
         )}
       </div>
 
-      {/* Big Clock Button */}
-      <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div ref={ringRef} style={{
-            position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-            border: `2px solid ${isClockedIn ? '#022c22' : '#1d4ed8'}`,
-            opacity: 0.3,
-          }} />
-          <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
-            width: 148, height: 148, borderRadius: '50%', border: 'none', cursor: punching ? 'wait' : 'pointer',
-            background: isClockedIn ? '#1e40af' : '#2563eb',
-            color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em',
-            boxShadow: isClockedIn
-              ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
-              : '0 0 60px rgba(29,78,216,0.4), 0 8px 32px rgba(15,23,42,0.25)',
-            transition: 'box-shadow 0.4s',
-          }}>
-            {punching ? '...' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
-          </button>
-        </div>
+      {/* Attendance Mode Switcher */}
+      <div className="fade-in" style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(15,23,42,0.05)', padding: 6, borderRadius: 18 }}>
+        <button
+          type="button"
+          onClick={() => setAttendanceMode('TAP')}
+          style={{
+            flex: 1, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer',
+            background: attendanceMode === 'TAP' ? 'white' : 'transparent',
+            color: attendanceMode === 'TAP' ? '#0f172a' : '#64748b',
+            fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+          }}
+        >
+          📍 GPS Biometric Tap
+        </button>
+        <button
+          type="button"
+          onClick={() => setAttendanceMode('FACE')}
+          style={{
+            flex: 1, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer',
+            background: attendanceMode === 'FACE' ? 'white' : 'transparent',
+            color: attendanceMode === 'FACE' ? '#2563eb' : '#64748b',
+            fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+          }}
+        >
+          👤 Face Recognition <span style={{ padding: '2px 6px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontSize: '0.68rem' }}>SOON</span>
+        </button>
       </div>
+
+      {attendanceMode === 'FACE' ? (
+        <div className="fade-in card glass" style={{ padding: '28px 20px', borderRadius: 24, textAlign: 'center', marginBottom: 36, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.85), rgba(255,255,255,0.95))', boxShadow: '0 12px 32px rgba(37,99,235,0.08)' }}>
+          <div style={{ width: 84, height: 84, borderRadius: '50%', background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '2.4rem', boxShadow: '0 8px 24px rgba(37,99,235,0.15)' }}>
+            🧑‍💻
+          </div>
+          <span style={{ padding: '5px 12px', borderRadius: 20, background: '#1d4ed8', color: 'white', fontWeight: 800, fontSize: '0.74rem', display: 'inline-block', marginBottom: 12 }}>
+            ⚡ COMING SOON TO ALL ENTERPRISE USERS
+          </span>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
+            AI Facial & Liveness Verification
+          </h3>
+          <p style={{ color: '#64748b', fontSize: '0.86rem', margin: '0 auto 20px', lineHeight: 1.5, maxWidth: 360 }}>
+            Our neural 3D facial authentication pipeline is undergoing final device calibration. Soon you can punch in hands-free instantly just by looking at your terminal camera!
+          </p>
+          <div style={{ padding: '10px 14px', borderRadius: 14, background: 'white', border: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#334155', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            🔒 Biometric Encrypted Neural Template v2.4
+          </div>
+        </div>
+      ) : (
+        /* Big Clock Button */
+        <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div ref={ringRef} style={{
+              position: 'absolute', width: 180, height: 180, borderRadius: '50%',
+              border: `2px solid ${isClockedIn ? '#022c22' : '#1d4ed8'}`,
+              opacity: 0.3,
+            }} />
+            <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
+              width: 148, height: 148, borderRadius: '50%', border: 'none', cursor: punching ? 'wait' : 'pointer',
+              background: isClockedIn ? '#1e40af' : '#2563eb',
+              color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em',
+              boxShadow: isClockedIn
+                ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
+                : '0 0 60px rgba(29,78,216,0.4), 0 8px 32px rgba(15,23,42,0.25)',
+              transition: 'box-shadow 0.4s',
+            }}>
+              {punching ? '...' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Map */}
       <div className="fade-in" style={{
