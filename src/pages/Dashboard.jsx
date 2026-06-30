@@ -209,25 +209,23 @@ export default function Dashboard() {
         <div className="card glass" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '44px 28px', borderRadius: 24, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
           
-          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              <Timer size={16} color={isClockedIn ? "#2563eb" : "#64748b"} /> Active Shift Elapsed
-            </span>
-            <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#1d4ed8' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 36px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
-              {formatElapsed(shiftMs)}
-            </p>
-
-            {/* Attendance Mode Switcher */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(15,23,42,0.06)', padding: 5, borderRadius: 18, width: '100%', maxWidth: 320 }}>
+          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            {/* Attendance Mode Switcher at Top of Card */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              gap: 4, padding: 5, borderRadius: 50, background: '#f1f5f9', border: '1px solid #cbd5e1',
+              marginBottom: 28, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
+            }}>
               <button
                 type="button"
                 onClick={() => setAttendanceMode('TAP')}
                 style={{
-                  flex: 1, padding: '9px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'TAP' ? 'white' : 'transparent',
-                  color: attendanceMode === 'TAP' ? '#0f172a' : '#64748b',
-                  fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+                  padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
+                  background: attendanceMode === 'TAP' ? '#2563eb' : 'transparent',
+                  color: attendanceMode === 'TAP' ? '#ffffff' : '#475569',
+                  fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
+                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+                  transition: 'all 0.2s', whiteSpace: 'nowrap'
                 }}
               >
                 📍 GPS Tap
@@ -236,19 +234,26 @@ export default function Dashboard() {
                 type="button"
                 onClick={() => setAttendanceMode('FACE')}
                 style={{
-                  flex: 1, padding: '9px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'FACE' ? 'white' : 'transparent',
-                  color: attendanceMode === 'FACE' ? '#2563eb' : '#64748b',
-                  fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
+                  padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
+                  background: attendanceMode === 'FACE' ? '#2563eb' : 'transparent',
+                  color: attendanceMode === 'FACE' ? '#ffffff' : '#475569',
+                  fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
+                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+                  transition: 'all 0.2s', whiteSpace: 'nowrap'
                 }}
               >
-                👤 Face AI <span style={{ padding: '2px 6px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontSize: '0.65rem' }}>SOON</span>
+                👤 Face AI
+                <span style={{
+                  padding: '2px 7px', borderRadius: 10,
+                  background: attendanceMode === 'FACE' ? 'rgba(255,255,255,0.25)' : '#dbeafe',
+                  color: attendanceMode === 'FACE' ? '#ffffff' : '#1d4ed8',
+                  fontSize: '0.68rem', fontWeight: 900
+                }}>SOON</span>
               </button>
             </div>
 
             {attendanceMode === 'FACE' ? (
-              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 24, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 340, boxShadow: '0 8px 24px rgba(37,99,235,0.06)' }}>
+              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 16, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 360, boxShadow: '0 8px 24px rgba(37,99,235,0.06)' }}>
                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '2rem', boxShadow: '0 6px 18px rgba(37,99,235,0.15)' }}>
                   🧑‍💻
                 </div>
@@ -266,24 +271,33 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div style={{ position: 'relative', marginBottom: 32 }}>
-                <div ref={ringRef} style={{
-                  position: 'absolute', inset: -20, borderRadius: '50%',
-                  border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
-                  opacity: 0.3, pointerEvents: 'none'
-                }} />
-                <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
-                  width: 136, height: 136, borderRadius: '50%', border: 'none', cursor: punching ? 'not-allowed' : 'pointer',
-                  background: isClockedIn
-                    ? '#1d4ed8'
-                    : '#2563eb',
-                  color: 'white', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px',
-                  boxShadow: isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}>
-                  {punching ? '...' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
-                </button>
-              </div>
+              <>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+                  <Timer size={16} color={isClockedIn ? "#2563eb" : "#64748b"} /> Active Shift Elapsed
+                </span>
+                <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#1d4ed8' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 32px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+                  {formatElapsed(shiftMs)}
+                </p>
+
+                <div style={{ position: 'relative', marginBottom: 32 }}>
+                  <div ref={ringRef} style={{
+                    position: 'absolute', inset: -20, borderRadius: '50%',
+                    border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
+                    opacity: 0.3, pointerEvents: 'none'
+                  }} />
+                  <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
+                    width: 136, height: 136, borderRadius: '50%', border: 'none', outline: 'none', cursor: punching ? 'not-allowed' : 'pointer',
+                    background: isClockedIn
+                      ? '#1d4ed8'
+                      : '#2563eb',
+                    color: 'white', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px',
+                    boxShadow: isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>
+                    {punching ? '...' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
+                  </button>
+                </div>
+              </>
             )}
 
             {lastLog && (

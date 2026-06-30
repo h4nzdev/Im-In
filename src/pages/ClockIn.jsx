@@ -258,33 +258,47 @@ export default function ClockIn() {
       </div>
 
       {/* Attendance Mode Switcher */}
-      <div className="fade-in" style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(15,23,42,0.05)', padding: 6, borderRadius: 18 }}>
-        <button
-          type="button"
-          onClick={() => setAttendanceMode('TAP')}
-          style={{
-            flex: 1, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: attendanceMode === 'TAP' ? 'white' : 'transparent',
-            color: attendanceMode === 'TAP' ? '#0f172a' : '#64748b',
-            fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
-          }}
-        >
-          📍 GPS Biometric Tap
-        </button>
-        <button
-          type="button"
-          onClick={() => setAttendanceMode('FACE')}
-          style={{
-            flex: 1, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: attendanceMode === 'FACE' ? 'white' : 'transparent',
-            color: attendanceMode === 'FACE' ? '#2563eb' : '#64748b',
-            fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s'
-          }}
-        >
-          👤 Face Recognition <span style={{ padding: '2px 6px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontSize: '0.68rem' }}>SOON</span>
-        </button>
+      <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          gap: 4, padding: 5, borderRadius: 50, background: '#f1f5f9', border: '1px solid #cbd5e1',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
+        }}>
+          <button
+            type="button"
+            onClick={() => setAttendanceMode('TAP')}
+            style={{
+              padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
+              background: attendanceMode === 'TAP' ? '#2563eb' : 'transparent',
+              color: attendanceMode === 'TAP' ? '#ffffff' : '#475569',
+              fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+              transition: 'all 0.2s', whiteSpace: 'nowrap'
+            }}
+          >
+            📍 GPS Tap
+          </button>
+          <button
+            type="button"
+            onClick={() => setAttendanceMode('FACE')}
+            style={{
+              padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
+              background: attendanceMode === 'FACE' ? '#2563eb' : 'transparent',
+              color: attendanceMode === 'FACE' ? '#ffffff' : '#475569',
+              fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+              transition: 'all 0.2s', whiteSpace: 'nowrap'
+            }}
+          >
+            👤 Face AI
+            <span style={{
+              padding: '2px 7px', borderRadius: 10,
+              background: attendanceMode === 'FACE' ? 'rgba(255,255,255,0.25)' : '#dbeafe',
+              color: attendanceMode === 'FACE' ? '#ffffff' : '#1d4ed8',
+              fontSize: '0.68rem', fontWeight: 900
+            }}>SOON</span>
+          </button>
+        </div>
       </div>
 
       {attendanceMode === 'FACE' ? (
