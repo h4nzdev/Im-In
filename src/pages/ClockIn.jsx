@@ -468,12 +468,31 @@ export default function ClockIn() {
               type="button"
               onClick={() => setShowRemoteModal(true)}
               style={{
-                background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 800,
-                fontSize: '0.78rem', cursor: 'pointer', marginTop: 18, display: 'flex',
-                alignItems: 'center', gap: 6
+                background: 'rgba(37, 99, 235, 0.08)',
+                border: '1px solid rgba(37, 99, 235, 0.22)',
+                borderRadius: 50,
+                padding: '10px 18px',
+                color: '#1d4ed8',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                marginTop: 22,
+                marginBottom: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 14px rgba(37,99,235,0.08)',
+                maxWidth: '95%',
+                textAlign: 'center',
+                lineHeight: 1.4
               }}
             >
-              <FileText size={14} /> Need remote check-in or field exception? Request here →
+              <FileText size={15} style={{ flexShrink: 0 }} />
+              <span>
+                Need remote check-in or exception? <span style={{ textDecoration: 'underline', whiteSpace: 'nowrap', fontWeight: 900 }}>Request here →</span>
+              </span>
             </button>
           )}
         </div>

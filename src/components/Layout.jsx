@@ -51,18 +51,29 @@ function AdminNotificationHeader() {
 
     const unsub = realtimeBus.subscribe(() => {
       setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
-      setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
     });
 
-    const t = setInterval(() => {
-      setNotifications(JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
-      setOnlineUsers(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
-    }, 1000);
+    const pollOnlineInterval = setInterval(() => {
+      const now = Date.now();
+      const activeMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
+      const updatedMap = { ...activeMap };
+      let changed = false;
+      Object.keys(updatedMap).forEach(key => {
+        if (now - updatedMap[key].lastSeen > 35000) {
+          delete updatedMap[key];
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('realynk_live_online_users', JSON.stringify(updatedMap));
+        setOnlineUsers(updatedMap);
+      }
+    }, 4000);
 
     return () => {
       unsub();
-      clearInterval(t);
       clearInterval(pollInterval);
+      clearInterval(pollOnlineInterval);
     };
   }, []);
 
@@ -72,6 +83,19 @@ function AdminNotificationHeader() {
     const updated = notifications.map(n => ({ ...n, unread: false }));
     setNotifications(updated);
     localStorage.setItem('realynk_admin_notifications', JSON.stringify(updated));
+  };
+
+  const deleteNotification = (e, id) => {
+    e.stopPropagation();
+    const updated = notifications.filter(n => n.id !== id);
+    setNotifications(updated);
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify(updated));
+  };
+
+  const clearAllNotifications = (e) => {
+    if (e) e.stopPropagation();
+    setNotifications([]);
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify([]));
   };
 
   return (
@@ -119,17 +143,24 @@ function AdminNotificationHeader() {
 
         {showDropdown && (
           <div className="card glass" style={{
-            position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 360,
+            position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 370,
             borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
             border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 99999
           }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
               <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
-              {unreadCount > 0 && (
-                <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
-                  Mark All Read
-                </button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
+                    Mark Read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button onClick={clearAllNotifications} style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Trash2 size={13} /> Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div style={{ maxHeight: 340, overflowY: 'auto' }}>
@@ -144,12 +175,26 @@ function AdminNotificationHeader() {
                     background: n.unread ? 'rgba(59,130,246,0.06)' : 'white',
                     transition: 'background 0.15s'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 8 }}>
                         {n.isActive ? <CheckCircle2 size={15} color="#059669" /> : <LogOut size={15} color="#dc2626" />}
                         <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>{typeof n.title === 'string' ? n.title.replace(/[🟢🛑]\s*/g, '') : n.title}</span>
                       </div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{n.time}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', whiteSpace: 'nowrap' }}>{n.time}</span>
+                        <button
+                          onClick={(e) => deleteNotification(e, n.id)}
+                          title="Delete notification"
+                          style={{
+                            background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: 6,
+                            color: '#dc2626', width: 24, height: 24, display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s',
+                            flexShrink: 0
+                          }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569', lineHeight: 1.4 }}>{n.desc}</p>
                   </div>

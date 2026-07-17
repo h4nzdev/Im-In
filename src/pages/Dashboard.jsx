@@ -48,6 +48,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState(() => db.getUserLogs(user.userId));
   const [time, setTime] = useState(new Date());
   const [location, setLocation] = useState(null);
+  const [reminderDismissed, setReminderDismissed] = useState(false);
   const [error, setError] = useState('');
   const [punching, setPunching] = useState(false);
   const [shiftMs, setShiftMs] = useState(0);
@@ -186,7 +187,6 @@ export default function Dashboard() {
         isRemoteRequest: true
       });
 
-      // Update active shift local storage
       const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts') || '{}');
       if (nextType === 'IN') {
         activeAll[user.userId] = {
@@ -204,7 +204,6 @@ export default function Dashboard() {
 
       setLogs(db.getUserLogs(user.userId));
 
-      // Push Realtime Notification to Admins
       realtimeBus.broadcast({
         id: `NTF-${Date.now()}`,
         type: 'CLOCK_IN',
@@ -233,7 +232,7 @@ export default function Dashboard() {
   const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
   const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
   const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
-  const isOutsideGeofence = false; // Geofenced restriction removed from Dashboard per user request
+  const isOutsideGeofence = false; 
 
   return (
     <div ref={containerRef}>
@@ -257,25 +256,58 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Assigned Deadline Banner */}
-      {user.deadlineDate && (
+      {/* Assigned Deadline Banner / Smart Action Reminder */}
+      {user.deadlineDate && !reminderDismissed && (
         <div className="card glass" style={{
-          padding: '16px 20px', borderRadius: 20, marginBottom: 24,
-          background: 'linear-gradient(135deg, #eef2ff, #e0e7ff)', border: '1px solid #c7d2fe',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12
+          padding: '14px 18px', borderRadius: 18, marginBottom: 20,
+          background: 'linear-gradient(135deg, rgba(238,242,255,0.96), rgba(224,231,255,0.88))', border: '1px solid #c7d2fe',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+          boxShadow: '0 4px 16px rgba(79,70,229,0.08)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#4f46e5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
-              <Timer size={22} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 240 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#4f46e5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
+              <Timer size={20} />
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Employee Deadline</span>
-              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e1b4b' }}>{user.deadlineTitle || 'Assigned Enterprise Milestone'}</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action Reminder</span>
+                <span style={{ fontSize: '0.7rem', background: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: 10, fontWeight: 800 }}>
+                  Due: {user.deadlineDate}
+                </span>
+              </div>
+              <h4 style={{ margin: '2px 0 0', fontSize: '0.98rem', fontWeight: 800, color: '#1e1b4b', lineHeight: 1.3 }}>
+                {user.deadlineTitle || 'Assigned Enterprise Milestone'}
+              </h4>
             </div>
           </div>
-          <div style={{ background: 'white', padding: '8px 16px', borderRadius: 14, border: '1px solid #c7d2fe', color: '#4f46e5', fontWeight: 800, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(79,70,229,0.1)' }}>
-            📅 Due Date: {user.deadlineDate}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+            <button
+              onClick={() => {
+                alert(`Reminder acknowledged! Milestone marked as active focus for today.`);
+              }}
+              style={{ background: '#4f46e5', color: 'white', padding: '7px 14px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', transition: 'transform 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}
+            >
+              Acknowledge ✓
+            </button>
+            <button
+              onClick={() => setReminderDismissed(true)}
+              title="Dismiss reminder"
+              style={{ background: 'rgba(79,70,229,0.12)', color: '#4338ca', width: 30, height: 30, borderRadius: 10, border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              ✕
+            </button>
           </div>
+        </div>
+      )}
+
+      {user.deadlineDate && reminderDismissed && (
+        <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
+          <button
+            onClick={() => setReminderDismissed(false)}
+            style={{ background: 'rgba(79,70,229,0.08)', border: '1px solid #c7d2fe', color: '#4f46e5', padding: '6px 14px', borderRadius: 16, fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <Timer size={14} /> Show Action Reminder ({user.deadlineDate})
+          </button>
         </div>
       )}
 
@@ -424,12 +456,31 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setShowRemoteModal(true)}
                     style={{
-                      background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 800,
-                      fontSize: '0.78rem', cursor: 'pointer', marginBottom: 20, display: 'flex',
-                      alignItems: 'center', gap: 6
+                      background: 'rgba(37, 99, 235, 0.08)',
+                      border: '1px solid rgba(37, 99, 235, 0.22)',
+                      borderRadius: 50,
+                      padding: '10px 18px',
+                      color: '#1d4ed8',
+                      fontWeight: 800,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      marginTop: 20,
+                      marginBottom: 10,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 14px rgba(37,99,235,0.08)',
+                      maxWidth: '95%',
+                      textAlign: 'center',
+                      lineHeight: 1.4
                     }}
                   >
-                    <FileText size={14} /> Need remote check-in or field exception? Request here →
+                    <FileText size={15} style={{ flexShrink: 0 }} />
+                    <span>
+                      Need remote check-in or exception? <span style={{ textDecoration: 'underline', whiteSpace: 'nowrap', fontWeight: 900 }}>Request here →</span>
+                    </span>
                   </button>
                 )}
               </>

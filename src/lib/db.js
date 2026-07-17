@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 const KEY = (k) => `imin_${k}`;
 const get = (k) => JSON.parse(localStorage.getItem(KEY(k))) || [];
 const save = (k, v) => localStorage.setItem(KEY(k), JSON.stringify(v));
+let knownLogColumns = null;
 
 function cleanInitialSetup() {
   // If Supabase is connected, or if not yet seeded, ensure we have clean positions & default admin
@@ -95,6 +96,9 @@ export async function initSupabaseSync() {
 
     const { data: logs } = await supabase.from('attendance_logs').select('*');
     if (logs) {
+      if (logs.length > 0 && logs[0]) {
+        knownLogColumns = new Set(Object.keys(logs[0]));
+      }
       save('logs', logs.map(l => ({
         logId: l.log_id, userId: l.user_id, type: l.type, timestamp: l.timestamp,
         latitude: l.latitude, longitude: l.longitude, address: l.address, deviceInfo: l.device_info,
@@ -228,13 +232,44 @@ export const db = {
   addLog:          (log)      => {
     const l = get('logs'); l.push(log); save('logs', l);
     if (isSupabaseConfigured && supabase) {
-      supabase.from('attendance_logs').insert([{
+      let rowToInsert = {
         log_id: log.logId, user_id: log.userId, type: log.type, timestamp: log.timestamp,
-        latitude: log.latitude, longitude: log.longitude, address: log.address || null, device_info: log.deviceInfo,
-        status: log.status || 'ON TIME', late_minutes: log.lateMinutes || 0
-      }]).then();
+        latitude: log.latitude || 14.5995, longitude: log.longitude || 120.9842
+      };
+      if (knownLogColumns) {
+        if (knownLogColumns.has('address')) rowToInsert.address = log.address || null;
+        if (knownLogColumns.has('device_info')) rowToInsert.device_info = log.deviceInfo || null;
+        if (knownLogColumns.has('status')) rowToInsert.status = log.status || 'ON TIME';
+        if (knownLogColumns.has('late_minutes')) rowToInsert.late_minutes = log.lateMinutes || 0;
+      } else {
+        rowToInsert.address = log.address || null;
+      }
+      supabase.from('attendance_logs').insert([rowToInsert]).then(({ error }) => {
+        if (error) {
+          const minimalRow = {
+            log_id: log.logId, user_id: log.userId, type: log.type, timestamp: log.timestamp,
+            latitude: log.latitude || 14.5995, longitude: log.longitude || 120.9842
+          };
+          supabase.from('attendance_logs').insert([minimalRow]).then();
+        }
+      });
     }
     return log;
+  },
+  clearAllLogs:    ()         => {
+    save('logs', []);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('attendance_logs').delete().neq('log_id', 'CLEAR_ALL').then();
+    }
+    return [];
+  },
+  deleteLog:       (id)       => {
+    const updated = get('logs').filter(l => l.logId !== id);
+    save('logs', updated);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('attendance_logs').delete().eq('log_id', id).then();
+    }
+    return updated;
   },
 
   // Leaves

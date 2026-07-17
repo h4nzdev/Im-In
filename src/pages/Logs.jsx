@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, ChevronRight, UserCheck, User, Users } from 'lucide-react';
+import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, ChevronRight, UserCheck, User, Users, Trash2, CheckSquare, Square, AlertTriangle, X, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { getRealAddress } from '../lib/geo';
@@ -30,7 +30,7 @@ export default function Logs() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'Admin';
 
-  const [allLogs] = useState(() => db.getLogs());
+  const [allLogs, setAllLogs] = useState(() => db.getLogs());
   const [users] = useState(() => db.getUsers());
   const [search, setSearch] = useState('');
   const [userFilter, setUserFilter] = useState('ALL');
@@ -39,6 +39,8 @@ export default function Logs() {
   // Table pagination & limit states
   const [limit, setLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedLogIds, setSelectedLogIds] = useState(new Set());
   const containerRef = useRef();
 
   useEffect(() => {
@@ -110,20 +112,142 @@ export default function Logs() {
           </p>
         </div>
 
-        <button 
-          onClick={handleExportCSV}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
-            borderRadius: 12, background: 'white', border: '1px solid rgba(15,23,42,0.12)',
-            color: '#0f172a', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(15,23,42,0.04)', transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)'; e.currentTarget.style.color = '#0f172a'; }}
-        >
-          <Download size={16} color="#2563eb" /> Export CSV
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {isAdmin && !isSelectMode && (
+            <button
+              type="button"
+              onClick={() => setIsSelectMode(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px',
+                borderRadius: 12, background: 'rgba(225,29,72,0.08)', border: '1px solid rgba(225,29,72,0.25)',
+                color: '#e11d48', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(225,29,72,0.06)', transition: 'all 0.2s'
+              }}
+            >
+              <Trash2 size={16} /> Delete / Purge Logs
+            </button>
+          )}
+
+          <button 
+            onClick={handleExportCSV}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
+              borderRadius: 12, background: 'white', border: '1px solid rgba(15,23,42,0.12)',
+              color: '#0f172a', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+              boxShadow: '0 2px 12px rgba(15,23,42,0.04)', transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)'; e.currentTarget.style.color = '#0f172a'; }}
+          >
+            <Download size={16} color="#2563eb" /> Export CSV
+          </button>
+        </div>
       </div>
+
+      {/* Bulk Delete / Purge Action Banner */}
+      {isAdmin && isSelectMode && (
+        <div className="card glass fade-in" style={{
+          padding: '16px 22px', borderRadius: 20, marginBottom: 18,
+          background: 'linear-gradient(135deg, rgba(254,242,242,0.95), rgba(255,241,242,0.88))',
+          border: '1.5px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 14, boxShadow: '0 6px 24px rgba(225,29,72,0.12)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 14, background: '#e11d48', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(225,29,72,0.3)' }}>
+              <Trash2 size={20} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Bulk Purge & Deletion Checklist</span>
+                <span style={{ background: '#ffe4e6', color: '#9f1239', padding: '2px 8px', borderRadius: 10, fontSize: '0.72rem', fontWeight: 800 }}>
+                  {selectedLogIds.size} of {filteredLogs.length} Selected
+                </span>
+              </div>
+              <p style={{ margin: '2px 0 0', fontSize: '0.88rem', fontWeight: 700, color: '#881337' }}>
+                Check records below to delete individually, check all, or purge the entire attendance database.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedLogIds.size === filteredLogs.length && filteredLogs.length > 0) {
+                  setSelectedLogIds(new Set());
+                } else {
+                  setSelectedLogIds(new Set(filteredLogs.map(l => l.logId)));
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 12,
+                background: 'white', border: '1px solid #fda4af', color: '#be123c', fontWeight: 800, fontSize: '0.82rem',
+                cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              {selectedLogIds.size === filteredLogs.length && filteredLogs.length > 0 ? (
+                <><CheckSquare size={16} /> Uncheck All</>
+              ) : (
+                <><Square size={16} /> Check All ({filteredLogs.length})</>
+              )}
+            </button>
+
+            <button
+              type="button"
+              disabled={selectedLogIds.size === 0}
+              onClick={() => {
+                if (selectedLogIds.size === 0) return;
+                if (window.confirm(`Are you sure you want to permanently delete ${selectedLogIds.size} selected attendance log(s)?`)) {
+                  selectedLogIds.forEach(id => db.deleteLog(id));
+                  const updated = db.getLogs();
+                  setAllLogs(updated);
+                  setSelectedLogIds(new Set());
+                  alert(`Successfully deleted ${selectedLogIds.size} record(s).`);
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 12,
+                background: selectedLogIds.size > 0 ? '#e11d48' : '#cbd5e1', color: 'white', border: 'none',
+                fontWeight: 800, fontSize: '0.82rem', cursor: selectedLogIds.size > 0 ? 'pointer' : 'not-allowed',
+                boxShadow: selectedLogIds.size > 0 ? '0 4px 12px rgba(225,29,72,0.3)' : 'none', transition: 'all 0.2s'
+              }}
+            >
+              <Trash2 size={16} /> Delete Selected ({selectedLogIds.size})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`⚠️ EXTREME CAUTION:\nAre you sure you want to PURGE AND REMOVE ALL (${allLogs.length}) attendance logs completely from the database?\nThis action cannot be undone.`)) {
+                  db.clearAllLogs();
+                  setAllLogs([]);
+                  setSelectedLogIds(new Set());
+                  alert(`All attendance logs have been completely purged from the system and database.`);
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 12,
+                background: '#881337', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.82rem',
+                cursor: 'pointer', boxShadow: '0 4px 14px rgba(136,19,55,0.3)', transition: 'all 0.2s'
+              }}
+            >
+              <AlertTriangle size={16} color="#fde047" /> Purge All Database Logs
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setIsSelectMode(false); setSelectedLogIds(new Set()); }}
+              title="Exit selection mode"
+              style={{
+                background: 'rgba(255,255,255,0.8)', border: '1px solid #fda4af', color: '#881337', width: 34, height: 34,
+                borderRadius: 10, fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="card stats-grid" style={{ gap: 10, marginBottom: 16 }}>
@@ -228,6 +352,25 @@ export default function Logs() {
           <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: isAdmin ? 840 : 660, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.04)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
+                {isSelectMode && (
+                  <th style={{ padding: '16px 14px', width: 44, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={pageLogs.length > 0 && pageLogs.every(l => selectedLogIds.has(l.logId))}
+                      onChange={() => {
+                        const allPageChecked = pageLogs.every(l => selectedLogIds.has(l.logId));
+                        const next = new Set(selectedLogIds);
+                        if (allPageChecked) {
+                          pageLogs.forEach(l => next.delete(l.logId));
+                        } else {
+                          pageLogs.forEach(l => next.add(l.logId));
+                        }
+                        setSelectedLogIds(next);
+                      }}
+                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#e11d48' }}
+                    />
+                  </th>
+                )}
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Log Ref ID</th>
                 {isAdmin && <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Employee</th>}
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Punch Type</th>
@@ -241,7 +384,7 @@ export default function Logs() {
             <tbody>
               {pageLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 8 : 7} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.92rem', fontWeight: 600 }}>
+                  <td colSpan={isAdmin ? (isSelectMode ? 9 : 8) : (isSelectMode ? 8 : 7)} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.92rem', fontWeight: 600 }}>
                     No biometric logs match your current query.
                   </td>
                 </tr>
@@ -253,9 +396,38 @@ export default function Logs() {
                   const timeStr = new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
 
                   return (
-                    <tr key={log.logId} style={{ borderBottom: idx === pageLogs.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', background: idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.06)'}
-                      onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'}>
+                    <tr key={log.logId}
+                      onClick={() => {
+                        if (!isSelectMode) return;
+                        const next = new Set(selectedLogIds);
+                        if (next.has(log.logId)) next.delete(log.logId);
+                        else next.add(log.logId);
+                        setSelectedLogIds(next);
+                      }}
+                      style={{
+                        borderBottom: idx === pageLogs.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)',
+                        background: selectedLogIds.has(log.logId) ? 'rgba(225,29,72,0.08)' : (idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'),
+                        transition: 'background 0.15s',
+                        cursor: isSelectMode ? 'pointer' : 'default'
+                      }}
+                      onMouseEnter={e => { if (!selectedLogIds.has(log.logId)) e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; }}
+                      onMouseLeave={e => { if (!selectedLogIds.has(log.logId)) e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'; }}>
+                      
+                      {isSelectMode && (
+                        <td style={{ padding: '16px 14px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedLogIds.has(log.logId)}
+                            onChange={() => {
+                              const next = new Set(selectedLogIds);
+                              if (next.has(log.logId)) next.delete(log.logId);
+                              else next.add(log.logId);
+                              setSelectedLogIds(next);
+                            }}
+                            style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#e11d48' }}
+                          />
+                        </td>
+                      )}
                       
                       <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem', color: '#334155', whiteSpace: 'nowrap' }}>
                         {log.logId}
