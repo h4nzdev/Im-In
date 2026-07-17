@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
@@ -27,7 +27,7 @@ function AdminNotificationHeader() {
               notifs.unshift({
                 id: nId,
                 type: l.type === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
-                title: l.type === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
+                title: l.type === 'IN' ? 'Biometric Clock-In' : 'Biometric Clock-Out',
                 desc: `User (${l.user_id}) punched ${l.type} (${l.status || 'ON TIME'}).`,
                 time: new Date(l.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
                 unread: true,
@@ -76,6 +76,8 @@ function AdminNotificationHeader() {
 
   return (
     <header className="card glass" style={{
+      position: 'relative',
+      zIndex: 9999,
       padding: '14px 22px',
       borderRadius: 20,
       marginBottom: 24,
@@ -119,7 +121,7 @@ function AdminNotificationHeader() {
           <div className="card glass" style={{
             position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 360,
             borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
-            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 100
+            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 99999
           }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
               <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
@@ -142,8 +144,11 @@ function AdminNotificationHeader() {
                     background: n.unread ? 'rgba(59,130,246,0.06)' : 'white',
                     transition: 'background 0.15s'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>{n.title}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {n.isActive ? <CheckCircle2 size={15} color="#059669" /> : <LogOut size={15} color="#dc2626" />}
+                        <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>{typeof n.title === 'string' ? n.title.replace(/[🟢🛑]\s*/g, '') : n.title}</span>
+                      </div>
                       <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{n.time}</span>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569', lineHeight: 1.4 }}>{n.desc}</p>
@@ -189,6 +194,7 @@ export default function Layout() {
   const adminLinks = [
     { to: '/admin',           icon: Shield,    label: 'Overview'  },
     { to: '/admin/employees', icon: Users,     label: 'Employees' },
+    { to: '/admin/geofence',  icon: MapPin,    label: 'Geofence Map' },
     { to: '/admin/assignments', icon: BookOpen, label: 'SOP & Tasks' },
     { to: '/admin/approvals', icon: UserCheck, label: 'Approvals' },
     { to: '/calendar',        icon: Calendar,  label: 'Schedule'  },
@@ -220,23 +226,15 @@ export default function Layout() {
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
           {links.map(({ to, icon: Icon, label }) => (
-            <Link key={to} to={to} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12,
-              color: isActive(to) ? '#2563eb' : '#64748b',
-              background: isActive(to) ? 'rgba(59,130,246,0.12)' : 'transparent',
-              textDecoration: 'none', fontSize: '0.92rem', fontWeight: isActive(to) ? 700 : 500, transition: 'all 0.2s',
-              boxShadow: isActive(to) ? '0 2px 12px rgba(59,130,246,0.08)' : 'none'
-            }}>
-              <Icon size={18} color={isActive(to) ? '#2563eb' : '#64748b'} /> {label}
+            <Link key={to} to={to} className={`sidebar-nav-link ${isActive(to) ? 'active' : ''}`}>
+              <Icon size={18} className="nav-icon" /> {label}
             </Link>
           ))}
         </nav>
 
         <div style={{ borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: 16, marginTop: 16 }}>
-          <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', padding: 8, borderRadius: 12, marginBottom: 6, transition: 'background 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(15,23,42,0.04)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.95rem', flexShrink: 0 }}>
+          <Link to="/profile" className="sidebar-profile-link">
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.95rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
               {user?.name?.[0] || '?'}
             </div>
             <div style={{ overflow: 'hidden' }}>
@@ -244,13 +242,7 @@ export default function Layout() {
               <p style={{ color: '#64748b', fontSize: '0.72rem', fontWeight: 600, margin: 0 }}>{user?.role}</p>
             </div>
           </Link>
-          <button onClick={handleLogout} style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none',
-            cursor: 'pointer', color: '#dc2626', padding: '10px 12px', borderRadius: 12, fontSize: '0.88rem', fontWeight: 600,
-            transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <button onClick={handleLogout} className="sidebar-logout-btn">
             <LogOut size={16} /> Sign Out
           </button>
         </div>
@@ -279,10 +271,14 @@ export default function Layout() {
       </nav>
 
       {/* Center Main Content */}
-      <div className="layout-content-area" style={{ minHeight: '100vh' }}>
+      <div className="layout-content-area" style={{ minHeight: '100vh', position: 'relative' }}>
         <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
-          {isAdmin && <AdminNotificationHeader />}
-          <Outlet context={{ openInstallModal: () => setShowModal(true) }} />
+          <div style={{ position: 'relative', zIndex: 999999, width: '100%' }}>
+            {isAdmin && <AdminNotificationHeader />}
+          </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Outlet context={{ openInstallModal: () => setShowModal(true) }} />
+          </div>
         </main>
       </div>
 

@@ -37,7 +37,7 @@ export default function BottomNav() {
         {links.map(({ to, icon: Icon, label }) => {
           const active = isActive(to);
           return (
-            <Link key={to} to={to} style={{
+            <Link key={to} to={to} className="bottom-nav-link" style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: 3, textDecoration: 'none',
               color: active ? '#2563eb' : '#64748b',

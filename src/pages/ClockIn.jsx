@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, CheckCircle2, Clock, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, X, Lock, Unlock, MapPin, UserCheck, Shield, Sparkles, Loader2, Navigation, Send, FileText } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { realtimeBus } from '../lib/realtime';
+import { getRealAddress, calculateDistanceMeters } from '../lib/geo';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -67,6 +68,12 @@ export default function ClockIn() {
   const [punching, setPunching] = useState(false);
   const [punchResultModal, setPunchResultModal] = useState(null);
   const [attendanceMode, setAttendanceMode] = useState('TAP');
+  const [showRemoteModal, setShowRemoteModal] = useState(false);
+  const [remoteCategory, setRemoteCategory] = useState('Remote Work / Work From Home (WFH)');
+  const [remoteNote, setRemoteNote] = useState('');
+  const [remoteAttachCheck, setRemoteAttachCheck] = useState(true);
+  const [submittingRemote, setSubmittingRemote] = useState(false);
+  const [remoteSuccessMessage, setRemoteSuccessMessage] = useState(null);
   const btnRef = useRef();
   const ringRef = useRef();
   const pulseAnim = useRef(null);
@@ -79,6 +86,16 @@ export default function ClockIn() {
       });
     });
     return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (p) => setLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        () => setLocation({ lat: 14.5995, lng: 120.9842 }),
+        { timeout: 8000 }
+      );
+    }
   }, []);
 
   const [activeElapsed, setActiveElapsed] = useState(null);
@@ -110,6 +127,12 @@ export default function ClockIn() {
   const lastLog = sortedLogs[0];
   const isClockedIn = lastLog?.type === 'IN';
 
+  const geofence = db.getGeofence();
+  const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
+  const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
+  const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
+  const isOutsideGeofence = geofence.enabled && distMeters > geofence.radius;
+
   useEffect(() => {
     if (!ringRef.current) return;
     if (pulseAnim.current) { pulseAnim.current.kill(); pulseAnim.current = null; }
@@ -124,19 +147,21 @@ export default function ClockIn() {
   }, [isClockedIn]);
 
   const handlePunch = () => {
+    if (punching || isOutsideGeofence) return;
     setPunching(true);
     gsap.to(btnRef.current, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' });
     const nextType = isClockedIn ? 'OUT' : 'IN';
     const nowObj = new Date();
     const validation = getPunchValidation(nextType, nowObj, user.userId);
 
-    const punch = (lat, lng) => {
+    const punch = async (lat, lng) => {
+      const address = await getRealAddress(lat, lng);
       const addedLog = db.addLog({
         logId: `LOG-${Date.now()}`,
         userId: user.userId,
         type: nextType,
         timestamp: nowObj.toISOString(),
-        latitude: lat, longitude: lng,
+        latitude: lat, longitude: lng, address,
         deviceInfo: navigator.userAgent.slice(0, 80),
         status: validation.status,
         lateMinutes: validation.lateMinutes
@@ -166,7 +191,7 @@ export default function ClockIn() {
       realtimeBus.broadcast({
         id: `NTF-${Date.now()}`,
         type: nextType === 'IN' ? 'CLOCK_IN' : 'CLOCK_OUT',
-        title: nextType === 'IN' ? '🟢 Biometric Clock-In' : '🛑 Biometric Clock-Out',
+        title: nextType === 'IN' ? 'Biometric Clock-In' : 'Biometric Clock-Out',
         desc: `${user.name || user.email} punched ${nextType} (${validation.status}).`,
         time: nowObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
         unread: true,
@@ -191,6 +216,71 @@ export default function ClockIn() {
     } else {
       punch(14.5995, 120.9842);
     }
+  };
+
+  const handleRemoteSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSubmittingRemote(true);
+    setTimeout(() => {
+      const nowObj = new Date();
+      const nextType = isClockedIn ? 'OUT' : 'IN';
+      const geofence = db.getGeofence();
+      const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
+      const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
+      const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
+
+      const newLog = db.addLog({
+        logId: `REM-${Date.now()}`,
+        userId: user.userId,
+        type: nextType,
+        timestamp: nowObj.toISOString(),
+        latitude: currentLat,
+        longitude: currentLng,
+        address: `${Math.round(distMeters)}m outside ${geofence.addressName} (Remote Exception)`,
+        deviceInfo: navigator.userAgent.slice(0, 80),
+        status: 'REMOTE_PENDING',
+        note: `[${remoteCategory}] ${remoteNote}`,
+        isRemoteRequest: true
+      });
+
+      // Update active shift local storage
+      const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts') || '{}');
+      if (nextType === 'IN') {
+        activeAll[user.userId] = {
+          userId: user.userId,
+          userName: user.name || user.email,
+          department: user.department || 'Shared Services',
+          clockInTime: nowObj.toISOString(),
+          status: 'REMOTE_PENDING',
+        };
+        localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));
+      } else {
+        delete activeAll[user.userId];
+        localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));
+      }
+
+      setLogs(db.getUserLogs(user.userId));
+
+      // Push Realtime Notification to Admins
+      realtimeBus.broadcast({
+        id: `NTF-${Date.now()}`,
+        type: 'CLOCK_IN',
+        title: 'Remote Exception Request',
+        desc: `${user.name || user.email} requested remote ${nextType} (${remoteCategory}).`,
+        time: nowObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        unread: true,
+        userId: user.userId,
+        userName: user.name || user.email,
+        department: user.department || 'Shared Services',
+        isActive: nextType === 'IN'
+      });
+
+      setSubmittingRemote(false);
+      setShowRemoteModal(false);
+      setRemoteNote('');
+      setRemoteSuccessMessage(`Attendance request submitted to supervisor review! You are now logged as active (${nextType}) pending verification.`);
+      setTimeout(() => setRemoteSuccessMessage(null), 6000);
+    }, 700);
   };
 
   const todayLogs = sortedLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString());
@@ -321,25 +411,71 @@ export default function ClockIn() {
         </div>
       ) : (
         /* Big Clock Button */
-        <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
+          {isOutsideGeofence ? (
+            <div className="fade-in" style={{
+              width: '100%', maxWidth: 380, padding: '16px 18px', borderRadius: 20,
+              background: '#fffbeb', border: '1.5px solid #fde047', color: '#92400e',
+              marginBottom: 24, textAlign: 'left', boxShadow: '0 6px 20px rgba(245,158,11,0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.86rem', marginBottom: 6, color: '#b45309' }}>
+                <AlertTriangle size={18} color="#d97706" /> Perimeter Boundary Restriction
+              </div>
+              <p style={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#78350f', margin: '0 0 14px' }}>
+                You are currently <strong>{Math.round(distMeters)}m</strong> outside the designated <strong>{geofence.addressName}</strong> boundary (max {geofence.radius}m). Standard GPS tap is restricted.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowRemoteModal(true)}
+                style={{
+                  width: '100%', padding: '11px 16px', borderRadius: 14, background: '#d97706',
+                  color: 'white', border: 'none', fontWeight: 800, fontSize: '0.84rem',
+                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(217,119,6,0.3)'
+                }}
+              >
+                <FileText size={16} /> Request Admin Exception / Remote Check-In
+              </button>
+            </div>
+          ) : null}
+
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div ref={ringRef} style={{
               position: 'absolute', width: 180, height: 180, borderRadius: '50%',
               border: `2px solid ${isClockedIn ? '#022c22' : '#1d4ed8'}`,
               opacity: 0.3,
             }} />
-            <button ref={btnRef} onClick={handlePunch} disabled={punching} style={{
-              width: 148, height: 148, borderRadius: '50%', border: 'none', cursor: punching ? 'wait' : 'pointer',
-              background: isClockedIn ? '#1e40af' : '#2563eb',
-              color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em',
-              boxShadow: isClockedIn
+            <button ref={btnRef} onClick={isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch} disabled={punching} style={{
+              width: 148, height: 148, borderRadius: '50%', border: 'none',
+              cursor: punching ? 'wait' : 'pointer',
+              background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#1e40af' : '#2563eb',
+              color: 'white', fontSize: '0.92rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'pre-wrap',
+              boxShadow: isOutsideGeofence
+                ? '0 6px 20px rgba(100,116,139,0.3)'
+                : isClockedIn
                 ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
                 : '0 0 60px rgba(29,78,216,0.4), 0 8px 32px rgba(15,23,42,0.25)',
-              transition: 'box-shadow 0.4s',
+              transition: 'all 0.3s',
+              opacity: punching ? 0.85 : 1,
             }}>
-              {punching ? '...' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
+              {punching ? (isClockedIn ? '⏳ CLOCKING\nOUT...' : '⏳ CLOCKING\nIN...') : isOutsideGeofence ? '🔒 PERIMETER\nLOCKED' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
             </button>
           </div>
+
+          {/* Subtle Request Button when not outside geofence */}
+          {!isOutsideGeofence && (
+            <button
+              type="button"
+              onClick={() => setShowRemoteModal(true)}
+              style={{
+                background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 800,
+                fontSize: '0.78rem', cursor: 'pointer', marginTop: 18, display: 'flex',
+                alignItems: 'center', gap: 6
+              }}
+            >
+              <FileText size={14} /> Need remote check-in or field exception? Request here →
+            </button>
+          )}
         </div>
       )}
 
@@ -348,12 +484,35 @@ export default function ClockIn() {
         borderRadius: 20, overflow: 'hidden',
         border: '1px solid rgba(15,23,42,0.08)', marginBottom: 20,
       }}>
-        <div style={{ padding: '12px 16px', background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-          <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>Last Punch Biometric Geolocation</p>
+        <div style={{ padding: '12px 16px', background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>Current Biometric Geolocation</p>
+          {geofence.enabled ? (
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: isOutsideGeofence ? '#dc2626' : '#10b981', background: isOutsideGeofence ? '#fef2f2' : '#ecfdf5', padding: '3px 8px', borderRadius: 8 }}>
+              {isOutsideGeofence ? '⚠️ Outside Perimeter Circle' : '🟢 Inside Perimeter Circle'}
+            </span>
+          ) : (
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 8 }}>
+              🔓 Geofencing Unrestricted
+            </span>
+          )}
         </div>
-        <MapContainer center={[mapCenter.lat, mapCenter.lng]} zoom={14} style={{ height: 180 }}>
+        <MapContainer center={[currentLat, currentLng]} zoom={15} style={{ height: 210 }}>
           <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='© OpenStreetMap © CARTO' />
-          <Marker position={[mapCenter.lat, mapCenter.lng]}><Popup>Last punch location</Popup></Marker>
+          <Marker position={[currentLat, currentLng]}>
+            <Popup>Your Current Location ({isOutsideGeofence ? 'Outside Geofence' : 'Inside Geofence'})</Popup>
+          </Marker>
+          <Circle
+            center={[geofence.lat, geofence.lng]}
+            radius={geofence.radius}
+            pathOptions={{
+              color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#3b82f6',
+              fillColor: geofence.enabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
+              fillOpacity: 0.25,
+              weight: 2
+            }}
+          >
+            <Popup>{geofence.addressName} Perimeter ({geofence.radius}m)</Popup>
+          </Circle>
         </MapContainer>
       </div>
 
@@ -388,6 +547,118 @@ export default function ClockIn() {
           </div>
         )}
       </div>
+
+      {/* Remote Clock-In Success Message */}
+      {remoteSuccessMessage && (
+        <div className="fade-in" style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 999999,
+          padding: '16px 24px', borderRadius: 20, background: '#ecfdf5', border: '2px solid #10b981',
+          color: '#065f46', fontWeight: 800, fontSize: '0.92rem', boxShadow: '0 20px 40px rgba(16,185,129,0.25)',
+          display: 'flex', alignItems: 'center', gap: 12, maxWidth: 500, width: '90%'
+        }}>
+          <CheckCircle2 size={24} color="#10b981" flexShrink={0} />
+          <span>{remoteSuccessMessage}</span>
+          <button onClick={() => setRemoteSuccessMessage(null)} style={{ background: 'none', border: 'none', color: '#065f46', cursor: 'pointer', fontWeight: 800 }}>✕</button>
+        </div>
+      )}
+
+      {/* Remote & Exception Attendance Request Modal */}
+      {showRemoteModal && (
+        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: 20 }}>
+          <div className="card glass fade-in" style={{ width: '100%', maxWidth: 520, background: 'white', borderRadius: 26, padding: 28, border: '1px solid rgba(15,23,42,0.1)', boxShadow: '0 25px 50px rgba(15,23,42,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid #f1f5f9', paddingBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(217,119,6,0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>Request Remote Attendance</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Executive exception authorization form</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowRemoteModal(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleRemoteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 14, border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>
+                  <span><strong>Employee:</strong> {user.name}</span>
+                  <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#2563eb' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MapPin size={14} color="#d97706" />
+                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {geofence.addressName}</span>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase' }}>
+                  Exception Category / Reason
+                </label>
+                <select
+                  value={remoteCategory}
+                  onChange={e => setRemoteCategory(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', outline: 'none', background: 'white' }}
+                >
+                  <option value="Remote Work / Work From Home (WFH)">🏠 Remote Work / Work From Home (WFH)</option>
+                  <option value="Client Site Visit / Field Operations">🏢 Client Site Visit / Field Operations</option>
+                  <option value="Business Travel / Official Delegation">✈️ Business Travel / Official Delegation</option>
+                  <option value="GPS Signal Accuracy / Hardware Calibration Issue">📡 GPS Signal Accuracy / Calibration Issue</option>
+                  <option value="Emergency / Other Operational Directive">🚨 Emergency / Supervisor Approved Mandate</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase' }}>
+                  Work Activity & Justification Note
+                </label>
+                <textarea
+                  rows={3}
+                  value={remoteNote}
+                  onChange={e => setRemoteNote(e.target.value)}
+                  placeholder="Provide specific details about your remote work, client visit, or why you cannot clock in at the office terminal..."
+                  required
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', outline: 'none', resize: 'vertical' }}
+                />
+              </div>
+
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '10px 12px', background: '#eff6ff', borderRadius: 12, border: '1px solid #bfdbfe' }}>
+                <input
+                  type="checkbox"
+                  checked={remoteAttachCheck}
+                  onChange={e => setRemoteAttachCheck(e.target.checked)}
+                  required
+                  style={{ marginTop: 3, accentColor: '#2563eb' }}
+                />
+                <span style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600, lineHeight: 1.4 }}>
+                  I certify that my current coordinates and time stamp represent true operational attendance. I consent to executive GPS audit verification.
+                </span>
+              </label>
+
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRemoteModal(false)}
+                  disabled={submittingRemote}
+                  style={{ flex: 1, padding: '13px', borderRadius: 14, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingRemote}
+                  style={{ flex: 2, padding: '13px', borderRadius: 14, background: submittingRemote ? '#64748b' : '#d97706', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.92rem', cursor: submittingRemote ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: submittingRemote ? 'none' : '0 6px 20px rgba(217,119,6,0.35)' }}
+                >
+                  {submittingRemote ? <><Loader2 size={18} className="spin" /> Submitting Request...</> : <><Send size={18} /> Submit Attendance Request</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock } from 'lucide-react';
+import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock, Briefcase } from 'lucide-react';
 import { db } from '../lib/db';
 
 const statusBadge = (status) => {
@@ -267,7 +267,12 @@ export default function AdminEmployees() {
                       </div>
                     </td>
                     <td style={{ padding: '14px 20px', fontWeight: 700, color: '#334155', fontSize: '0.86rem' }}>
-                      {getPositionInfo(u.positionId)}
+                      <div>{getPositionInfo(u.positionId)}</div>
+                      {u.assignedAccount && (
+                        <div style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 800, marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Briefcase size={12} style={{ flexShrink: 0 }} /> {u.assignedAccount}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '14px 20px', color: '#475569', fontSize: '0.86rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -94,9 +94,9 @@ export default function AdminAssignments() {
   });
 
   const getPriorityBadge = (p) => {
-    if (p === 'High') return { bg: 'rgba(239,68,68,0.12)', color: '#dc2626', label: '🔴 High Priority' };
-    if (p === 'Medium') return { bg: 'rgba(245,158,11,0.12)', color: '#d97706', label: '🟡 Medium Priority' };
-    return { bg: 'rgba(16,185,129,0.12)', color: '#059669', label: '🟢 Standard' };
+    if (p === 'High') return { bg: 'rgba(239,68,68,0.12)', color: '#dc2626', label: 'High Priority', icon: <AlertTriangle size={12} /> };
+    if (p === 'Medium') return { bg: 'rgba(245,158,11,0.12)', color: '#d97706', label: 'Medium Priority', icon: <AlertTriangle size={12} /> };
+    return { bg: 'rgba(16,185,129,0.12)', color: '#059669', label: 'Standard', icon: <CheckCircle2 size={12} /> };
   };
 
   return (
@@ -199,8 +199,8 @@ export default function AdminAssignments() {
                   <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 800, fontSize: '0.72rem' }}>
                     {sop.type || 'SOP Protocol'}
                   </span>
-                  <span style={{ padding: '4px 10px', borderRadius: 8, background: pb.bg, color: pb.color, fontWeight: 800, fontSize: '0.72rem' }}>
-                    {pb.label}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, background: pb.bg, color: pb.color, fontWeight: 800, fontSize: '0.72rem' }}>
+                    {pb.icon} {pb.label}
                   </span>
                 </div>
 

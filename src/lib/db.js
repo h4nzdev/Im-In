@@ -31,6 +31,16 @@ function cleanInitialSetup() {
       { id: 'SOP-004', title: 'Healthcare Billing HIPAA Data Security Guidelines', type: 'Mandatory Training', target: 'Healthcare Billing Operations', priority: 'High', status: 'Active', description: 'Required annual privacy compliance review for billing operations personnel.', createdAt: '2026-06-28' }
     ]);
   }
+  const g = get('geofence');
+  if (!g) {
+    save('geofence', {
+      enabled: false,
+      lat: 14.5995,
+      lng: 120.9842,
+      radius: 300,
+      addressName: 'Main Headquarters Terminal #1'
+    });
+  }
 }
 
 cleanInitialSetup();
@@ -87,7 +97,7 @@ export async function initSupabaseSync() {
     if (logs) {
       save('logs', logs.map(l => ({
         logId: l.log_id, userId: l.user_id, type: l.type, timestamp: l.timestamp,
-        latitude: l.latitude, longitude: l.longitude, deviceInfo: l.device_info,
+        latitude: l.latitude, longitude: l.longitude, address: l.address, deviceInfo: l.device_info,
         status: l.status, lateMinutes: l.late_minutes
       })));
     }
@@ -107,7 +117,47 @@ export async function initSupabaseSync() {
 // Trigger initial async background sync
 initSupabaseSync();
 
+export const SERVICE_DELIVERY_ACCOUNTS = [
+  'FinTech Global Support & Operations',
+  'Healthcare Medical Billing & Claims',
+  'E-Commerce Customer Care & Dispatch',
+  'Enterprise Cloud & IT Solutions Helpdesk',
+  'Telecom Technical Helpdesk & Network Ops',
+  'Real Estate Virtual Assistant & Lead Gen',
+  'Digital Marketing & SEO Content Team',
+  'Executive Virtual Staffing & Admin Management',
+  'Inbound Sales & Retention Campaign',
+  'Logistics & Supply Chain Coordination'
+];
+
 export const db = {
+  getAccounts: () => {
+    const cached = get('accounts');
+    if (cached && cached.length > 0) return cached;
+    save('accounts', SERVICE_DELIVERY_ACCOUNTS);
+    return SERVICE_DELIVERY_ACCOUNTS;
+  },
+  // Geofence Settings
+  getGeofence: () => {
+    const saved = get('geofence') || {};
+    const lat = Number(saved.lat);
+    const lng = Number(saved.lng);
+    const radius = Number(saved.radius);
+    return {
+      enabled: Boolean(saved.enabled),
+      lat: !isNaN(lat) && lat !== 0 ? lat : 14.5995,
+      lng: !isNaN(lng) && lng !== 0 ? lng : 120.9842,
+      radius: !isNaN(radius) && radius > 0 ? radius : 300,
+      addressName: saved.addressName || 'Main Headquarters Terminal #1'
+    };
+  },
+  updateGeofence:  (upd)      => {
+    const current = db.getGeofence();
+    const next = { ...current, ...upd };
+    save('geofence', next);
+    return next;
+  },
+
   // Users
   getUsers:        ()         => get('users'),
   getUserByEmail:  (email)    => db.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase()),
@@ -180,7 +230,7 @@ export const db = {
     if (isSupabaseConfigured && supabase) {
       supabase.from('attendance_logs').insert([{
         log_id: log.logId, user_id: log.userId, type: log.type, timestamp: log.timestamp,
-        latitude: log.latitude, longitude: log.longitude, device_info: log.deviceInfo,
+        latitude: log.latitude, longitude: log.longitude, address: log.address || null, device_info: log.deviceInfo,
         status: log.status || 'ON TIME', late_minutes: log.lateMinutes || 0
       }]).then();
     }

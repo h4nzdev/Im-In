@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Shield, UserCheck, Calendar, Clock, ArrowRight, Activity, Users, Briefcase, FileText } from 'lucide-react';
+import { Shield, UserCheck, Calendar, Clock, ArrowRight, Activity, Users, Briefcase, FileText, MapPin, CheckCircle2, Lock, Unlock, Search, Building2, Layers, AlertTriangle } from 'lucide-react';
 import { db } from '../lib/db';
 import { realtimeBus } from '../lib/realtime';
 
@@ -37,6 +37,7 @@ export default function AdminDashboard() {
   const [activeShiftsMap, setActiveShiftsMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
   const [now, setNow] = useState(Date.now());
 
+  const [geofence] = useState(() => db.getGeofence());
   const containerRef = useRef();
 
   useEffect(() => {
@@ -256,21 +257,210 @@ export default function AdminDashboard() {
 
                 <div style={{ textAlign: 'right' }}>
                   <span style={{
-                    display: 'inline-block', padding: '3px 8px', borderRadius: 8,
+                    display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8,
                     background: isOnline ? 'rgba(16,185,129,0.12)' : '#f1f5f9',
                     color: isOnline ? '#047857' : '#64748b', fontWeight: 800, fontSize: '0.72rem'
                   }}>
-                    {isOnline ? '🟢 Online' : '⚪ Offline'}
+                    <Activity size={12} color={isOnline ? '#059669' : '#64748b'} /> {isOnline ? 'Online' : 'Offline'}
                   </span>
                   {elapsedStr && (
-                    <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace' }}>
-                      ⏱️ {elapsedStr}
+                    <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                      <Clock size={12} /> {elapsedStr}
                     </div>
                   )}
                 </div>
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Executive Quick Action & Navigation Portal */}
+      <div className="card glass" style={{ padding: 28, borderRadius: 24, marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, borderBottom: '1px solid rgba(15,23,42,0.06)', paddingBottom: 16 }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Layers size={22} color="#2563eb" /> Executive Action Center & Terminal Shortcuts
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '3px 0 0', fontWeight: 600 }}>
+              Quick access to administrative approval queues, security maps, and workforce roster management
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+          {/* Card 1: Approvals Desk */}
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(217,119,6,0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={22} />
+                </div>
+                {(logs.filter(l => l.status === 'REMOTE_PENDING').length + leaves.filter(l => l.status === 'Pending').length) > 0 && (
+                  <span style={{ padding: '4px 10px', borderRadius: 20, background: '#fef3c7', color: '#d97706', fontSize: '0.74rem', fontWeight: 800, border: '1px solid #fde68a' }}>
+                    Requires Review
+                  </span>
+                )}
+              </div>
+              <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Pending Approvals</h3>
+              <p style={{ color: '#64748b', fontSize: '0.84rem', lineHeight: 1.5, margin: '0 0 20px', fontWeight: 600 }}>
+                Review <strong>{logs.filter(l => l.status === 'REMOTE_PENDING').length} remote attendance</strong> exceptions & <strong>{leaves.filter(l => l.status === 'Pending').length} leave</strong> requests.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/admin/approvals')}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#d97706', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(217,119,6,0.25)', transition: 'transform 0.15s' }}
+            >
+              Open Approvals Desk <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Card 2: Geofence Map Terminal */}
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(37,99,235,0.15)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MapPin size={22} />
+                </div>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: geofence?.enabled ? '#ecfdf5' : '#f1f5f9', color: geofence?.enabled ? '#059669' : '#64748b', fontSize: '0.74rem', fontWeight: 800, border: geofence?.enabled ? '1px solid #a7f3d0' : '1px solid #e2e8f0' }}>
+                  {geofence?.enabled ? 'Strict Geofence ON' : 'Geofence Unrestricted'}
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Terminal Geofence Map</h3>
+              <p style={{ color: '#64748b', fontSize: '0.84rem', lineHeight: 1.5, margin: '0 0 20px', fontWeight: 600 }}>
+                Active center: <strong>{geofence?.addressName || 'Wilson Street, Cebu City'}</strong> ({geofence?.radius || 300}m radius). Configure interactive map pin.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/admin/geofence')}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#2563eb', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(37,99,235,0.25)', transition: 'transform 0.15s' }}
+            >
+              Open Geofence Terminal <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Card 3: Employee Roster */}
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={22} />
+                </div>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#eff6ff', color: '#1d4ed8', fontSize: '0.74rem', fontWeight: 800, border: '1px solid #bfdbfe' }}>
+                  {users.length} Profiles
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Staff & Designations</h3>
+              <p style={{ color: '#64748b', fontSize: '0.84rem', lineHeight: 1.5, margin: '0 0 20px', fontWeight: 600 }}>
+                Manage corporate profiles, roles, IDs, and shift schedules for all operations and shared services personnel.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/admin/employees')}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#0f172a', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(15,23,42,0.2)', transition: 'transform 0.15s' }}
+            >
+              Manage Staff Roster <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Card 4: Biometric Audit Logs Table */}
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={22} />
+                </div>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#f5f3ff', color: '#7c3aed', fontSize: '0.74rem', fontWeight: 800, border: '1px solid #ddd6fe' }}>
+                  {logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length} Today
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Attendance Audit Table</h3>
+              <p style={{ color: '#64748b', fontSize: '0.84rem', lineHeight: 1.5, margin: '0 0 20px', fontWeight: 600 }}>
+                Filter across all employee punches simultaneously with user dropdown and text search capabilities. Export CSV.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/admin/logs')}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#7c3aed', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(124,58,237,0.25)', transition: 'transform 0.15s' }}
+            >
+              Open Audit Table <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Division & Campaign Intelligence Panel */}
+      <div className="card glass" style={{ padding: 28, borderRadius: 24, marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, borderBottom: '1px solid rgba(15,23,42,0.06)', paddingBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Building2 size={22} color="#2563eb" /> Division & Client Campaign Overview
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '3px 0 0', fontWeight: 600 }}>
+              Workforce distribution across Operations (Service Delivery) and Corporate Support (Shared Services)
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/admin/assignments')}
+            style={{ padding: '10px 16px', borderRadius: 14, background: 'rgba(37,99,235,0.08)', color: '#2563eb', border: '1px solid rgba(37,99,235,0.25)', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <Briefcase size={16} /> Campaign Assignments Desk →
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+          {/* Division 1: Service Delivery */}
+          <div style={{ padding: '22px', borderRadius: 20, background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 180 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Briefcase size={16} /> Service Delivery (Operations)
+                </span>
+                <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e3a8a' }}>
+                  {users.filter(u => u.department === 'Service Delivery').length} Staff
+                </span>
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#3b82f6', margin: '0 0 16px', fontWeight: 600, lineHeight: 1.45 }}>
+                Virtual Assistants and Operations team members working directly on client accounts and billable customer campaigns.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {db.getAccounts().slice(0, 4).map(acc => (
+                  <span key={acc} style={{ padding: '6px 12px', borderRadius: 20, background: 'white', color: '#1d4ed8', fontWeight: 800, fontSize: '0.74rem', border: '1px solid #93c5fd', boxShadow: '0 2px 6px rgba(37,99,235,0.06)' }}>
+                    🎯 {acc}
+                  </span>
+                ))}
+                {db.getAccounts().length > 4 && (
+                  <span style={{ padding: '6px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.6)', color: '#1d4ed8', fontWeight: 800, fontSize: '0.74rem' }}>
+                    +{db.getAccounts().length - 4} more campaigns
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Division 2: Shared Services */}
+          <div style={{ padding: '22px', borderRadius: 20, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 180 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Building2 size={16} /> Shared Services (Corporate)
+                </span>
+                <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>
+                  {users.filter(u => u.department === 'Shared Services').length} Staff
+                </span>
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 16px', fontWeight: 600, lineHeight: 1.45 }}>
+                Internal enterprise support departments including HR, IT, Accounting, Recruitment, and Internal Operations.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {['HR & People Operations', 'IT Infrastructure & Dev', 'Corporate Finance', 'Recruitment Specialist'].map(dept => (
+                  <span key={dept} style={{ padding: '6px 12px', borderRadius: 20, background: 'white', color: '#334155', fontWeight: 800, fontSize: '0.74rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(15,23,42,0.03)' }}>
+                    🏢 {dept}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Link } from 'react-router-dom';
+import { createBrowserRouter, Link, useRouteError } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -19,6 +19,7 @@ const CalendarView = lazy(() => import('./pages/CalendarView'));
 const AdminApprovals = lazy(() => import('./pages/AdminApprovals'));
 const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
 const AdminAssignments = lazy(() => import('./pages/AdminAssignments'));
+const AdminGeofence = lazy(() => import('./pages/AdminGeofence'));
 const UserAssignments = lazy(() => import('./pages/UserAssignments'));
 
 const Loading = () => (
@@ -27,20 +28,34 @@ const Loading = () => (
   </div>
 );
 
-const ErrorFallback = () => (
-  <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', background: '#f1f5f9' }}>
-    <div className="glass" style={{ padding: '40px 32px', borderRadius: 24, maxWidth: 440, width: '100%', boxShadow: '0 12px 40px rgba(15,23,42,0.08)' }}>
-      <span style={{ fontSize: '3rem', display: 'block', marginBottom: 16 }}>🧭</span>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Page Not Found</h1>
-      <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '0 0 28px', lineHeight: 1.5 }}>
-        We couldn't find the page you're looking for. It may have been moved or deleted.
-      </p>
-      <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: '#2563eb', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
-        Back to Dashboard
-      </Link>
+const ErrorFallback = () => {
+  const error = useRouteError();
+  console.error("Route error:", error);
+  const isNotFound = error?.status === 404 || error?.statusText === 'Not Found';
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', background: '#f1f5f9' }}>
+      <div className="glass" style={{ padding: '40px 32px', borderRadius: 24, maxWidth: 520, width: '100%', boxShadow: '0 12px 40px rgba(15,23,42,0.08)' }}>
+        <span style={{ fontSize: '3rem', display: 'block', marginBottom: 16 }}>{isNotFound ? '🧭' : '⚠️'}</span>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
+          {isNotFound ? 'Page Not Found' : 'Application Error'}
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '0 0 20px', lineHeight: 1.5 }}>
+          {isNotFound
+            ? "We couldn't find the page you're looking for. It may have been moved or deleted."
+            : (error?.message || error?.statusText || "An unexpected error occurred while loading this view.")}
+        </p>
+        {!isNotFound && error && (
+          <pre style={{ textAlign: 'left', background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 10, fontSize: '0.75rem', overflowX: 'auto', maxHeight: 150, marginBottom: 20 }}>
+            {error.message || error.toString()}
+          </pre>
+        )}
+        <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: '#2563eb', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
+          Back to Dashboard
+        </Link>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const wrap = (element) => <Suspense fallback={<Loading />}>{element}</Suspense>;
 
@@ -107,6 +122,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin/assignments',
         element: wrap(<ProtectedRoute element={<AdminAssignments />} requireAdmin />),
+      },
+      {
+        path: 'admin/geofence',
+        element: wrap(<ProtectedRoute element={<AdminGeofence />} requireAdmin />),
       },
       {
         path: 'profile',

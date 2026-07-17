@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogIn, Sparkles, UserPlus } from 'lucide-react';
+import { LogIn, Sparkles, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import realynkLogo from '../assets/realynk.png';
 
@@ -12,6 +12,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const cardRef = useRef();
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function Login() {
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(37,99,235,0.1)'
             }}
           >
-            <Sparkles size={14} /> ✨ Fill Demo Credentials
+            <Sparkles size={14} /> Fill Demo Credentials
           </button>
         </div>
 
@@ -78,14 +79,30 @@ export default function Login() {
 
           <div className="field">
             <label style={{ display: 'block', color: '#475569', fontSize: '0.78rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '1px solid #cbd5e1', background: 'white', fontSize: '0.92rem', fontWeight: 600 }}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{ width: '100%', padding: '13px 44px 13px 16px', borderRadius: 14, border: '1px solid #cbd5e1', background: 'white', fontSize: '0.92rem', fontWeight: 600 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: 'absolute', right: 12, background: 'transparent', border: 'none',
+                  cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: 6, borderRadius: 8, transition: 'color 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+                onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {error && (

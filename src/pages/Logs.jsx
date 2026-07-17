@@ -1,8 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, ChevronRight, UserCheck, User, Users } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
+import { getRealAddress } from '../lib/geo';
+
+function AddressCell({ log }) {
+  const [addr, setAddr] = useState(log.address || (log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'));
+  
+  useEffect(() => {
+    if (!log.address && log.latitude && log.longitude) {
+      getRealAddress(log.latitude, log.longitude).then(res => {
+        if (res) setAddr(res);
+      });
+    } else if (log.address) {
+      setAddr(log.address);
+    }
+  }, [log.address, log.latitude, log.longitude]);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'normal', maxWidth: 260, lineHeight: 1.3, fontSize: '0.84rem', fontWeight: 600, color: '#334155' }}>
+      <MapPin size={15} color="#2563eb" flexShrink={0} />
+      <span title={log.latitude ? `Coordinates: ${log.latitude.toFixed(6)}, ${log.longitude.toFixed(6)}` : ''}>{addr}</span>
+    </div>
+  );
+}
 
 export default function Logs() {
   const { user } = useAuthStore();
@@ -11,6 +33,7 @@ export default function Logs() {
   const [allLogs] = useState(() => db.getLogs());
   const [users] = useState(() => db.getUsers());
   const [search, setSearch] = useState('');
+  const [userFilter, setUserFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL'); // ALL, IN, OUT
   
   // Table pagination & limit states
@@ -35,11 +58,17 @@ export default function Logs() {
   const baseLogs = isAdmin ? allLogs : allLogs.filter(l => l.userId === user.userId);
 
   const filteredLogs = baseLogs.filter(log => {
+    if (userFilter !== 'ALL' && log.userId !== userFilter) return false;
     if (typeFilter !== 'ALL' && log.type !== typeFilter) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       const u = getUserInfo(log.userId);
-      return u.name.toLowerCase().includes(q) || log.logId.toLowerCase().includes(q) || log.deviceInfo?.toLowerCase().includes(q);
+      return u.name.toLowerCase().includes(q) || 
+             log.logId.toLowerCase().includes(q) || 
+             log.deviceInfo?.toLowerCase().includes(q) ||
+             log.note?.toLowerCase().includes(q) ||
+             log.address?.toLowerCase().includes(q) ||
+             u.employeeId?.toLowerCase().includes(q);
     }
     return true;
   }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -53,10 +82,11 @@ export default function Logs() {
   const pageLogs = filteredLogs.slice(startIdx, endIdx);
 
   const handleExportCSV = () => {
-    const headers = ['Log ID', 'User Name', 'Role', 'Type', 'Timestamp', 'Latitude', 'Longitude', 'Device'];
+    const headers = ['Log ID', 'User Name', 'Role', 'Type', 'Timestamp', 'Real Address / Location', 'Latitude', 'Longitude', 'Device'];
     const rows = filteredLogs.map(l => {
       const u = getUserInfo(l.userId);
-      return [l.logId, `"${u.name}"`, u.role, l.type, l.timestamp, l.latitude || '', l.longitude || '', `"${l.deviceInfo || ''}"`].join(',');
+      const addressVal = l.address || (l.latitude ? `${l.latitude.toFixed(4)}, ${l.longitude.toFixed(4)}` : 'GPS N/A');
+      return [l.logId, `"${u.name}"`, u.role, l.type, l.timestamp, `"${addressVal}"`, l.latitude || '', l.longitude || '', `"${l.deviceInfo || ''}"`].join(',');
     });
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -109,19 +139,47 @@ export default function Logs() {
         ))}
       </div>
 
-      {/* Controls Bar: Search + Limit + Filter */}
-      <div className="card glass controls-bar" style={{ padding: '14px 16px', borderRadius: 18, marginBottom: 16 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Top row: 100% full width search */}
-          <div style={{ position: 'relative', width: '100%' }}>
-            <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-            <input 
-              type="text" 
-              placeholder={isAdmin ? "Search employee, ID, or device..." : "Search punch ID or device..."}
-              value={search}
-              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none', margin: 0 }}
-            />
+      {/* Controls Bar: Search + User Dropdown + Filter */}
+      <div className="card glass controls-bar" style={{ padding: '16px 18px', borderRadius: 20, marginBottom: 18 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Top row: Search Bar + User Dropdown Filter simultaneously */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Search Input */}
+            <div style={{ position: 'relative', flex: '1 1 260px' }}>
+              <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <input 
+                type="text" 
+                placeholder={isAdmin ? "Search employee, ID, address, device..." : "Search punch ID, address, or device..."}
+                value={search}
+                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none', margin: 0, borderRadius: 14, border: '1px solid #cbd5e1', height: 44, fontSize: '0.9rem', fontWeight: 600 }}
+              />
+            </div>
+
+            {/* User Dropdown Filter (Visible for Admins or Multi-user view) */}
+            {isAdmin && (
+              <div style={{ position: 'relative', flex: '0 1 250px', minWidth: 220 }}>
+                <Users size={18} color="#2563eb" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <select
+                  value={userFilter}
+                  onChange={e => { setUserFilter(e.target.value); setCurrentPage(1); }}
+                  style={{
+                    width: '100%', height: 44, padding: '0 16px 0 42px', borderRadius: 14, border: '1px solid #bfdbfe',
+                    background: userFilter !== 'ALL' ? '#eff6ff' : 'white',
+                    color: userFilter !== 'ALL' ? '#1d4ed8' : '#0f172a',
+                    fontSize: '0.88rem', fontWeight: 700, outline: 'none', cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <option value="ALL">👥 All Employees ({users.length})</option>
+                  {users.map(u => (
+                    <option key={u.userId} value={u.userId}>
+                      {u.name} ({u.employeeId || u.userId})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Bottom row: Filter tabs on left, Rows selector on right */}
@@ -176,7 +234,7 @@ export default function Logs() {
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Status</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Date</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Exact Time</th>
-                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Biometric Location</th>
+                <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Real Address / Location</th>
                 <th style={{ padding: '16px 20px', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Terminal Device</th>
               </tr>
             </thead>
@@ -240,11 +298,8 @@ export default function Logs() {
                         <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a', display: 'block', whiteSpace: 'nowrap' }}>{timeStr}</span>
                       </td>
 
-                      <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#475569', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                          <MapPin size={14} color="#2563eb" />
-                          {log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'}
-                        </div>
+                      <td style={{ padding: '16px 20px', whiteSpace: 'normal' }}>
+                        <AddressCell log={log} />
                       </td>
 
                       <td style={{ padding: '16px 20px', fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
