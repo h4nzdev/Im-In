@@ -30,6 +30,8 @@ function AddressCell({ log }) {
 export default function Logs() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'Admin';
+  const isSuccessLead = user?.role === 'Success Lead';
+  const managedTeam = Array.isArray(user?.managedTeam) ? user.managedTeam : [];
 
   const [allLogs, setAllLogs] = useState(() => db.getLogs());
   const [users] = useState(() => db.getUsers());
@@ -58,7 +60,11 @@ export default function Logs() {
     return found || { name: 'Unknown Employee', email: uid, role: 'User' };
   };
 
-  const baseLogs = isAdmin ? allLogs : allLogs.filter(l => l.userId === user.userId);
+  const baseLogs = isAdmin 
+    ? allLogs 
+    : isSuccessLead 
+      ? allLogs.filter(l => l.userId === user.userId || managedTeam.includes(l.userId))
+      : allLogs.filter(l => l.userId === user.userId);
 
   const filteredLogs = baseLogs.filter(log => {
     if (userFilter !== 'ALL' && log.userId !== userFilter) return false;
@@ -109,7 +115,7 @@ export default function Logs() {
             Attendance History Table
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '4px 0 0', fontWeight: 500 }}>
-            {isAdmin ? 'System-wide audit table of biometric time records' : 'Structured log table of your shift punches'}
+            {isAdmin ? 'System-wide audit table of biometric time records' : isSuccessLead ? 'Audit table for your own shift punches and your managed team records' : 'Structured log table of your shift punches'}
           </p>
         </div>
 
@@ -280,7 +286,7 @@ export default function Logs() {
               <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input 
                 type="text" 
-                placeholder={isAdmin ? "Search employee, ID, address, device..." : "Search punch ID, address, or device..."}
+                placeholder={(isAdmin || isSuccessLead) ? "Search employee, ID, address, device..." : "Search punch ID, address, or device..."}
                 value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 style={{ paddingLeft: 42, background: 'rgba(255,255,255,0.9) !important', width: '100%', outline: 'none', margin: 0, borderRadius: 14, border: '1px solid #cbd5e1', height: 44, fontSize: '0.9rem', fontWeight: 600 }}
@@ -288,7 +294,7 @@ export default function Logs() {
             </div>
 
             {/* User Dropdown Filter (Visible for Admins or Multi-user view) */}
-            {isAdmin && (
+            {(isAdmin || isSuccessLead) && (
               <div style={{ position: 'relative', flex: '0 1 250px', minWidth: 220 }}>
                 <Users size={18} color="#054daf" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 <select
@@ -302,12 +308,19 @@ export default function Logs() {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                   }}
                 >
-                  <option value="ALL">👥 All Employees ({users.length})</option>
-                  {users.map(u => (
-                    <option key={u.userId} value={u.userId}>
-                      {u.name} ({u.employeeId || u.userId})
-                    </option>
-                  ))}
+                  {(() => {
+                    const availableUsers = isAdmin ? users : users.filter(u => u.userId === user.userId || managedTeam.includes(u.userId));
+                    return (
+                      <>
+                        <option value="ALL">👥 All {isSuccessLead ? 'Team + Me' : 'Employees'} ({availableUsers.length})</option>
+                        {availableUsers.map(u => (
+                          <option key={u.userId} value={u.userId}>
+                            {u.name} ({u.employeeId || u.userId}) {u.userId === user.userId ? '(Me)' : ''}
+                          </option>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </select>
               </div>
             )}

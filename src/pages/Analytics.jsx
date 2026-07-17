@@ -51,8 +51,20 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function Analytics() {
   const { user } = useAuthStore();
-  const [logs] = useState(() => db.getUserLogs(user.userId));
-  const [leaves] = useState(() => db.getUserLeaves(user.userId));
+  const isAdmin = user?.role === 'Admin';
+  const isSuccessLead = user?.role === 'Success Lead';
+  const managedTeam = Array.isArray(user?.managedTeam) ? user.managedTeam : [];
+  const [users] = useState(() => db.getUsers());
+  const [selectedUserId, setSelectedUserId] = useState(user.userId);
+
+  const targetUserId = (isAdmin || isSuccessLead) ? selectedUserId : user.userId;
+  const targetUser = users.find(u => u.userId === targetUserId) || user;
+
+  const [allLogs] = useState(() => db.getLogs());
+  const [allLeaves] = useState(() => db.getLeaves());
+
+  const logs = allLogs.filter(l => l.userId === targetUserId);
+  const leaves = allLeaves.filter(l => l.userId === targetUserId);
   const [daysFilter, setDaysFilter] = useState(7);
   const pageRef = useRef();
 
@@ -63,12 +75,12 @@ export default function Analytics() {
       });
     });
     return () => ctx.revert();
-  }, [daysFilter]);
+  }, [daysFilter, selectedUserId]);
 
-  const dailyData = buildDailyHours(logs, user.userId, daysFilter);
-  const todayHours = calcPeriodHours(logs, user.userId, 1);
-  const weekHours = calcPeriodHours(logs, user.userId, 7);
-  const monthHours = calcPeriodHours(logs, user.userId, 30);
+  const dailyData = buildDailyHours(logs, targetUserId, daysFilter);
+  const todayHours = calcPeriodHours(logs, targetUserId, 1);
+  const weekHours = calcPeriodHours(logs, targetUserId, 7);
+  const monthHours = calcPeriodHours(logs, targetUserId, 30);
 
   const leaveStats = {
     total: leaves.length,
@@ -88,28 +100,61 @@ export default function Analytics() {
   return (
     <div ref={pageRef}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>My Analytics</h1>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+            {targetUserId === user.userId ? 'My Analytics' : `${targetUser.name}'s Analytics`}
+          </h1>
+          {(isAdmin || isSuccessLead) && (
+            <p style={{ color: '#64748b', fontSize: '0.84rem', margin: '4px 0 0', fontWeight: 600 }}>
+              Viewing metrics for {targetUser.role || 'Associate'} ({targetUser.employeeId || targetUser.userId})
+            </p>
+          )}
+        </div>
         
-        <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 4, borderRadius: 12, gap: 4 }}>
-          {[
-            { d: 7, l: '7 Days' },
-            { d: 14, l: '14 Days' },
-            { d: 30, l: '1 Month' },
-          ].map(({ d, l }) => (
-            <button
-              key={d}
-              onClick={() => setDaysFilter(d)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {(isAdmin || isSuccessLead) && (
+            <select
+              value={selectedUserId}
+              onChange={e => setSelectedUserId(e.target.value)}
               style={{
-                border: 'none', background: daysFilter === d ? 'white' : 'transparent',
-                color: daysFilter === d ? '#043e8a' : '#64748b',
-                fontWeight: 700, fontSize: '0.8rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
-                boxShadow: daysFilter === d ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.15s'
+                height: 40, padding: '0 14px', borderRadius: 12, border: '1px solid #bfdbfe',
+                background: selectedUserId !== user.userId ? '#eff6ff' : 'white',
+                color: selectedUserId !== user.userId ? '#043e8a' : '#0f172a',
+                fontSize: '0.84rem', fontWeight: 700, outline: 'none', cursor: 'pointer'
               }}
             >
-              {l}
-            </button>
-          ))}
+              {(() => {
+                const availableUsers = isAdmin ? users : users.filter(u => u.userId === user.userId || managedTeam.includes(u.userId));
+                return availableUsers.map(u => (
+                  <option key={u.userId} value={u.userId}>
+                    📊 {u.name} {u.userId === user.userId ? '(Me)' : ''}
+                  </option>
+                ));
+              })()}
+            </select>
+          )}
+
+          <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 4, borderRadius: 12, gap: 4 }}>
+            {[
+              { d: 7, l: '7 Days' },
+              { d: 14, l: '14 Days' },
+              { d: 30, l: '1 Month' },
+            ].map(({ d, l }) => (
+              <button
+                key={d}
+                onClick={() => setDaysFilter(d)}
+                style={{
+                  border: 'none', background: daysFilter === d ? 'white' : 'transparent',
+                  color: daysFilter === d ? '#043e8a' : '#64748b',
+                  fontWeight: 700, fontSize: '0.8rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
+                  boxShadow: daysFilter === d ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s'
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

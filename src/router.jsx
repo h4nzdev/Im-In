@@ -21,6 +21,7 @@ const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
 const AdminAssignments = lazy(() => import('./pages/AdminAssignments'));
 const AdminGeofence = lazy(() => import('./pages/AdminGeofence'));
 const UserAssignments = lazy(() => import('./pages/UserAssignments'));
+const MyTeam = lazy(() => import('./pages/MyTeam'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -80,6 +81,10 @@ export const router = createBrowserRouter([
         element: wrap(<ProtectedRoute element={<Dashboard />} />),
       },
       {
+        path: 'team',
+        element: wrap(<ProtectedRoute element={<MyTeam />} />),
+      },
+      {
         path: 'logs',
         element: wrap(<ProtectedRoute element={<Logs />} />),
       },
@@ -105,7 +110,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'admin/approvals',
-        element: wrap(<ProtectedRoute element={<AdminApprovals />} requireAdmin />),
+        element: wrap(<ProtectedRoute element={<AdminApprovals />} requireAdmin allowSuccessLead />),
       },
       {
         path: 'admin/logs',

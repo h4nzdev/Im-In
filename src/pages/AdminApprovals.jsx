@@ -2,8 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { UserCheck, Check, X, Calendar, Search, ChevronLeft, ChevronRight, Mail, Clock } from 'lucide-react';
 import { db } from '../lib/db';
+import { useAuthStore } from '../store/authStore';
 
 export default function AdminApprovals() {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'Admin';
+  const isSuccessLead = user?.role === 'Success Lead';
+  const managedTeamIds = Array.isArray(user?.managedTeam) ? user.managedTeam : [];
+
   const [users, setUsers] = useState(() => db.getUsers());
   const [leaves, setLeaves] = useState(() => db.getLeaves());
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, LEAVES, USERS
@@ -29,8 +35,8 @@ export default function AdminApprovals() {
     setTimeout(() => setToast(''), 3500);
   };
 
-  const pendingLeaves = leaves.filter(l => l.status === 'Pending').map(l => ({ ...l, itemType: 'LEAVE' }));
-  const pendingUsers = users.filter(u => u.status === 'Pending').map(u => ({ ...u, itemType: 'USER' }));
+  const pendingLeaves = leaves.filter(l => l.status === 'Pending' && (isAdmin || (isSuccessLead && managedTeamIds.includes(l.userId)))).map(l => ({ ...l, itemType: 'LEAVE' }));
+  const pendingUsers = isAdmin ? users.filter(u => u.status === 'Pending').map(u => ({ ...u, itemType: 'USER' })) : [];
 
   const handleApproveLeave = (id, userName) => {
     db.updateLeaveStatus(id, 'Approved');

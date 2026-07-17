@@ -93,3 +93,20 @@ export const showAlert = (title, text, icon = 'info') => {
     }
   });
 };
+
+export const showToast = (title, icon = 'success') => {
+  return Swal.fire({
+    title,
+    icon,
+    timer: 2600,
+    timerProgressBar: true,
+    showConfirmButton: false,
+    position: 'top-end',
+    toast: true,
+    background: icon === 'success' ? '#ecfdf5' : '#eff6ff',
+    color: icon === 'success' ? '#065f46' : '#1e3a8a',
+    customClass: {
+      popup: 'swal-custom-toast'
+    }
+  });
+};

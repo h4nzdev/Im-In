@@ -297,9 +297,19 @@ export default function Layout() {
   if (!token) return <Navigate to="/login" replace />;
 
   const isAdmin = user?.role === 'Admin';
+  const isSuccessLead = user?.role === 'Success Lead';
 
   const userLinks = [
     { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
+    { to: '/logs',      icon: Clock,           label: 'Logs'      },
+    { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
+    { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+    { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
+  ];
+  const successLeadLinks = [
+    { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/team',      icon: Users,           label: 'My Team'   },
     { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
     { to: '/logs',      icon: Clock,           label: 'Logs'      },
     { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
@@ -316,7 +326,7 @@ export default function Layout() {
     { to: '/admin/logs',      icon: Clock,     label: 'Logs'      },
     { to: '/admin/leaves',    icon: FileText,  label: 'Leaves'    },
   ];
-  const links = isAdmin ? adminLinks : userLinks;
+  const links = isAdmin ? adminLinks : isSuccessLead ? successLeadLinks : userLinks;
 
   const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(to + '/');
 

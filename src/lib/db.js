@@ -68,6 +68,7 @@ export async function initSupabaseSync() {
           positionId: p.position_id,
           deadlineDate: p.deadline_date || null,
           deadlineTitle: p.deadline_title || null,
+          managedTeam: p.managed_team || exist?.managedTeam || [],
           isActive: isOnline,
           createdAt: p.created_at || new Date().toISOString()
         };
@@ -167,15 +168,17 @@ export const db = {
   getUserByEmail:  (email)    => db.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase()),
   getUserById:     (id)       => db.getUsers().find(u => u.userId === id),
   createUser:      (user)     => {
-    const u = get('users'); u.push(user); save('users', u);
+    const newUser = { ...user, managedTeam: user.managedTeam || [] };
+    const u = get('users'); u.push(newUser); save('users', u);
     if (isSupabaseConfigured && supabase) {
       supabase.from('profiles').insert([{
-        user_id: user.userId, name: user.name, email: user.email, password: user.password,
-        department: user.department || 'General', assigned_account: user.assignedAccount || null,
-        role: user.role || 'User', status: user.status || 'Pending', position_id: user.positionId
+        user_id: newUser.userId, name: newUser.name, email: newUser.email, password: newUser.password,
+        department: newUser.department || 'General', assigned_account: newUser.assignedAccount || null,
+        role: newUser.role || 'Associate', status: newUser.status || 'Pending', position_id: newUser.positionId,
+        managed_team: []
       }]).then(({ error }) => error && console.error('Supabase profile sync error:', error));
     }
-    return user;
+    return newUser;
   },
   updateUserStatus:(id, stat) => {
     const u = get('users').map(x => x.userId === id ? { ...x, status: stat } : x); save('users', u);
@@ -297,5 +300,44 @@ export const db = {
   getAssignments:    ()         => get('assignments'),
   addAssignment:     (item)     => { const a = get('assignments'); a.push(item); save('assignments', a); return item; },
   updateAssignment:  (id, upd)  => { const a = get('assignments').map(x => x.id === id ? { ...x, ...upd } : x); save('assignments', a); return a; },
-  deleteAssignment:  (id)       => { const a = get('assignments').filter(x => x.id !== id); save('assignments', a); return a; }
+  deleteAssignment:  (id)       => { const a = get('assignments').filter(x => x.id !== id); save('assignments', a); return a; },
+
+  // Success Lead — Team Management
+  // Returns all users managed by a given Success Lead
+  getTeamMembers: (leadId) => {
+    const lead = db.getUserById(leadId);
+    if (!lead || !lead.managedTeam || lead.managedTeam.length === 0) return [];
+    return db.getUsers().filter(u => lead.managedTeam.includes(u.userId));
+  },
+
+  // Returns all Success Leads that manage a given userId (a VA can be in multiple teams)
+  getLeadsForUser: (userId) => {
+    return db.getUsers().filter(u => u.role === 'Success Lead' && Array.isArray(u.managedTeam) && u.managedTeam.includes(userId));
+  },
+
+  // Update the full managed team list for a Success Lead
+  updateManagedTeam: (leadId, teamIds) => {
+    const u = get('users').map(x => x.userId === leadId ? { ...x, managedTeam: teamIds } : x);
+    save('users', u);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('profiles').update({ managed_team: teamIds }).eq('user_id', leadId).then();
+    }
+    return u;
+  },
+
+  // Promote or demote a user's role (Admin-only action)
+  updateUserRole: (id, role) => {
+    const u = get('users').map(x => x.userId === id ? { ...x, role, managedTeam: x.managedTeam || [] } : x);
+    save('users', u);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('profiles').update({ role }).eq('user_id', id).then();
+    }
+    return u;
+  },
+
+  // All users with role = 'Success Lead'
+  getSuccessLeads: () => db.getUsers().filter(u => u.role === 'Success Lead'),
+
+  // All non-admin, non-lead users (candidates to be assigned to a team)
+  getAssociates: () => db.getUsers().filter(u => u.role !== 'Admin'),
 };

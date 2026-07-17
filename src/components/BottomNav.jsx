@@ -6,12 +6,20 @@ export default function BottomNav() {
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'Admin';
+  const isSuccessLead = user?.role === 'Success Lead';
 
   const userLinks = [
     { to: '/',          icon: LayoutDashboard, label: 'Home'      },
     { to: '/assignments', icon: BookOpen,      label: 'Tasks'     },
     { to: '/logs',      icon: Clock,           label: 'Logs'      },
     { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
+  ];
+
+  const successLeadLinks = [
+    { to: '/',          icon: LayoutDashboard, label: 'Home'      },
+    { to: '/team',      icon: Users,           label: 'My Team'   },
+    { to: '/assignments', icon: BookOpen,      label: 'Tasks'     },
+    { to: '/logs',      icon: Clock,           label: 'Logs'      },
   ];
 
   const adminLinks = [
@@ -21,7 +29,7 @@ export default function BottomNav() {
     { to: '/admin/approvals',   icon: UserCheck,       label: 'Approvals' },
   ];
 
-  const links = isAdmin ? adminLinks : userLinks;
+  const links = isAdmin ? adminLinks : isSuccessLead ? successLeadLinks : userLinks;
   const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(to + '/');
 
   return (

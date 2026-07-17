@@ -1,13 +1,27 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock, Briefcase } from 'lucide-react';
+import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock, Briefcase, Star, UserCheck, Shield } from 'lucide-react';
 import { db } from '../lib/db';
+
+const roleBadge = (role) => {
+  const map = {
+    Admin:        ['#1e3a8a', 'rgba(30,58,138,0.12)', '⚙ Admin'],
+    'Success Lead': ['#7c3aed', 'rgba(124,58,237,0.12)', '★ Success Lead'],
+    Associate:    ['#054daf', 'rgba(5,77,175,0.1)',  '● Associate'],
+  };
+  const [color, bg, label] = map[role] || ['#64748b', 'rgba(100,116,139,0.1)', role];
+  return (
+    <span style={{ color, background: bg, border: `1px solid ${color}30`, borderRadius: 20, padding: '3px 10px', fontSize: '0.72rem', fontWeight: 800 }}>
+      {label}
+    </span>
+  );
+};
 
 const statusBadge = (status) => {
   const map = {
-    Active: ['#10b981', 'rgba(16,185,129,0.12)', 'Active'],
-    Pending: ['#f59e0b', 'rgba(245,158,11,0.15)', 'Pending Sync'],
+    Active:   ['#10b981', 'rgba(16,185,129,0.12)', 'Active'],
+    Pending:  ['#f59e0b', 'rgba(245,158,11,0.15)',  'Pending Sync'],
     Inactive: ['#64748b', 'rgba(100,116,139,0.15)', 'Deactivated']
   };
   const [color, bg, label] = map[status] || ['#054daf', 'rgba(5, 77, 175,0.12)', status];
@@ -26,12 +40,19 @@ export default function AdminEmployees() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  
-  // Deadline modal state
+  const [toast, setToast] = useState('');
+
+  // Deadline modal
   const [deadlineModalUser, setDeadlineModalUser] = useState(null);
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTitle, setDeadlineTitle] = useState('');
-  const [toast, setToast] = useState('');
+
+  // Assign Team modal (for Success Leads)
+  const [teamModalLead, setTeamModalLead] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState([]);
+
+  // Role modal (promote / demote)
+  const [roleModalUser, setRoleModalUser] = useState(null);
 
   const containerRef = useRef();
 
@@ -43,6 +64,8 @@ export default function AdminEmployees() {
     });
     return () => ctx.revert();
   }, []);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
   const getPositionInfo = (posId) => {
     const p = positions.find(x => x.positionId === posId);
@@ -61,110 +84,183 @@ export default function AdminEmployees() {
 
   const displayedUsers = filteredUsers.slice(0, rowsPerPage);
 
-  const stats = useMemo(() => {
-    return [
-      { label: 'Total Workforce', value: users.length, color: '#0f172a' },
-      { label: 'Active Staff', value: users.filter(u => u.status === 'Active').length, color: '#10b981' },
-      { label: 'Pending Approvals', value: users.filter(u => u.status === 'Pending').length, color: '#f59e0b' },
-      { label: 'Assigned Deadlines', value: users.filter(u => !!u.deadlineDate).length, color: '#6366f1' }
-    ];
-  }, [users]);
+  const stats = useMemo(() => [
+    { label: 'Total Workforce',    value: users.length,                                                color: '#0f172a' },
+    { label: 'Active Staff',       value: users.filter(u => u.status === 'Active').length,             color: '#10b981' },
+    { label: 'Success Leads',      value: users.filter(u => u.role === 'Success Lead').length,         color: '#7c3aed' },
+    { label: 'Assigned Deadlines', value: users.filter(u => !!u.deadlineDate).length,                  color: '#6366f1' },
+  ], [users]);
 
+  // ─── Deadline ───────────────────────────────────────────────
   const handleSaveDeadline = (e) => {
     e.preventDefault();
     if (!deadlineModalUser || !deadlineDate) return;
     const upd = db.updateUserDeadline(deadlineModalUser.userId, deadlineDate, deadlineTitle || 'Complete Assigned Task');
     setUsers(upd);
-    setToast(`Deadline (${deadlineDate}) successfully assigned to ${deadlineModalUser.name}`);
-    setDeadlineModalUser(null);
-    setDeadlineDate('');
-    setDeadlineTitle('');
-    setTimeout(() => setToast(''), 3500);
+    showToast(`Deadline assigned to ${deadlineModalUser.name}`);
+    setDeadlineModalUser(null); setDeadlineDate(''); setDeadlineTitle('');
   };
+
+  // ─── Assign Team ─────────────────────────────────────────────
+  const openTeamModal = (lead) => {
+    setTeamModalLead(lead);
+    setSelectedTeam(lead.managedTeam || []);
+  };
+  const toggleMember = (uid) => {
+    setSelectedTeam(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
+  };
+  const handleSaveTeam = () => {
+    const upd = db.updateManagedTeam(teamModalLead.userId, selectedTeam);
+    setUsers(upd);
+    showToast(`Team updated for ${teamModalLead.name} — ${selectedTeam.length} member(s)`);
+    setTeamModalLead(null);
+  };
+
+  // ─── Role Change ─────────────────────────────────────────────
+  const handleRoleChange = (newRole) => {
+    const upd = db.updateUserRole(roleModalUser.userId, newRole);
+    setUsers(upd);
+    showToast(`${roleModalUser.name} is now ${newRole}`);
+    setRoleModalUser(null);
+  };
+
+  // Candidates available to be assigned to any team (non-admin)
+  const candidates = users.filter(u => u.role !== 'Admin' && u.userId !== teamModalLead?.userId);
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      
-      {/* Toast Banner */}
+
+      {/* Toast */}
       {toast && (
-        <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 9999, background: '#065f46', color: 'white',
-          padding: '12px 20px', borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-          display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: '0.88rem',
-          border: '2px solid rgba(255,255,255,0.2)'
-        }}>
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 9999, background: '#065f46', color: 'white', padding: '12px 20px', borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: '0.88rem', border: '2px solid rgba(255,255,255,0.2)' }}>
           <CheckCircle2 size={18} color="#6ee7b7" /> {toast}
         </div>
       )}
 
-      {/* Assign Deadline Modal */}
+      {/* ─── Deadline Modal ──────────────────────────────────────── */}
       {deadlineModalUser && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
-        }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div className="glass" style={{ width: '100%', maxWidth: 440, borderRadius: 24, padding: 28, background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Calendar size={20} color="#054daf" /> Assign Employee Deadline
               </h3>
-              <button onClick={() => setDeadlineModalUser(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                <X size={20} />
-              </button>
+              <button onClick={() => setDeadlineModalUser(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
-
             <p style={{ margin: '0 0 16px', fontSize: '0.88rem', color: '#475569', fontWeight: 600 }}>
-              Set a target submission date or onboarding milestone for <strong>{deadlineModalUser.name}</strong> ({deadlineModalUser.userId}).
+              Set a target deadline for <strong>{deadlineModalUser.name}</strong>.
             </p>
-
             <form onSubmit={handleSaveDeadline} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Target Deadline Date</label>
-                <input
-                  type="date"
-                  value={deadlineDate}
-                  onChange={e => setDeadlineDate(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 700 }}
-                />
+                <input type="date" value={deadlineDate} onChange={e => setDeadlineDate(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 700, boxSizing: 'border-box' }} />
               </div>
-
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Task / Requirement Description</label>
-                <input
-                  type="text"
-                  value={deadlineTitle}
-                  onChange={e => setDeadlineTitle(e.target.value)}
-                  placeholder="e.g. Submit Biometric Profile Verification"
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 600 }}
-                />
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Task / Description</label>
+                <input type="text" value={deadlineTitle} onChange={e => setDeadlineTitle(e.target.value)} placeholder="e.g. Submit Biometric Verification" style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontWeight: 600, boxSizing: 'border-box' }} />
               </div>
-
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                <button type="button" onClick={() => setDeadlineModalUser(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>
-                  Cancel
-                </button>
-                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#054daf', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>
-                  Save Deadline
-                </button>
+                <button type="button" onClick={() => setDeadlineModalUser(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#054daf', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>Save Deadline</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* ─── Assign Team Modal (Success Lead) ───────────────────── */}
+      {teamModalLead && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="glass" style={{ width: '100%', maxWidth: 480, borderRadius: 24, padding: 28, background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <UserCheck size={20} color="#7c3aed" /> Assign Team to {teamModalLead.name}
+              </h3>
+              <button onClick={() => setTeamModalLead(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
+              Check the employees that belong to this Success Lead's team. A VA can be in multiple teams.
+            </p>
+
+            {/* Select All */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>{selectedTeam.length} selected</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setSelectedTeam(candidates.map(u => u.userId))} style={{ fontSize: '0.75rem', fontWeight: 800, color: '#7c3aed', background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)', padding: '4px 12px', borderRadius: 8, cursor: 'pointer' }}>Select All</button>
+                <button onClick={() => setSelectedTeam([])} style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '4px 12px', borderRadius: 8, cursor: 'pointer' }}>Clear</button>
+              </div>
+            </div>
+
+            {/* Employee list */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+              {candidates.map(u => {
+                const checked = selectedTeam.includes(u.userId);
+                return (
+                  <label key={u.userId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 12, border: `1px solid ${checked ? 'rgba(124,58,237,0.35)' : '#e2e8f0'}`, background: checked ? 'rgba(124,58,237,0.06)' : '#fafafa', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    <input type="checkbox" checked={checked} onChange={() => toggleMember(u.userId)} style={{ width: 16, height: 16, accentColor: '#7c3aed', flexShrink: 0 }} />
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', fontWeight: 800, flexShrink: 0 }}>{u.name[0]}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>{u.name}</p>
+                      <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>{u.role} · {u.department}</p>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setTeamModalLead(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSaveTeam} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#7c3aed', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,58,237,0.3)' }}>Save Team</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Role Change Modal ───────────────────────────────────── */}
+      {roleModalUser && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="glass" style={{ width: '100%', maxWidth: 380, borderRadius: 24, padding: 28, background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Shield size={20} color="#054daf" /> Change Role
+              </h3>
+              <button onClick={() => setRoleModalUser(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+            </div>
+            <p style={{ margin: '0 0 18px', fontSize: '0.88rem', color: '#475569', fontWeight: 600 }}>
+              Select a new role for <strong>{roleModalUser.name}</strong>.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { role: 'Associate',    desc: 'Regular employee — sees only their own data', color: '#054daf', bg: 'rgba(5,77,175,0.08)' },
+                { role: 'Success Lead', desc: 'Team lead — sees and manages their assigned VAs', color: '#7c3aed', bg: 'rgba(124,58,237,0.08)' },
+              ].map(({ role, desc, color, bg }) => (
+                <button
+                  key={role}
+                  onClick={() => handleRoleChange(role)}
+                  disabled={roleModalUser.role === role}
+                  style={{ padding: '14px 16px', borderRadius: 14, border: `1px solid ${color}40`, background: roleModalUser.role === role ? bg : 'white', cursor: roleModalUser.role === role ? 'default' : 'pointer', textAlign: 'left', opacity: roleModalUser.role === role ? 0.7 : 1, transition: 'all 0.15s' }}
+                >
+                  <p style={{ margin: '0 0 2px', fontWeight: 800, fontSize: '0.9rem', color }}>{role} {roleModalUser.role === role && '(current)'}</p>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>{desc}</p>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setRoleModalUser(null)} style={{ width: '100%', marginTop: 16, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Page Header ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
-            Workforce Directory
-          </h1>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>Workforce Directory</h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '4px 0 0', fontWeight: 500 }}>
-            Manage enterprise personnel records, system roles, identity profiles, and target deadlines
+            Manage personnel, assign Success Leads, build teams, and set deadlines
           </p>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="card stats-grid" style={{ gap: 10, marginBottom: 16 }}>
         {stats.map((st, i) => (
           <div key={i} className="stat-card" style={{ padding: '14px 16px', borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -175,89 +271,61 @@ export default function AdminEmployees() {
       </div>
 
       {/* Controls Bar */}
-      <div className="card glass controls-bar" style={{ padding: '14px 16px', borderRadius: 18, marginBottom: 16 }}>
+      <div className="card glass" style={{ padding: '14px 16px', borderRadius: 18, marginBottom: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ position: 'relative', width: '100%' }}>
+          <div style={{ position: 'relative' }}>
             <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search employee name, email, or badge ID..."
-              style={{ width: '100%', padding: '10px 14px 10px 42px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none' }}
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, or badge ID..." style={{ width: '100%', padding: '10px 14px 10px 42px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none', boxSizing: 'border-box' }} />
           </div>
-
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {['All', 'Active', 'Pending', 'Inactive'].map(st => (
-                <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  style={{
-                    padding: '6px 14px', borderRadius: 10, border: 'none',
-                    background: statusFilter === st ? '#054daf' : '#f1f5f9',
-                    color: statusFilter === st ? 'white' : '#475569',
-                    fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.15s'
-                  }}
-                >
-                  {st}
-                </button>
+                <button key={st} onClick={() => setStatusFilter(st)} style={{ padding: '6px 14px', borderRadius: 10, border: 'none', background: statusFilter === st ? '#054daf' : '#f1f5f9', color: statusFilter === st ? 'white' : '#475569', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.15s' }}>{st}</button>
               ))}
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>
               <span>Show:</span>
-              <select
-                value={rowsPerPage}
-                onChange={e => setRowsPerPage(Number(e.target.value))}
-                style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a', outline: 'none' }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
+              <select value={rowsPerPage} onChange={e => setRowsPerPage(Number(e.target.value))} style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a', outline: 'none' }}>
+                {[5, 10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Employees Table Card */}
+      {/* Table */}
       <div className="card glass table-card" style={{ padding: 0, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(15,23,42,0.08)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(15,23,42,0.08)', background: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ margin: 0, fontWeight: 800, color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Users size={18} color="#054daf" /> Personnel Records
           </p>
-          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>
-            Showing {displayedUsers.length} of {filteredUsers.length}
-          </span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>Showing {displayedUsers.length} of {filteredUsers.length}</span>
         </div>
-
         <div style={{ overflowX: 'auto' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 840, whiteSpace: 'nowrap' }}>
+          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 900, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Employee Profile</th>
-                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Designation</th>
-                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Contact Credentials</th>
-                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Assigned Deadline</th>
+                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Designation & Role</th>
+                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Contact</th>
+                <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Team / Deadline</th>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
                 <th style={{ padding: '14px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
-                    No employee records match your search query.
-                  </td>
-                </tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>No employee records match your search.</td></tr>
               ) : (
                 displayedUsers.map((u, idx) => (
-                  <tr key={u.userId} style={{ borderBottom: idx === displayedUsers.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(241,245,249,0.5)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <tr key={u.userId} style={{ borderBottom: idx === displayedUsers.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(241,245,249,0.5)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+
+                    {/* Name */}
                     <td style={{ padding: '14px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: u.role === 'Admin' ? '#033373' : '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(5, 77, 175,0.25)' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: u.role === 'Admin' ? '#033373' : u.role === 'Success Lead' ? '#7c3aed' : '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
                           {u.name[0]}
                         </div>
                         <div>
@@ -266,61 +334,72 @@ export default function AdminEmployees() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '14px 20px', fontWeight: 700, color: '#334155', fontSize: '0.86rem' }}>
-                      <div>{getPositionInfo(u.positionId)}</div>
-                      {u.assignedAccount && (
-                        <div style={{ fontSize: '0.74rem', color: '#054daf', fontWeight: 800, marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Briefcase size={12} style={{ flexShrink: 0 }} /> {u.assignedAccount}
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: '14px 20px', color: '#475569', fontSize: '0.86rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Mail size={14} color="#64748b" /> {u.email}
+
+                    {/* Role + Designation */}
+                    <td style={{ padding: '14px 20px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {roleBadge(u.role || 'Associate')}
+                        <span style={{ fontWeight: 600, color: '#334155', fontSize: '0.82rem' }}>{getPositionInfo(u.positionId)}</span>
+                        {u.assignedAccount && (
+                          <span style={{ fontSize: '0.72rem', color: '#054daf', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Briefcase size={11} /> {u.assignedAccount}
+                          </span>
+                        )}
                       </div>
                     </td>
+
+                    {/* Contact */}
+                    <td style={{ padding: '14px 20px', color: '#475569', fontSize: '0.86rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Mail size={14} color="#64748b" /> {u.email}</div>
+                    </td>
+
+                    {/* Team count / Deadline */}
                     <td style={{ padding: '14px 20px' }}>
-                      {u.deadlineDate ? (
+                      {u.role === 'Success Lead' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(124,58,237,0.1)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.25)', padding: '4px 10px', borderRadius: 10, fontSize: '0.78rem', fontWeight: 800 }}>
+                          <Star size={12} /> {(u.managedTeam || []).length} team member(s)
+                        </span>
+                      ) : u.deadlineDate ? (
                         <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px', borderRadius: 10 }}>
-                          <span style={{ color: '#054daf', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Clock size={12} /> {u.deadlineDate}
-                          </span>
+                          <span style={{ color: '#054daf', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {u.deadlineDate}</span>
                           {u.deadlineTitle && <span style={{ fontSize: '0.68rem', color: '#64748b', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.deadlineTitle}</span>}
                         </div>
                       ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: 600 }}>None Assigned</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: 600 }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      {statusBadge(u.status || 'Active')}
-                    </td>
-                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <button
-                          onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); }}
-                          style={{
-                            padding: '8px 12px', borderRadius: 10, background: 'white', color: '#054daf',
-                            border: '1px solid #c7d2fe', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
-                            display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.background = '#054daf'; e.currentTarget.style.color = 'white'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#054daf'; }}
-                        >
-                          <Calendar size={14} /> Assign Deadline
-                        </button>
 
-                        <button
-                          onClick={() => navigate(`/profile?userId=${u.userId}`)}
-                          style={{
-                            padding: '8px 14px', borderRadius: 10, background: '#054daf', color: 'white',
-                            border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
-                            display: 'inline-flex', alignItems: 'center', gap: 5,
-                            boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)', transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                        >
-                          <Eye size={14} /> Profile
+                    {/* Status */}
+                    <td style={{ padding: '14px 20px' }}>{statusBadge(u.status || 'Active')}</td>
+
+                    {/* Actions */}
+                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+
+                        {/* Change Role (not for existing Admins) */}
+                        {u.role !== 'Admin' && (
+                          <button onClick={() => setRoleModalUser(u)} style={{ padding: '7px 12px', borderRadius: 10, background: 'rgba(124,58,237,0.08)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.25)', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Shield size={13} /> Role
+                          </button>
+                        )}
+
+                        {/* Assign Team — only for Success Leads */}
+                        {u.role === 'Success Lead' && (
+                          <button onClick={() => openTeamModal(u)} style={{ padding: '7px 12px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.3)', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <UserCheck size={13} /> Team
+                          </button>
+                        )}
+
+                        {/* Assign Deadline — not for Admins */}
+                        {u.role !== 'Admin' && (
+                          <button onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); }} style={{ padding: '7px 12px', borderRadius: 10, background: 'white', color: '#054daf', border: '1px solid #c7d2fe', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }}>
+                            <Calendar size={13} /> Deadline
+                          </button>
+                        )}
+
+                        {/* Profile */}
+                        <button onClick={() => navigate(`/profile?userId=${u.userId}`)} style={{ padding: '7px 12px', borderRadius: 10, background: '#054daf', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>
+                          <Eye size={13} /> Profile
                         </button>
                       </div>
                     </td>
