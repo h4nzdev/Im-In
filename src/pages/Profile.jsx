@@ -41,6 +41,14 @@ export default function Profile() {
   const pageRef = useRef();
   const position = positions.find(p => p.positionId === user?.positionId);
 
+  // Reactive window width for true responsiveness
+  const [winW, setWinW] = useState(window.innerWidth);
+  useEffect(() => {
+    const onResize = () => setWinW(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from(pageRef.current.querySelectorAll('.card'), {
@@ -139,10 +147,32 @@ export default function Profile() {
   };
 
   const initials = (user?.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  const cardStyle = { background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(15,23,42,0.08)', borderRadius: 24, padding: 28, boxShadow: '0 4px 24px rgba(15,23,42,0.05)' };
+  const isMobile = winW < 768;
+  const isTablet = winW >= 768 && winW < 1024;
+  const cardPad = isMobile ? 14 : 22;
+  const cardStyle = {
+    background: 'rgba(255,255,255,0.85)',
+    border: '1px solid rgba(15,23,42,0.08)',
+    borderRadius: isMobile ? 14 : 20,
+    padding: cardPad,
+    boxShadow: '0 4px 24px rgba(15,23,42,0.05)',
+    overflow: 'hidden',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
+  // Inline grid replaces CSS class — avoids Tailwind/specificity conflicts
+  const outerGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : isTablet ? 'minmax(0,1fr)' : '320px minmax(0,1fr)',
+    gap: isMobile ? 14 : 22,
+    alignItems: 'start',
+    width: '100%',
+  };
 
   return (
-    <div ref={pageRef} style={{ width: '100%', maxWidth: 1100, margin: '0 auto', paddingBottom: 48 }}>
+    <div ref={pageRef} style={{ width: '100%', paddingBottom: 32 }}>
       {isInspectingOther && (
         <div style={{ padding: '16px 20px', borderRadius: 18, background: '#1e3a8a', color: 'white', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(30,58,138,0.25)', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -157,11 +187,22 @@ export default function Profile() {
           </button>
         </div>
       )}
+      {/* Page Header — matches Dashboard/Logs scale */}
+      {!isInspectingOther && (
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+            My Profile & Settings
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.92rem', margin: '4px 0 0', fontWeight: 500 }}>
+            Manage your identity, attendance records, and account preferences
+          </p>
+        </div>
+      )}
 
-      <div className="profile-grid">
+      <div style={outerGridStyle}>
         {/* LEFT COLUMN: IDENTITY & ACCOUNT PILLAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div className="card glass" style={{ ...cardStyle, textAlign: 'center', paddingTop: 36, paddingBottom: 32 }}>
+          <div className="card glass profile-card" style={{ ...cardStyle, textAlign: 'center', paddingTop: 36, paddingBottom: 32 }}>
             <div style={{
               width: 108, height: 108, borderRadius: '50%', margin: '0 auto 18px',
               background: 'linear-gradient(135deg, #054daf, #043e8a)',
@@ -240,7 +281,7 @@ export default function Profile() {
 
           {/* Edit Profile Form Modal / Expand */}
           {editing && (
-            <form onSubmit={handleSaveProfile} className="card glass fade-in" style={{ ...cardStyle, border: '2px solid #054daf' }}>
+            <form onSubmit={handleSaveProfile} className="card glass profile-card fade-in" style={{ ...cardStyle, border: '2px solid #054daf' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Edit Identity Info</h2>
                 <button type="button" onClick={() => setEditing(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={18} /></button>
@@ -322,7 +363,7 @@ export default function Profile() {
         {/* RIGHT COLUMN: STATS & PREFERENCES PILLAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Account Stats */}
-          <div className="card glass" style={{ ...cardStyle }}>
+          <div className="card glass profile-card" style={{ ...cardStyle }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
                 <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Personal Attendance Summary</h2>
@@ -333,7 +374,7 @@ export default function Profile() {
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+            <div className="profile-stats-grid">
               {[
                 { label: 'Hours Worked', value: `${totalHoursLogged()}h`, color: '#043e8a', icon: <Clock size={20} color="#054daf" />, bg: 'rgba(5, 77, 175,0.08)' },
                 { label: 'Total Punches', value: logs.length, color: '#054daf', icon: <Activity size={20} color="#054daf" />, bg: 'rgba(5, 77, 175,0.08)' },
@@ -361,127 +402,113 @@ export default function Profile() {
           </div>
 
           {/* Preferences & Settings */}
-          <div className="card glass" style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 14, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
-                <SettingsIcon size={22} />
+          <div className="card glass profile-card" style={{ ...cardStyle }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, marginBottom: isMobile ? 18 : 24 }}>
+              <div style={{ width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: 12, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
+                <SettingsIcon size={isMobile ? 18 : 22} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Preferences & System Settings</h2>
-                <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>Configure account notifications, biometric geolocation locks, and app tools</p>
+                <h2 style={{ fontSize: isMobile ? '0.98rem' : '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Preferences & System Settings</h2>
+                {!isMobile && <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '2px 0 0', fontWeight: 600 }}>Configure notifications, geolocation locks, and app tools</p>}
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Notification Toggle */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
-                    <Bell size={18} />
+            {/* Shared row style helper */}
+            {[
+              {
+                icon: <Bell size={isMobile ? 16 : 18} />,
+                label: 'Email Shift Reminders',
+                sub: 'Receive notifications prior to shift start',
+                action: (
+                  <button
+                    onClick={() => togglePref('notifs')}
+                    style={{ width: 44, height: 24, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0, background: prefs.notifs ? '#054daf' : '#cbd5e1', transition: 'background 0.2s' }}
+                  >
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: prefs.notifs ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }} />
+                  </button>
+                ),
+              },
+              {
+                icon: <Shield size={isMobile ? 16 : 18} />,
+                label: 'Biometric Geolocation Lock',
+                sub: 'Attach GPS coordinates on punch attempts',
+                action: (
+                  <button
+                    onClick={() => togglePref('autoLocation')}
+                    style={{ width: 44, height: 24, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0, background: prefs.autoLocation ? '#054daf' : '#cbd5e1', transition: 'background 0.2s' }}
+                  >
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: prefs.autoLocation ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }} />
+                  </button>
+                ),
+              },
+              {
+                icon: <Key size={isMobile ? 16 : 18} />,
+                label: 'Security & Credentials',
+                sub: 'Update corporate login password',
+                iconBg: '#f1f5f9',
+                action: (
+                  <button
+                    onClick={() => showSuccess('Reset Link Sent', 'Password reset instructions sent to ' + user.email)}
+                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.82rem', cursor: 'pointer', color: '#334155', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
+                  >
+                    Reset Password
+                  </button>
+                ),
+              },
+              {
+                icon: <Lock size={isMobile ? 16 : 18} />,
+                label: 'Quick Access 4-Digit PIN',
+                sub: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'PIN Active (••••) – Offline Check-In enabled' : 'Set up 4-digit PIN for offline & terminal access',
+                iconBg: 'rgba(5, 77, 175,0.1)',
+                iconColor: '#054daf',
+                action: (
+                  <button
+                    onClick={handleSetPin}
+                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: '1px solid #054daf', background: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'rgba(5,77,175,0.08)' : '#054daf', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.82rem', cursor: 'pointer', color: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? '#054daf' : 'white', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
+                  >
+                    {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'Change PIN' : 'Set PIN'}
+                  </button>
+                ),
+              },
+              {
+                icon: <Smartphone size={isMobile ? 16 : 18} />,
+                label: 'Install Realynk Enterprise App',
+                sub: 'Add 1-tap check-in app to home screen',
+                iconBg: 'rgba(5, 77, 175,0.12)',
+                iconColor: '#054daf',
+                isLast: true,
+                action: (
+                  <button
+                    onClick={() => context?.openInstallModal?.()}
+                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: 'none', background: '#054daf', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.84rem', cursor: 'pointer', color: 'white', boxShadow: '0 4px 12px rgba(5,77,175,0.3)', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
+                  >
+                    Install App
+                  </button>
+                ),
+              },
+            ].map(({ icon, label, sub, iconBg = '#f1f5f9', iconColor = '#475569', action, isLast }) => (
+              <div
+                key={label}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  gap: isMobile ? 10 : 14,
+                  paddingBottom: isLast ? 0 : (isMobile ? 14 : 18),
+                  marginBottom: isLast ? 0 : (isMobile ? 14 : 18),
+                  borderBottom: isLast ? 'none' : '1px solid rgba(15,23,42,0.06)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 13, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: 10, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
+                    {icon}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Email Shift Reminders</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Receive notifications prior to shift start</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => togglePref('notifs')}
-                  style={{
-                    width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0,
-                    background: prefs.notifs ? '#054daf' : '#cbd5e1', transition: 'background 0.2s'
-                  }}
-                >
-                  <div style={{
-                    width: 20, height: 20, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
-                    left: prefs.notifs ? 25 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                  }} />
-                </button>
-              </div>
-
-              {/* GPS Auto Location */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
-                    <Shield size={18} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Biometric Geolocation Lock</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Attach GPS coordinates on punch attempts</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => togglePref('autoLocation')}
-                  style={{
-                    width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0,
-                    background: prefs.autoLocation ? '#054daf' : '#cbd5e1', transition: 'background 0.2s'
-                  }}
-                >
-                  <div style={{
-                    width: 20, height: 20, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
-                    left: prefs.autoLocation ? 25 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                  }} />
-                </button>
-              </div>
-
-              {/* Password Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
-                    <Key size={18} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Security & Credentials</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Update corporate login password</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => showSuccess('Reset Link Sent', 'Password reset instructions sent to ' + user.email)}
-                  style={{ padding: '9px 18px', borderRadius: 12, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#334155', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                >
-                  Reset Password
-                </button>
-              </div>
-
-              {/* 4-Digit PIN Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(5, 77, 175,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
-                    <Lock size={18} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Quick Access 4-Digit PIN</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>
-                      {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'PIN Active (••••) – Offline Check-In enabled' : 'Set up 4-digit PIN for offline & terminal access'}
-                    </span>
-                  </div>
-                </div>
-                <button 
-                  onClick={handleSetPin}
-                  style={{ padding: '9px 18px', borderRadius: 12, border: '1px solid #054daf', background: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'rgba(5, 77, 175,0.08)' : '#054daf', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? '#054daf' : 'white', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                >
-                  {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'Change PIN' : 'Set Up PIN'}
-                </button>
-              </div>
-
-              {/* Install App Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingTop: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
-                    <Smartphone size={18} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a', display: 'block', marginBottom: 2 }}>Install Realynk Enterprise App</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Add 1-tap check-in app to home screen</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontWeight: 700, fontSize: isMobile ? '0.82rem' : '0.92rem', color: '#1e293b', display: 'block', marginBottom: 1 }}>{label}</span>
+                    <span style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', color: '#64748b', display: 'block', lineHeight: 1.3 }}>{sub}</span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => context?.openInstallModal?.()}
-                  style={{ padding: '9px 18px', borderRadius: 12, border: 'none', background: '#054daf', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', color: 'white', boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                >
-                  Install App
-                </button>
+                {action}
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

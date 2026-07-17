@@ -217,9 +217,79 @@ export default function Layout() {
   const [showModal, setShowModal] = useState(false);
   const [installed, setInstalled] = useState(false);
 
+  // 4-Digit Quick Access PIN Lock State
+  const [pinEntry, setPinEntry] = useState('');
+  const [pinError, setPinError] = useState('');
+  const pinDotsRef = useRef(null);
+  const pinInputRef = useRef(null);
+
+  const [isPinLocked, setIsPinLocked] = useState(() => {
+    if (!user) return false;
+    const hasPin = Boolean(localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin);
+    const isUnlocked = sessionStorage.getItem(`realynk_pin_unlocked_${user.userId}`) === 'true';
+    return hasPin && !isUnlocked;
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    const checkPinLock = () => {
+      const hasPin = Boolean(localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin);
+      const isUnlocked = sessionStorage.getItem(`realynk_pin_unlocked_${user.userId}`) === 'true';
+      if (hasPin && !isUnlocked) {
+        setIsPinLocked(true);
+      }
+    };
+    checkPinLock();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        sessionStorage.setItem('realynk_hidden_timestamp', Date.now().toString());
+      } else if (document.visibilityState === 'visible') {
+        const hiddenTime = Number(sessionStorage.getItem('realynk_hidden_timestamp') || 0);
+        const hasPin = Boolean(localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin);
+        if (hasPin && hiddenTime > 0 && Date.now() - hiddenTime > 2000) {
+          sessionStorage.removeItem(`realynk_pin_unlocked_${user.userId}`);
+          setIsPinLocked(true);
+          setPinEntry('');
+          setPinError('');
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [user]);
+
+  const handlePinDigit = (digit) => {
+    if (pinEntry.length >= 4) return;
+    const nextPin = pinEntry + digit;
+    setPinEntry(nextPin);
+    setPinError('');
+
+    if (nextPin.length === 4) {
+      const savedPin = localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin;
+      if (nextPin === savedPin) {
+        sessionStorage.setItem(`realynk_pin_unlocked_${user.userId}`, 'true');
+        setTimeout(() => {
+          setIsPinLocked(false);
+          setPinEntry('');
+        }, 120);
+      } else {
+        setPinError('Incorrect PIN. Please try again.');
+        if (pinDotsRef.current) {
+          gsap.fromTo(pinDotsRef.current, { x: -10 }, { x: 10, duration: 0.08, repeat: 5, yoyo: true, ease: 'power1.inOut', onComplete: () => {
+            gsap.set(pinDotsRef.current, { x: 0 });
+          }});
+        }
+        setTimeout(() => setPinEntry(''), 400);
+      }
+    }
+  };
+
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(sidebarRef.current, { x: -20, opacity: 0, duration: 0.5, ease: 'power3.out' });
+      if (sidebarRef.current) {
+        gsap.from(sidebarRef.current, { x: -20, opacity: 0, duration: 0.5, ease: 'power3.out' });
+      }
     });
     return () => ctx.revert();
   }, []);
@@ -254,6 +324,118 @@ export default function Layout() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
+      {/* 4-Digit Quick Access PIN Lock Screen */}
+      {isPinLocked && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2147483647,
+          background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20, flexDirection: 'column'
+        }}>
+          <div className="card glass fade-in" style={{
+            background: 'white', borderRadius: 28, padding: '36px 28px', maxWidth: 360, width: '100%',
+            textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 20 }}>
+              <img src={realynkLogo} alt="Realynk" style={{ height: 32, width: 'auto' }} />
+              <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#054daf', letterSpacing: '-0.5px' }}>Realynk</span>
+            </div>
+
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>Security Verification</h2>
+            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 28px', lineHeight: 1.4, fontWeight: 600 }}>
+              Please enter your 4-digit security PIN to unlock Realynk
+            </p>
+
+            <input
+              ref={pinInputRef}
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={pinEntry}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                if (val.length > pinEntry.length) {
+                  const addedDigit = val[val.length - 1];
+                  handlePinDigit(addedDigit);
+                } else {
+                  setPinEntry(val);
+                  setPinError('');
+                }
+              }}
+              style={{ opacity: 0, position: 'absolute', top: 0, left: 0, width: 1, height: 1, pointerEvents: 'none' }}
+              autoFocus
+            />
+
+            {/* 4 Circle Dots UI */}
+            <div
+              ref={pinDotsRef}
+              onClick={() => pinInputRef.current?.focus()}
+              style={{ display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 26, cursor: 'pointer' }}
+            >
+              {[0, 1, 2, 3].map((i) => {
+                const isFilled = i < pinEntry.length;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      width: 20, height: 20, borderRadius: '50%',
+                      background: isFilled ? (pinError ? '#ef4444' : '#054daf') : 'transparent',
+                      border: `2.5px solid ${isFilled ? (pinError ? '#ef4444' : '#054daf') : '#cbd5e1'}`,
+                      transition: 'all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      transform: isFilled ? 'scale(1.15)' : 'scale(1)',
+                      boxShadow: isFilled ? (pinError ? '0 0 12px rgba(239,68,68,0.5)' : '0 0 12px rgba(5, 77, 175,0.4)') : 'none'
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {pinError && (
+              <p style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 700, margin: '-14px 0 20px', animation: 'fadeIn 0.2s' }}>
+                {pinError}
+              </p>
+            )}
+
+            {/* Numeric Keypad */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => {
+                    pinInputRef.current?.focus();
+                    if (btn === 'C') { setPinEntry(''); setPinError(''); }
+                    else if (btn === '⌫') { setPinEntry(prev => prev.slice(0, -1)); setPinError(''); }
+                    else { handlePinDigit(btn); }
+                  }}
+                  style={{
+                    height: 52, borderRadius: 16, border: '1px solid rgba(15,23,42,0.08)',
+                    background: btn === 'C' || btn === '⌫' ? '#f8fafc' : '#ffffff',
+                    color: btn === 'C' ? '#ef4444' : btn === '⌫' ? '#64748b' : '#0f172a',
+                    fontSize: btn === '⌫' ? '1.2rem' : '1.25rem', fontWeight: 800,
+                    cursor: 'pointer', transition: 'all 0.1s', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(15,23,42,0.03)'
+                  }}
+                  onMouseDown={e => e.currentTarget.style.transform = 'scale(0.93)'}
+                  onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {btn}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: 16 }}>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                Forgot PIN? <span style={{ color: '#054daf', textDecoration: 'underline' }}>Sign Out & Login</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Desktop left sidebar */}
       <aside ref={sidebarRef} className="sidebar glass" style={{
@@ -294,18 +476,18 @@ export default function Layout() {
       </aside>
 
       {/* Mobile top header */}
-      <nav className="glass top-header" style={{ position: 'sticky', top: 0, zIndex: 50, borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
-        <div style={{ padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src={realynkLogo} alt="Realynk Logo" style={{ height: 28, width: 'auto' }} />
-            <span style={{ fontSize: 22, fontWeight: 800, color: '#054daf', flexShrink: 0 }}>
+      <nav className="top-header" style={{ position: 'sticky', top: 0, zIndex: 50, borderRadius: 0, borderBottom: '1px solid rgba(15,23,42,0.08)', background: '#ffffff', boxShadow: '0 2px 10px rgba(15,23,42,0.04)' }}>
+        <div style={{ padding: '0 16px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src={realynkLogo} alt="Realynk Logo" style={{ height: 26, width: 'auto' }} />
+            <span style={{ fontSize: 21, fontWeight: 800, color: '#054daf', flexShrink: 0 }}>
               Realynk
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link to="/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user?.name || 'Employee'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Link to="/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.name?.split(' ')[0] || 'Employee'}
               </span>
               <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', fontWeight: 800, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(5, 77, 175,0.3)' }}>
                 {user?.name?.[0] || '?'}
@@ -317,7 +499,7 @@ export default function Layout() {
 
       {/* Center Main Content */}
       <div className="layout-content-area" style={{ minHeight: '100vh', position: 'relative' }}>
-        <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'relative', zIndex: 30, width: '100%' }}>
             {isAdmin && <AdminNotificationHeader />}
           </div>
