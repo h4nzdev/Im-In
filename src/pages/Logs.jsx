@@ -4,6 +4,7 @@ import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, Chevr
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { getRealAddress } from '../lib/geo';
+import { showDeleteConfirm, showPurgeConfirm, showSuccess } from '../lib/alert';
 
 function AddressCell({ log }) {
   const [addr, setAddr] = useState(log.address || (log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'));
@@ -20,7 +21,7 @@ function AddressCell({ log }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'normal', maxWidth: 260, lineHeight: 1.3, fontSize: '0.84rem', fontWeight: 600, color: '#334155' }}>
-      <MapPin size={15} color="#2563eb" flexShrink={0} />
+      <MapPin size={15} color="#054daf" flexShrink={0} />
       <span title={log.latitude ? `Coordinates: ${log.latitude.toFixed(6)}, ${log.longitude.toFixed(6)}` : ''}>{addr}</span>
     </div>
   );
@@ -136,10 +137,10 @@ export default function Logs() {
               color: '#0f172a', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
               boxShadow: '0 2px 12px rgba(15,23,42,0.04)', transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#054daf'; e.currentTarget.style.color = '#043e8a'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)'; e.currentTarget.style.color = '#0f172a'; }}
           >
-            <Download size={16} color="#2563eb" /> Export CSV
+            <Download size={16} color="#054daf" /> Export CSV
           </button>
         </div>
       </div>
@@ -195,14 +196,19 @@ export default function Logs() {
             <button
               type="button"
               disabled={selectedLogIds.size === 0}
-              onClick={() => {
+              onClick={async () => {
                 if (selectedLogIds.size === 0) return;
-                if (window.confirm(`Are you sure you want to permanently delete ${selectedLogIds.size} selected attendance log(s)?`)) {
+                const confirmed = await showDeleteConfirm({
+                  title: `Delete ${selectedLogIds.size} Log(s)?`,
+                  text: 'The selected biometric attendance logs will be permanently removed.',
+                  confirmButtonText: `🗑️ Yes, Delete (${selectedLogIds.size})`
+                });
+                if (confirmed) {
                   selectedLogIds.forEach(id => db.deleteLog(id));
                   const updated = db.getLogs();
                   setAllLogs(updated);
                   setSelectedLogIds(new Set());
-                  alert(`Successfully deleted ${selectedLogIds.size} record(s).`);
+                  showSuccess('Records Deleted!', `Successfully removed ${selectedLogIds.size} attendance log(s).`);
                 }
               }}
               style={{
@@ -217,12 +223,13 @@ export default function Logs() {
 
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm(`⚠️ EXTREME CAUTION:\nAre you sure you want to PURGE AND REMOVE ALL (${allLogs.length}) attendance logs completely from the database?\nThis action cannot be undone.`)) {
+              onClick={async () => {
+                const confirmed = await showPurgeConfirm({ totalCount: allLogs.length });
+                if (confirmed) {
                   db.clearAllLogs();
                   setAllLogs([]);
                   setSelectedLogIds(new Set());
-                  alert(`All attendance logs have been completely purged from the system and database.`);
+                  showSuccess('Database Purged!', 'All attendance records have been completely wiped.');
                 }
               }}
               style={{
@@ -253,7 +260,7 @@ export default function Logs() {
       <div className="card stats-grid" style={{ gap: 10, marginBottom: 16 }}>
         {[
           { label: 'Total Records', value: totalEntries, color: '#0f172a' },
-          { label: 'Time-In', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#1d4ed8' },
+          { label: 'Time-In', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#043e8a' },
           { label: 'Time-Out', value: filteredLogs.filter(l => l.type === 'OUT').length, color: '#dc2626' },
         ].map(({ label, value, color }) => (
           <div key={label} className="stat-card glass" style={{ padding: '14px 10px', borderRadius: 16, textAlign: 'center' }}>
@@ -283,14 +290,14 @@ export default function Logs() {
             {/* User Dropdown Filter (Visible for Admins or Multi-user view) */}
             {isAdmin && (
               <div style={{ position: 'relative', flex: '0 1 250px', minWidth: 220 }}>
-                <Users size={18} color="#2563eb" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <Users size={18} color="#054daf" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 <select
                   value={userFilter}
                   onChange={e => { setUserFilter(e.target.value); setCurrentPage(1); }}
                   style={{
                     width: '100%', height: 44, padding: '0 16px 0 42px', borderRadius: 14, border: '1px solid #bfdbfe',
                     background: userFilter !== 'ALL' ? '#eff6ff' : 'white',
-                    color: userFilter !== 'ALL' ? '#1d4ed8' : '#0f172a',
+                    color: userFilter !== 'ALL' ? '#043e8a' : '#0f172a',
                     fontSize: '0.88rem', fontWeight: 700, outline: 'none', cursor: 'pointer',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                   }}
@@ -317,7 +324,7 @@ export default function Logs() {
                     onClick={() => { setTypeFilter(t); setCurrentPage(1); }}
                     style={{
                       border: 'none', background: typeFilter === t ? 'white' : 'transparent',
-                      color: typeFilter === t ? (t === 'IN' ? '#2563eb' : t === 'OUT' ? '#dc2626' : '#0f172a') : '#64748b',
+                      color: typeFilter === t ? (t === 'IN' ? '#054daf' : t === 'OUT' ? '#dc2626' : '#0f172a') : '#64748b',
                       fontWeight: 800, fontSize: '0.78rem', padding: '6px 12px', borderRadius: 9, cursor: 'pointer',
                       boxShadow: typeFilter === t ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
                       transition: 'all 0.15s'
@@ -410,7 +417,7 @@ export default function Logs() {
                         transition: 'background 0.15s',
                         cursor: isSelectMode ? 'pointer' : 'default'
                       }}
-                      onMouseEnter={e => { if (!selectedLogIds.has(log.logId)) e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; }}
+                      onMouseEnter={e => { if (!selectedLogIds.has(log.logId)) e.currentTarget.style.background = 'rgba(5, 77, 175,0.06)'; }}
                       onMouseLeave={e => { if (!selectedLogIds.has(log.logId)) e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255,255,255,0.4)' : 'transparent'; }}>
                       
                       {isSelectMode && (
@@ -443,8 +450,8 @@ export default function Logs() {
                         <span style={{
                           display: 'inline-block', whiteSpace: 'nowrap',
                           padding: '5px 12px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 800,
-                          background: isIn ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)',
-                          color: isIn ? '#2563eb' : '#dc2626'
+                          background: isIn ? 'rgba(5, 77, 175,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: isIn ? '#054daf' : '#dc2626'
                         }}>
                           {isIn ? 'TIME IN' : 'TIME OUT'}
                         </span>

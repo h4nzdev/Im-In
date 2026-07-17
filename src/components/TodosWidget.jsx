@@ -48,14 +48,14 @@ export default function TodosWidget() {
   const priorityColor = (p) => {
     if (p === 'High') return ['#dc2626', 'rgba(239,68,68,0.12)'];
     if (p === 'Med') return ['#d97706', 'rgba(245,158,11,0.14)'];
-    return ['#2563eb', 'rgba(59,130,246,0.14)'];
+    return ['#054daf', 'rgba(5, 77, 175,0.14)'];
   };
 
   return (
     <div className="card glass" style={{ padding: 28, borderRadius: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ padding: 8, borderRadius: 10, background: 'rgba(59,130,246,0.12)', color: '#1d4ed8', display: 'flex' }}>
+          <div style={{ padding: 8, borderRadius: 10, background: 'rgba(5, 77, 175,0.12)', color: '#043e8a', display: 'flex' }}>
             <CheckSquare size={20} />
           </div>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -86,12 +86,12 @@ export default function TodosWidget() {
           <option value="Low">Low</option>
         </select>
         <button type="submit" style={{
-          padding: '0 18px', borderRadius: 12, border: 'none', background: '#2563eb',
+          padding: '0 18px', borderRadius: 12, border: 'none', background: '#054daf',
           color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'background 0.2s'
         }}
-          onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-          onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
+          onMouseEnter={e => e.currentTarget.style.background = '#043e8a'}
+          onMouseLeave={e => e.currentTarget.style.background = '#054daf'}
         >
           <Plus size={20} />
         </button>
@@ -115,7 +115,7 @@ export default function TodosWidget() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, overflow: 'hidden', cursor: 'pointer' }} onClick={() => toggleComplete(t.id)}>
                   {t.completed ? (
-                    <CheckCircle2 size={20} color="#3b82f6" flexShrink={0} />
+                    <CheckCircle2 size={20} color="#054daf" flexShrink={0} />
                   ) : (
                     <Circle size={20} color="#94a3b8" flexShrink={0} />
                   )}

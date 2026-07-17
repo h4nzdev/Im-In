@@ -359,10 +359,10 @@ export default function ClockIn() {
             onClick={() => setAttendanceMode('TAP')}
             style={{
               padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-              background: attendanceMode === 'TAP' ? '#2563eb' : 'transparent',
+              background: attendanceMode === 'TAP' ? '#054daf' : 'transparent',
               color: attendanceMode === 'TAP' ? '#ffffff' : '#475569',
               fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-              boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+              boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
               transition: 'all 0.2s', whiteSpace: 'nowrap'
             }}
           >
@@ -373,10 +373,10 @@ export default function ClockIn() {
             onClick={() => setAttendanceMode('FACE')}
             style={{
               padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-              background: attendanceMode === 'FACE' ? '#2563eb' : 'transparent',
+              background: attendanceMode === 'FACE' ? '#054daf' : 'transparent',
               color: attendanceMode === 'FACE' ? '#ffffff' : '#475569',
               fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-              boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+              boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
               transition: 'all 0.2s', whiteSpace: 'nowrap'
             }}
           >
@@ -384,7 +384,7 @@ export default function ClockIn() {
             <span style={{
               padding: '2px 7px', borderRadius: 10,
               background: attendanceMode === 'FACE' ? 'rgba(255,255,255,0.25)' : '#dbeafe',
-              color: attendanceMode === 'FACE' ? '#ffffff' : '#1d4ed8',
+              color: attendanceMode === 'FACE' ? '#ffffff' : '#043e8a',
               fontSize: '0.68rem', fontWeight: 900
             }}>SOON</span>
           </button>
@@ -392,11 +392,11 @@ export default function ClockIn() {
       </div>
 
       {attendanceMode === 'FACE' ? (
-        <div className="fade-in card glass" style={{ padding: '28px 20px', borderRadius: 24, textAlign: 'center', marginBottom: 36, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.85), rgba(255,255,255,0.95))', boxShadow: '0 12px 32px rgba(37,99,235,0.08)' }}>
-          <div style={{ width: 84, height: 84, borderRadius: '50%', background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '2.4rem', boxShadow: '0 8px 24px rgba(37,99,235,0.15)' }}>
+        <div className="fade-in card glass" style={{ padding: '28px 20px', borderRadius: 24, textAlign: 'center', marginBottom: 36, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.85), rgba(255,255,255,0.95))', boxShadow: '0 12px 32px rgba(5, 77, 175,0.08)' }}>
+          <div style={{ width: 84, height: 84, borderRadius: '50%', background: '#dbeafe', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '2.4rem', boxShadow: '0 8px 24px rgba(5, 77, 175,0.15)' }}>
             🧑‍💻
           </div>
-          <span style={{ padding: '5px 12px', borderRadius: 20, background: '#1d4ed8', color: 'white', fontWeight: 800, fontSize: '0.74rem', display: 'inline-block', marginBottom: 12 }}>
+          <span style={{ padding: '5px 12px', borderRadius: 20, background: '#043e8a', color: 'white', fontWeight: 800, fontSize: '0.74rem', display: 'inline-block', marginBottom: 12 }}>
             ⚡ COMING SOON TO ALL ENTERPRISE USERS
           </span>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
@@ -442,19 +442,19 @@ export default function ClockIn() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div ref={ringRef} style={{
               position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-              border: `2px solid ${isClockedIn ? '#022c22' : '#1d4ed8'}`,
+              border: `2px solid ${isClockedIn ? '#022c22' : '#043e8a'}`,
               opacity: 0.3,
             }} />
             <button ref={btnRef} onClick={isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch} disabled={punching} style={{
               width: 148, height: 148, borderRadius: '50%', border: 'none',
               cursor: punching ? 'wait' : 'pointer',
-              background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#1e40af' : '#2563eb',
+              background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#033373' : '#054daf',
               color: 'white', fontSize: '0.92rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'pre-wrap',
               boxShadow: isOutsideGeofence
                 ? '0 6px 20px rgba(100,116,139,0.3)'
                 : isClockedIn
                 ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
-                : '0 0 60px rgba(29,78,216,0.4), 0 8px 32px rgba(15,23,42,0.25)',
+                : '0 0 60px rgba(4, 62, 138,0.4), 0 8px 32px rgba(15,23,42,0.25)',
               transition: 'all 0.3s',
               opacity: punching ? 0.85 : 1,
             }}>
@@ -468,11 +468,11 @@ export default function ClockIn() {
               type="button"
               onClick={() => setShowRemoteModal(true)}
               style={{
-                background: 'rgba(37, 99, 235, 0.08)',
-                border: '1px solid rgba(37, 99, 235, 0.22)',
+                background: 'rgba(5, 77, 175, 0.08)',
+                border: '1px solid rgba(5, 77, 175, 0.22)',
                 borderRadius: 50,
                 padding: '10px 18px',
-                color: '#1d4ed8',
+                color: '#043e8a',
                 fontWeight: 800,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
@@ -483,7 +483,7 @@ export default function ClockIn() {
                 justifyContent: 'center',
                 gap: 8,
                 transition: 'all 0.2s',
-                boxShadow: '0 4px 14px rgba(37,99,235,0.08)',
+                boxShadow: '0 4px 14px rgba(5, 77, 175,0.08)',
                 maxWidth: '95%',
                 textAlign: 'center',
                 lineHeight: 1.4
@@ -524,7 +524,7 @@ export default function ClockIn() {
             center={[geofence.lat, geofence.lng]}
             radius={geofence.radius}
             pathOptions={{
-              color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#3b82f6',
+              color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
               fillColor: geofence.enabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
               fillOpacity: 0.25,
               weight: 2
@@ -545,7 +545,7 @@ export default function ClockIn() {
             {todayLogs.map(log => (
               <div key={log.logId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 14px', background: 'white', border: '1px solid #e2e8f0', borderRadius: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#2563eb' : '#dc2626', flexShrink: 0 }} />
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#054daf' : '#dc2626', flexShrink: 0 }} />
                   <div>
                     <span style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.88rem', display: 'block' }}>Clock {log.type === 'IN' ? 'In' : 'Out'}</span>
                     <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{new Date(log.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
@@ -604,7 +604,7 @@ export default function ClockIn() {
               <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 14, border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>
                   <span><strong>Employee:</strong> {user.name}</span>
-                  <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#2563eb' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
+                  <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#054daf' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} color="#d97706" />
@@ -650,9 +650,9 @@ export default function ClockIn() {
                   checked={remoteAttachCheck}
                   onChange={e => setRemoteAttachCheck(e.target.checked)}
                   required
-                  style={{ marginTop: 3, accentColor: '#2563eb' }}
+                  style={{ marginTop: 3, accentColor: '#054daf' }}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600, lineHeight: 1.4 }}>
+                <span style={{ fontSize: '0.8rem', color: '#033373', fontWeight: 600, lineHeight: 1.4 }}>
                   I certify that my current coordinates and time stamp represent true operational attendance. I consent to executive GPS audit verification.
                 </span>
               </label>

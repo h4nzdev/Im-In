@@ -44,7 +44,7 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div style={{ background: '#ffffff', border: '1px solid rgba(15,23,42,0.08)', borderRadius: 10, padding: '8px 14px', boxShadow: '0 4px 16px rgba(15,23,42,0.12)' }}>
       <p style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 2 }}>{label}</p>
-      <p style={{ color: '#1d4ed8', fontWeight: 700, fontSize: '0.9rem' }}>{payload[0].value}h</p>
+      <p style={{ color: '#043e8a', fontWeight: 700, fontSize: '0.9rem' }}>{payload[0].value}h</p>
     </div>
   );
 }
@@ -79,9 +79,9 @@ export default function Analytics() {
   const cardStyle = { background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(15,23,42,0.08)', borderRadius: 20, boxShadow: '0 4px 24px rgba(15,23,42,0.05)' };
 
   const statCards = [
-    { label: 'Today',      value: `${todayHours}h`,  color: '#1d4ed8', bg: 'rgba(29,78,216,0.1)'  },
-    { label: 'This Week',  value: `${weekHours}h`,   color: '#2563eb', bg: 'rgba(37,99,235,0.1)'  },
-    { label: 'This Month', value: `${monthHours}h`,  color: '#2563eb', bg: 'rgba(37,99,235,0.1)'  },
+    { label: 'Today',      value: `${todayHours}h`,  color: '#043e8a', bg: 'rgba(4, 62, 138,0.1)'  },
+    { label: 'This Week',  value: `${weekHours}h`,   color: '#054daf', bg: 'rgba(5, 77, 175,0.1)'  },
+    { label: 'This Month', value: `${monthHours}h`,  color: '#054daf', bg: 'rgba(5, 77, 175,0.1)'  },
     { label: 'Leaves',     value: leaveStats.total,  color: '#b45309', bg: 'rgba(245,158,11,0.12)'  },
   ];
 
@@ -101,7 +101,7 @@ export default function Analytics() {
               onClick={() => setDaysFilter(d)}
               style={{
                 border: 'none', background: daysFilter === d ? 'white' : 'transparent',
-                color: daysFilter === d ? '#1d4ed8' : '#64748b',
+                color: daysFilter === d ? '#043e8a' : '#64748b',
                 fontWeight: 700, fontSize: '0.8rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
                 boxShadow: daysFilter === d ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                 transition: 'all 0.15s'
@@ -134,12 +134,12 @@ export default function Analytics() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(29,78,216,0.06)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(4, 62, 138,0.06)' }} />
             <Bar dataKey="hours" fill="url(#userBarGrad)" radius={[6, 6, 0, 0]} />
             <defs>
               <linearGradient id="userBarGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563eb" />
-                <stop offset="100%" stopColor="#1e40af" />
+                <stop offset="0%" stopColor="#054daf" />
+                <stop offset="100%" stopColor="#033373" />
               </linearGradient>
             </defs>
           </BarChart>
@@ -153,15 +153,15 @@ export default function Analytics() {
           <AreaChart data={dailyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0} />
+                <stop offset="5%" stopColor="#043e8a" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#043e8a" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(29,78,216,0.3)' }} />
-            <Area type="monotone" dataKey="hours" stroke="#1d4ed8" strokeWidth={2.5} fill="url(#areaGrad)" dot={{ fill: '#1d4ed8', r: 3.5 }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(4, 62, 138,0.3)' }} />
+            <Area type="monotone" dataKey="hours" stroke="#043e8a" strokeWidth={2.5} fill="url(#areaGrad)" dot={{ fill: '#043e8a', r: 3.5 }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -172,7 +172,7 @@ export default function Analytics() {
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {[
             { label: 'Total Requests', value: leaveStats.total, color: '#0f172a', bg: 'rgba(15,23,42,0.05)' },
-            { label: 'Approved',       value: leaveStats.approved, color: '#1d4ed8', bg: 'rgba(59,130,246,0.12)' },
+            { label: 'Approved',       value: leaveStats.approved, color: '#043e8a', bg: 'rgba(5, 77, 175,0.12)' },
             { label: 'Pending',        value: leaveStats.pending, color: '#d97706', bg: 'rgba(245,158,11,0.14)' },
           ].map(({ label, value, color, bg }) => (
             <div key={label} style={{ flex: '1 1 120px', textAlign: 'center', padding: '18px 12px', background: bg, borderRadius: 16 }}>

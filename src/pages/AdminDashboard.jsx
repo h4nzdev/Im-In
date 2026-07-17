@@ -11,7 +11,7 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div style={{ background: '#ffffff', border: '1px solid rgba(15,23,42,0.08)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 4px 16px rgba(15,23,42,0.12)' }}>
       <p style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 4 }}>{label}</p>
-      <p style={{ color: '#1d4ed8', fontWeight: 700 }}>{payload[0].value} clock-ins</p>
+      <p style={{ color: '#043e8a', fontWeight: 700 }}>{payload[0].value} clock-ins</p>
     </div>
   );
 }
@@ -87,16 +87,16 @@ export default function AdminDashboard() {
   const weeklyHours = (weekMs / 3600000).toFixed(1);
 
   const stats = [
-    { label: 'Total Employees', value: users.filter(u => u.role === 'User').length, color: '#1d4ed8', bg: 'rgba(29,78,216,0.1)' },
-    { label: 'Clocked In Today', value: clockedInToday, color: '#2563eb', bg: 'rgba(37,99,235,0.1)' },
+    { label: 'Total Employees', value: users.filter(u => u.role === 'User').length, color: '#043e8a', bg: 'rgba(4, 62, 138,0.1)' },
+    { label: 'Clocked In Today', value: clockedInToday, color: '#054daf', bg: 'rgba(5, 77, 175,0.1)' },
     { label: 'Pending Queue', value: totalPending, color: '#d97706', bg: 'rgba(245,158,11,0.14)' },
-    { label: 'Weekly Hours', value: `${weeklyHours}h`, color: '#2563eb', bg: 'rgba(37,99,235,0.1)' },
+    { label: 'Weekly Hours', value: `${weeklyHours}h`, color: '#054daf', bg: 'rgba(5, 77, 175,0.1)' },
   ];
 
   const shortcuts = [
     { label: 'Review Approvals', desc: `${totalPending} items waiting`, icon: UserCheck, to: '/admin/approvals', color: '#d97706', bg: 'rgba(245,158,11,0.14)' },
-    { label: 'Audit Shift Logs', desc: `${logs.length} biometric records`, icon: Clock, to: '/admin/logs', color: '#1d4ed8', bg: 'rgba(59,130,246,0.12)' },
-    { label: 'Manage Leaves', desc: `${leaves.length} total bookings`, icon: FileText, to: '/admin/leaves', color: '#2563eb', bg: 'rgba(37,99,235,0.12)' },
+    { label: 'Audit Shift Logs', desc: `${logs.length} biometric records`, icon: Clock, to: '/admin/logs', color: '#043e8a', bg: 'rgba(5, 77, 175,0.12)' },
+    { label: 'Manage Leaves', desc: `${leaves.length} total bookings`, icon: FileText, to: '/admin/leaves', color: '#054daf', bg: 'rgba(5, 77, 175,0.12)' },
     { label: 'Positions & Depts', desc: 'Organizational hierarchy', icon: Briefcase, to: '/admin/positions', color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
   ];
 
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
                     <Activity size={12} color={isOnline ? '#059669' : '#64748b'} /> {isOnline ? 'Online' : 'Offline'}
                   </span>
                   {elapsedStr && (
-                    <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                    <div style={{ marginTop: 4, fontSize: '0.78rem', fontWeight: 800, color: '#054daf', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                       <Clock size={12} /> {elapsedStr}
                     </div>
                   )}
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, borderBottom: '1px solid rgba(15,23,42,0.06)', paddingBottom: 16 }}>
           <div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Layers size={22} color="#2563eb" /> Executive Action Center & Terminal Shortcuts
+              <Layers size={22} color="#054daf" /> Executive Action Center & Terminal Shortcuts
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '3px 0 0', fontWeight: 600 }}>
               Quick access to administrative approval queues, security maps, and workforce roster management
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
           {/* Card 1: Approvals Desk */}
-          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(5, 77, 175,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(217,119,6,0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -316,10 +316,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Card 2: Geofence Map Terminal */}
-          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(5, 77, 175,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(37,99,235,0.15)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(5, 77, 175,0.15)', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={22} />
                 </div>
                 <span style={{ padding: '4px 10px', borderRadius: 20, background: geofence?.enabled ? '#ecfdf5' : '#f1f5f9', color: geofence?.enabled ? '#059669' : '#64748b', fontSize: '0.74rem', fontWeight: 800, border: geofence?.enabled ? '1px solid #a7f3d0' : '1px solid #e2e8f0' }}>
@@ -333,20 +333,20 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={() => navigate('/admin/geofence')}
-              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#2563eb', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(37,99,235,0.25)', transition: 'transform 0.15s' }}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#054daf', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.86rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(5, 77, 175,0.25)', transition: 'transform 0.15s' }}
             >
               Open Geofence Terminal <ArrowRight size={16} />
             </button>
           </div>
 
           {/* Card 3: Employee Roster */}
-          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(5, 77, 175,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Users size={22} />
                 </div>
-                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#eff6ff', color: '#1d4ed8', fontSize: '0.74rem', fontWeight: 800, border: '1px solid #bfdbfe' }}>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#eff6ff', color: '#043e8a', fontSize: '0.74rem', fontWeight: 800, border: '1px solid #bfdbfe' }}>
                   {users.length} Profiles
                 </span>
               </div>
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Card 4: Biometric Audit Logs Table */}
-          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(37,99,235,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
+          <div style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid rgba(5, 77, 175,0.18)', background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.6))', boxShadow: '0 4px 18px rgba(15,23,42,0.04)', height: '100%' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, borderBottom: '1px solid rgba(15,23,42,0.06)', paddingBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Building2 size={22} color="#2563eb" /> Division & Client Campaign Overview
+              <Building2 size={22} color="#054daf" /> Division & Client Campaign Overview
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '3px 0 0', fontWeight: 600 }}>
               Workforce distribution across Operations (Service Delivery) and Corporate Support (Shared Services)
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
           </div>
           <button
             onClick={() => navigate('/admin/assignments')}
-            style={{ padding: '10px 16px', borderRadius: 14, background: 'rgba(37,99,235,0.08)', color: '#2563eb', border: '1px solid rgba(37,99,235,0.25)', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ padding: '10px 16px', borderRadius: 14, background: 'rgba(5, 77, 175,0.08)', color: '#054daf', border: '1px solid rgba(5, 77, 175,0.25)', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Briefcase size={16} /> Campaign Assignments Desk →
           </button>
@@ -413,24 +413,24 @@ export default function AdminDashboard() {
           <div style={{ padding: '22px', borderRadius: 20, background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 180 }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#043e8a', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Briefcase size={16} /> Service Delivery (Operations)
                 </span>
                 <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e3a8a' }}>
                   {users.filter(u => u.department === 'Service Delivery').length} Staff
                 </span>
               </div>
-              <p style={{ fontSize: '0.82rem', color: '#3b82f6', margin: '0 0 16px', fontWeight: 600, lineHeight: 1.45 }}>
+              <p style={{ fontSize: '0.82rem', color: '#054daf', margin: '0 0 16px', fontWeight: 600, lineHeight: 1.45 }}>
                 Virtual Assistants and Operations team members working directly on client accounts and billable customer campaigns.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {db.getAccounts().slice(0, 4).map(acc => (
-                  <span key={acc} style={{ padding: '6px 12px', borderRadius: 20, background: 'white', color: '#1d4ed8', fontWeight: 800, fontSize: '0.74rem', border: '1px solid #93c5fd', boxShadow: '0 2px 6px rgba(37,99,235,0.06)' }}>
+                  <span key={acc} style={{ padding: '6px 12px', borderRadius: 20, background: 'white', color: '#043e8a', fontWeight: 800, fontSize: '0.74rem', border: '1px solid #93c5fd', boxShadow: '0 2px 6px rgba(5, 77, 175,0.06)' }}>
                     🎯 {acc}
                   </span>
                 ))}
                 {db.getAccounts().length > 4 && (
-                  <span style={{ padding: '6px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.6)', color: '#1d4ed8', fontWeight: 800, fontSize: '0.74rem' }}>
+                  <span style={{ padding: '6px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.6)', color: '#043e8a', fontWeight: 800, fontSize: '0.74rem' }}>
                     +{db.getAccounts().length - 4} more campaigns
                   </span>
                 )}
@@ -468,7 +468,7 @@ export default function AdminDashboard() {
       <div className="card glass" style={{ padding: 28, borderRadius: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <span style={{ color: '#0f172a', fontWeight: 800, fontSize: '1.05rem' }}>Company Attendance Volume — Last 7 Days</span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1d4ed8', background: 'rgba(59,130,246,0.12)', padding: '4px 12px', borderRadius: 20 }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#043e8a', background: 'rgba(5, 77, 175,0.12)', padding: '4px 12px', borderRadius: 20 }}>
             Biometric activity
           </span>
         </div>
@@ -477,12 +477,12 @@ export default function AdminDashboard() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} allowDecimals={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(29,78,216,0.06)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(4, 62, 138,0.06)' }} />
             <Bar dataKey="clockIns" fill="url(#barGrad)" radius={[6,6,0,0]} />
             <defs>
               <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563eb" />
-                <stop offset="100%" stopColor="#1e40af" />
+                <stop offset="0%" stopColor="#054daf" />
+                <stop offset="100%" stopColor="#033373" />
               </linearGradient>
             </defs>
           </BarChart>

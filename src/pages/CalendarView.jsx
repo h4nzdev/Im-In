@@ -110,8 +110,8 @@ export default function CalendarView() {
       events.push({
         type: 'shift',
         title: isIn ? 'Shift Recorded' : 'Punched',
-        color: '#1d4ed8',
-        bg: 'rgba(59,130,246,0.22)'
+        color: '#043e8a',
+        bg: 'rgba(5, 77, 175,0.22)'
       });
     }
 
@@ -124,8 +124,8 @@ export default function CalendarView() {
         events.push({
           type: 'leave',
           title: lv.leaveType,
-          color: lv.status === 'Approved' ? '#1d4ed8' : '#b45309',
-          bg: lv.status === 'Approved' ? 'rgba(37,99,235,0.18)' : 'rgba(245,158,11,0.18)'
+          color: lv.status === 'Approved' ? '#043e8a' : '#b45309',
+          bg: lv.status === 'Approved' ? 'rgba(5, 77, 175,0.18)' : 'rgba(245,158,11,0.18)'
         });
       }
     });
@@ -159,7 +159,7 @@ export default function CalendarView() {
             </span>
             <button onClick={nextMonth} style={{ padding: '6px 12px', border: 'none', background: 'transparent', cursor: 'pointer', borderLeft: '1px solid rgba(15,23,42,0.08)' }}><ChevronRight size={18} color="#0f172a" /></button>
           </div>
-          <button onClick={goToToday} style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#2563eb', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+          <button onClick={goToToday} style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#054daf', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
             Today
           </button>
           <button onClick={() => setShowUploadModal(true)} style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(13,148,136,0.25)', background: 'rgba(13,148,136,0.08)', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#0d9488', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 6px rgba(0,0,0,0.03)', transition: 'all 0.15s' }}>
@@ -204,11 +204,11 @@ export default function CalendarView() {
                 >
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: today ? '#2563eb' : (isSelected ? '#0f172a' : 'transparent'),
+                    background: today ? '#054daf' : (isSelected ? '#0f172a' : 'transparent'),
                     color: today ? '#ffffff' : (isSelected ? '#ffffff' : '#0f172a'),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 800, fontSize: '0.92rem', transition: 'all 0.15s',
-                    boxShadow: today ? '0 2px 8px rgba(37,99,235,0.35)' : 'none'
+                    boxShadow: today ? '0 2px 8px rgba(5, 77, 175,0.35)' : 'none'
                   }}>
                     {day}
                   </div>
@@ -232,8 +232,8 @@ export default function CalendarView() {
       {/* Legend */}
       <div style={{ display: 'flex', gap: 16, marginTop: 18, justifyContent: 'center', flexWrap: 'wrap', fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#0d9488' }} /> Uploaded Roster</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} /> Recorded Shift</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} /> Approved Leave</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#054daf' }} /> Recorded Shift</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#054daf' }} /> Approved Leave</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> Pending Leave</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#94a3b8' }} /> Rest Day</div>
       </div>
@@ -263,11 +263,11 @@ export default function CalendarView() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 16, background: 'rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 16, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf' }}>
                 <CalIcon size={24} />
               </div>
               <div>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Schedule Overview</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#054daf', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Schedule Overview</span>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                   {new Date(year, month, selectedDay).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                 </h2>
@@ -313,9 +313,9 @@ export default function CalendarView() {
 
               {/* Shift / Punches */}
               {logs.filter(l => new Date(l.timestamp).toLocaleDateString('en-US') === new Date(year, month, selectedDay).toLocaleDateString('en-US')).map((log) => (
-                <div key={log.logId} style={{ padding: 16, borderRadius: 16, background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div key={log.logId} style={{ padding: 16, borderRadius: 16, background: 'rgba(5, 77, 175,0.08)', border: '1px solid rgba(5, 77, 175,0.2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ padding: '3px 10px', borderRadius: 8, background: log.type === 'IN' ? '#2563eb' : '#dc2626', color: 'white', fontWeight: 800, fontSize: '0.72rem' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 8, background: log.type === 'IN' ? '#054daf' : '#dc2626', color: 'white', fontWeight: 800, fontSize: '0.72rem' }}>
                       BIOMETRIC {log.type}
                     </span>
                     <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
@@ -323,7 +323,7 @@ export default function CalendarView() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: '#475569', fontFamily: 'monospace' }}>
-                    <MapPin size={14} color="#2563eb" /> {log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'}
+                    <MapPin size={14} color="#054daf" /> {log.latitude ? `${log.latitude.toFixed(4)}, ${log.longitude.toFixed(4)}` : 'GPS N/A'}
                   </div>
                 </div>
               ))}
@@ -335,10 +335,10 @@ export default function CalendarView() {
                 const cur = new Date(year, month, selectedDay);
                 return cur >= s && cur <= e;
               }).map(lv => (
-                <div key={lv.leaveId} style={{ padding: 16, borderRadius: 16, background: lv.status === 'Approved' ? 'rgba(37,99,235,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${lv.status === 'Approved' ? 'rgba(37,99,235,0.25)' : 'rgba(245,158,11,0.25)'}` }}>
+                <div key={lv.leaveId} style={{ padding: 16, borderRadius: 16, background: lv.status === 'Approved' ? 'rgba(5, 77, 175,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${lv.status === 'Approved' ? 'rgba(5, 77, 175,0.25)' : 'rgba(245,158,11,0.25)'}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontWeight: 800, color: lv.status === 'Approved' ? '#1d4ed8' : '#b45309', fontSize: '0.92rem' }}>{lv.leaveType}</span>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: lv.status === 'Approved' ? '#2563eb' : '#f59e0b', color: 'white' }}>{lv.status}</span>
+                    <span style={{ fontWeight: 800, color: lv.status === 'Approved' ? '#043e8a' : '#b45309', fontSize: '0.92rem' }}>{lv.leaveType}</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: lv.status === 'Approved' ? '#054daf' : '#f59e0b', color: 'white' }}>{lv.status}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569' }}>Reason: {lv.reason || 'No details provided'}</p>
                 </div>

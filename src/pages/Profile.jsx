@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone, Clock, Calendar, Briefcase, Mail, Award, MapPin, UserCheck, Activity } from 'lucide-react';
+import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone, Clock, Calendar, Briefcase, Mail, Award, MapPin, UserCheck, Activity, Lock } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
+import { showSuccess } from '../lib/alert';
+import Swal from 'sweetalert2';
 
 export default function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const context = useOutletContext();
-  const { user: loggedInUser, logout } = useAuthStore();
+  const { user: loggedInUser, logout, updateProfile } = useAuthStore();
 
   const targetId = searchParams.get('userId');
   const targetUser = targetId ? db.getUserById(targetId) : null;
@@ -52,6 +54,56 @@ export default function Profile() {
     const next = { ...prefs, [k]: !prefs[k] };
     setPrefs(next);
     localStorage.setItem(`imin_prefs_${user.userId}`, JSON.stringify(next));
+  };
+
+  const handleSetPin = async () => {
+    const currentPin = localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin || '';
+    const { value: newPin } = await Swal.fire({
+      title: '🔒 Quick Access 4-Digit PIN',
+      text: 'Set up or update your 4-digit numeric PIN for offline check-in & terminal validation.',
+      input: 'password',
+      inputAttributes: {
+        maxlength: 4,
+        autocapitalize: 'off',
+        autocorrect: 'off',
+        inputmode: 'numeric',
+        pattern: '[0-9]*',
+        placeholder: '• • • •'
+      },
+      inputValue: currentPin,
+      showCancelButton: true,
+      confirmButtonText: '💾 Save PIN',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        confirmButton: 'swal-custom-btn swal-btn-primary',
+        cancelButton: 'swal-custom-btn swal-btn-cancel'
+      },
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Please enter a 4-digit numeric PIN!';
+        }
+        if (!/^\d{4}$/.test(value)) {
+          return 'PIN must be exactly 4 digits (e.g. 1234)';
+        }
+        return null;
+      }
+    });
+
+    if (newPin) {
+      if (!isInspectingOther && updateProfile) {
+        updateProfile({ pin: newPin });
+      } else {
+        db.updateUser(user.userId, { pin: newPin });
+        localStorage.setItem(`realynk_user_pin_${user.userId}`, newPin);
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        if (stored && stored.userId === user.userId) {
+          localStorage.setItem('user', JSON.stringify({ ...stored, pin: newPin }));
+        }
+      }
+      showSuccess('PIN Saved!', `4-Digit Security PIN configured (` + newPin.replace(/./g, '•') + `) and saved to async storage.`);
+    }
   };
 
   const handleSaveProfile = (e) => {
@@ -112,10 +164,10 @@ export default function Profile() {
           <div className="card glass" style={{ ...cardStyle, textAlign: 'center', paddingTop: 36, paddingBottom: 32 }}>
             <div style={{
               width: 108, height: 108, borderRadius: '50%', margin: '0 auto 18px',
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              background: 'linear-gradient(135deg, #054daf, #043e8a)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '2.5rem', fontWeight: 800, color: 'white',
-              boxShadow: '0 10px 32px rgba(37,99,235,0.4)',
+              boxShadow: '0 10px 32px rgba(5, 77, 175,0.4)',
               border: '4px solid white'
             }}>
               {initials}
@@ -126,8 +178,8 @@ export default function Profile() {
               <button 
                 onClick={() => setEditing(!editing)} 
                 style={{
-                  background: editing ? '#2563eb' : 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)',
-                  cursor: 'pointer', color: editing ? 'white' : '#2563eb', padding: '6px 12px', borderRadius: 12,
+                  background: editing ? '#054daf' : 'rgba(5, 77, 175,0.12)', border: '1px solid rgba(5, 77, 175,0.3)',
+                  cursor: 'pointer', color: editing ? 'white' : '#054daf', padding: '6px 12px', borderRadius: 12,
                   fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6,
                   transition: 'all 0.15s'
                 }}
@@ -139,8 +191,8 @@ export default function Profile() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
               <span style={{
                 padding: '4px 14px', borderRadius: 99, fontSize: '0.76rem', fontWeight: 800,
-                background: user?.role === 'Admin' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)',
-                color: user?.role === 'Admin' ? '#b45309' : '#1d4ed8',
+                background: user?.role === 'Admin' ? 'rgba(245,158,11,0.15)' : 'rgba(5, 77, 175,0.15)',
+                color: user?.role === 'Admin' ? '#b45309' : '#043e8a',
               }}>{user?.role}</span>
               {position && (
                 <span style={{ color: '#64748b', fontSize: '0.84rem', fontWeight: 700 }}>
@@ -188,7 +240,7 @@ export default function Profile() {
 
           {/* Edit Profile Form Modal / Expand */}
           {editing && (
-            <form onSubmit={handleSaveProfile} className="card glass fade-in" style={{ ...cardStyle, border: '2px solid #3b82f6' }}>
+            <form onSubmit={handleSaveProfile} className="card glass fade-in" style={{ ...cardStyle, border: '2px solid #054daf' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Edit Identity Info</h2>
                 <button type="button" onClick={() => setEditing(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={18} /></button>
@@ -208,7 +260,7 @@ export default function Profile() {
                 <div>
                   <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>
                     <span>Assigned Position & Department</span>
-                    <span style={{ fontSize: '0.68rem', color: '#2563eb', fontWeight: 700 }}>Role Guide</span>
+                    <span style={{ fontSize: '0.68rem', color: '#054daf', fontWeight: 700 }}>Role Guide</span>
                   </label>
                   <select
                     value={form.positionId}
@@ -233,7 +285,7 @@ export default function Profile() {
 
                 {((positions.find(p => p.positionId === form.positionId)?.department === 'Service Delivery') || form.department === 'Service Delivery') && (
                   <div className="fade-in">
-                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', marginBottom: 6 }}>Assigned Client Account / Campaign</label>
+                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#054daf', textTransform: 'uppercase', marginBottom: 6 }}>Assigned Client Account / Campaign</label>
                     <select value={form.assignedAccount} onChange={e => setForm({ ...form, assignedAccount: e.target.value })} required style={{ background: '#eff6ff', color: '#1e3a8a', width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #93c5fd', fontWeight: 700 }}>
                       <option value="">Select client account...</option>
                       {db.getAccounts().map(acc => (
@@ -276,15 +328,15 @@ export default function Profile() {
                 <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Personal Attendance Summary</h2>
                 <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>Accumulated work hours & biometric event history</p>
               </div>
-              <span style={{ padding: '4px 12px', borderRadius: 20, background: 'rgba(37,99,235,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.75rem' }}>
+              <span style={{ padding: '4px 12px', borderRadius: 20, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.75rem' }}>
                 Verified Records
               </span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
               {[
-                { label: 'Hours Worked', value: `${totalHoursLogged()}h`, color: '#1d4ed8', icon: <Clock size={20} color="#2563eb" />, bg: 'rgba(37,99,235,0.08)' },
-                { label: 'Total Punches', value: logs.length, color: '#2563eb', icon: <Activity size={20} color="#2563eb" />, bg: 'rgba(59,130,246,0.08)' },
+                { label: 'Hours Worked', value: `${totalHoursLogged()}h`, color: '#043e8a', icon: <Clock size={20} color="#054daf" />, bg: 'rgba(5, 77, 175,0.08)' },
+                { label: 'Total Punches', value: logs.length, color: '#054daf', icon: <Activity size={20} color="#054daf" />, bg: 'rgba(5, 77, 175,0.08)' },
                 { label: 'Leave Bookings', value: leaves.length, color: '#d97706', icon: <Calendar size={20} color="#d97706" />, bg: 'rgba(245,158,11,0.08)' },
               ].map(({ label, value, color, icon, bg }) => (
                 <div key={label} style={{ textAlign: 'center', padding: '20px 12px', background: 'white', borderRadius: 18, border: '1px solid rgba(15,23,42,0.06)', boxShadow: '0 2px 12px rgba(15,23,42,0.03)' }}>
@@ -297,12 +349,12 @@ export default function Profile() {
               ))}
             </div>
 
-            <div style={{ background: 'rgba(15,23,42,0.03)', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>Biometric Terminal Status</span>
+            <div style={{ background: 'rgba(15,23,42,0.03)', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Biometric Terminal Status</span>
               </div>
-              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '4px 12px', borderRadius: 10, border: '1px solid #6ee7b7' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '5px 14px', borderRadius: 10, border: '1px solid #6ee7b7', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 🟢 Online & Calibrated
               </span>
             </div>
@@ -310,11 +362,11 @@ export default function Profile() {
 
           {/* Preferences & Settings */}
           <div className="card glass" style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 14, background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 14, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
                 <SettingsIcon size={22} />
               </div>
-              <div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Preferences & System Settings</h2>
                 <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>Configure account notifications, biometric geolocation locks, and app tools</p>
               </div>
@@ -322,88 +374,109 @@ export default function Profile() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {/* Notification Toggle */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
                     <Bell size={18} />
                   </div>
-                  <div>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block' }}>Email Shift Reminders</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Receive notifications prior to shift start</span>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Email Shift Reminders</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Receive notifications prior to shift start</span>
                   </div>
                 </div>
                 <button 
                   onClick={() => togglePref('notifs')}
                   style={{
-                    width: 52, height: 28, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative',
-                    background: prefs.notifs ? '#3b82f6' : '#cbd5e1', transition: 'background 0.2s'
+                    width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0,
+                    background: prefs.notifs ? '#054daf' : '#cbd5e1', transition: 'background 0.2s'
                   }}
                 >
                   <div style={{
-                    width: 22, height: 22, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
-                    left: prefs.notifs ? 27 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                    width: 20, height: 20, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
+                    left: prefs.notifs ? 25 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                   }} />
                 </button>
               </div>
 
               {/* GPS Auto Location */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
                     <Shield size={18} />
                   </div>
-                  <div>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block' }}>Biometric Geolocation Lock</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Attach GPS coordinates on punch attempts</span>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Biometric Geolocation Lock</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Attach GPS coordinates on punch attempts</span>
                   </div>
                 </div>
                 <button 
                   onClick={() => togglePref('autoLocation')}
                   style={{
-                    width: 52, height: 28, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative',
-                    background: prefs.autoLocation ? '#3b82f6' : '#cbd5e1', transition: 'background 0.2s'
+                    width: 48, height: 26, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0,
+                    background: prefs.autoLocation ? '#054daf' : '#cbd5e1', transition: 'background 0.2s'
                   }}
                 >
                   <div style={{
-                    width: 22, height: 22, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
-                    left: prefs.autoLocation ? 27 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                    width: 20, height: 20, borderRadius: '50%', background: 'white', position: 'absolute', top: 3,
+                    left: prefs.autoLocation ? 25 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                   }} />
                 </button>
               </div>
 
               {/* Password Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}>
                     <Key size={18} />
                   </div>
-                  <div>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block' }}>Security & Credentials</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Update corporate login password</span>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Security & Credentials</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Update corporate login password</span>
                   </div>
                 </div>
                 <button 
-                  onClick={() => alert("Password reset link sent to " + user.email)}
-                  style={{ padding: '9px 16px', borderRadius: 12, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#334155', transition: 'all 0.15s' }}
+                  onClick={() => showSuccess('Reset Link Sent', 'Password reset instructions sent to ' + user.email)}
+                  style={{ padding: '9px 18px', borderRadius: 12, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: '#334155', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
                 >
                   Reset Password
                 </button>
               </div>
 
+              {/* 4-Digit PIN Action */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 18, borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(5, 77, 175,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
+                    <Lock size={18} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1e293b', display: 'block', marginBottom: 2 }}>Quick Access 4-Digit PIN</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>
+                      {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'PIN Active (••••) – Offline Check-In enabled' : 'Set up 4-digit PIN for offline & terminal access'}
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleSetPin}
+                  style={{ padding: '9px 18px', borderRadius: 12, border: '1px solid #054daf', background: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'rgba(5, 77, 175,0.08)' : '#054daf', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', color: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? '#054daf' : 'white', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
+                >
+                  {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'Change PIN' : 'Set Up PIN'}
+                </button>
+              </div>
+
               {/* Install App Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingTop: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
                     <Smartphone size={18} />
                   </div>
-                  <div>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a', display: 'block' }}>Install Realynk Enterprise App</span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Add 1-tap check-in app to home screen</span>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a', display: 'block', marginBottom: 2 }}>Install Realynk Enterprise App</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', lineHeight: 1.35 }}>Add 1-tap check-in app to home screen</span>
                   </div>
                 </div>
                 <button 
                   onClick={() => context?.openInstallModal?.()}
-                  style={{ padding: '9px 18px', borderRadius: 12, border: 'none', background: '#2563eb', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', color: 'white', boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.15s' }}
+                  style={{ padding: '9px 18px', borderRadius: 12, border: 'none', background: '#054daf', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', color: 'white', boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
                 >
                   Install App
                 </button>

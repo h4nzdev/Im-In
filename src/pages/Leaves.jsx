@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 
 const badge = (status) => {
-  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#1d4ed8','rgba(29,78,216,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
+  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#043e8a','rgba(4, 62, 138,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
   const [color, bg] = map[status] || ['#64748b','rgba(100,116,139,0.15)'];
   return <span style={{ color, background: bg, border: `1px solid ${color}40`, borderRadius: 20, padding: '3px 12px', fontSize: '0.75rem', fontWeight: 600 }}>{status}</span>;
 };
@@ -74,7 +74,7 @@ export default function Leaves() {
               <textarea value={form.reason} onChange={e => set('reason', e.target.value)} rows={3} placeholder="Optional reason..." style={{ resize: 'vertical' }} />
             </div>
             {error && <p style={{ color: '#dc2626', fontSize: '0.82rem' }}>{error}</p>}
-            {success && <p style={{ color: '#1d4ed8', fontSize: '0.82rem' }}>{success}</p>}
+            {success && <p style={{ color: '#043e8a', fontSize: '0.82rem' }}>{success}</p>}
             <button type="submit" className="btn-primary">Submit Request</button>
           </form>
         </div>

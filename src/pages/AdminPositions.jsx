@@ -42,7 +42,7 @@ export default function AdminPositions() {
 
         <div className="card" style={cardStyle}>
           <p style={{ color: '#334155', fontWeight: 600, fontSize: '1rem', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Plus size={18} color="#1d4ed8" /> Add Position
+            <Plus size={18} color="#043e8a" /> Add Position
           </p>
           <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>

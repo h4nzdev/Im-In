@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { realtimeBus } from '../lib/realtime';
 import { getRealAddress, calculateDistanceMeters } from '../lib/geo';
+import { showSuccess } from '../lib/alert';
 import TodosWidget from '../components/TodosWidget';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -248,9 +249,9 @@ export default function Dashboard() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 20, background: 'white', border: '1px solid rgba(15,23,42,0.1)', color: '#0f172a', fontSize: '0.92rem', fontWeight: 800, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-            <Clock size={16} color="#2563eb" /> {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
+            <Clock size={16} color="#054daf" /> {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 20, background: 'rgba(59,130,246,0.12)', color: '#2563eb', fontSize: '0.88rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 20, background: 'rgba(5, 77, 175,0.12)', color: '#054daf', fontSize: '0.88rem', fontWeight: 700 }}>
             <Sparkles size={16} /> Ready to work
           </div>
         </div>
@@ -262,10 +263,10 @@ export default function Dashboard() {
           padding: '14px 18px', borderRadius: 18, marginBottom: 20,
           background: 'linear-gradient(135deg, rgba(238,242,255,0.96), rgba(224,231,255,0.88))', border: '1px solid #c7d2fe',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
-          boxShadow: '0 4px 16px rgba(79,70,229,0.08)'
+          boxShadow: '0 4px 16px rgba(5, 77, 175,0.08)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 240 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#4f46e5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>
               <Timer size={20} />
             </div>
             <div>
@@ -283,16 +284,16 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
             <button
               onClick={() => {
-                alert(`Reminder acknowledged! Milestone marked as active focus for today.`);
+                showSuccess('Reminder Acknowledged!', 'Milestone marked as active focus for today.');
               }}
-              style={{ background: '#4f46e5', color: 'white', padding: '7px 14px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', transition: 'transform 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}
+              style={{ background: '#054daf', color: 'white', padding: '7px 14px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', transition: 'transform 0.15s', boxShadow: '0 2px 8px rgba(5, 77, 175,0.25)' }}
             >
               Acknowledge ✓
             </button>
             <button
               onClick={() => setReminderDismissed(true)}
               title="Dismiss reminder"
-              style={{ background: 'rgba(79,70,229,0.12)', color: '#4338ca', width: 30, height: 30, borderRadius: 10, border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: 'rgba(5, 77, 175,0.12)', color: '#4338ca', width: 30, height: 30, borderRadius: 10, border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
             </button>
@@ -304,7 +305,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
           <button
             onClick={() => setReminderDismissed(false)}
-            style={{ background: 'rgba(79,70,229,0.08)', border: '1px solid #c7d2fe', color: '#4f46e5', padding: '6px 14px', borderRadius: 16, fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ background: 'rgba(5, 77, 175,0.08)', border: '1px solid #c7d2fe', color: '#054daf', padding: '6px 14px', borderRadius: 16, fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Timer size={14} /> Show Action Reminder ({user.deadlineDate})
           </button>
@@ -314,9 +315,9 @@ export default function Dashboard() {
       {/* Stat cards */}
       <div className="card stats-grid" style={{ gap: 20, marginBottom: 24 }}>
         {[
-          { label: 'Today Worked', value: `${hoursToday(logs, user.userId)}h`, color: '#1d4ed8', bg: 'rgba(59,130,246,0.1)' },
-          { label: 'Weekly Total', value: `${hoursWeek(logs, user.userId)}h`, color: '#2563eb', bg: 'rgba(59,130,246,0.08)' },
-          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#2563eb' : '#64748b', bg: isClockedIn ? 'rgba(59,130,246,0.15)' : 'rgba(100,116,139,0.1)', wide: true },
+          { label: 'Today Worked', value: `${hoursToday(logs, user.userId)}h`, color: '#043e8a', bg: 'rgba(5, 77, 175,0.1)' },
+          { label: 'Weekly Total', value: `${hoursWeek(logs, user.userId)}h`, color: '#054daf', bg: 'rgba(5, 77, 175,0.08)' },
+          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#054daf' : '#64748b', bg: isClockedIn ? 'rgba(5, 77, 175,0.15)' : 'rgba(100,116,139,0.1)', wide: true },
         ].map(({ label, value, color, bg, wide }) => (
           <div key={label} className={`stat-card glass glass-hover${wide ? ' stat-status' : ''}`} style={{ padding: 22, borderRadius: 20, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -332,7 +333,7 @@ export default function Dashboard() {
 
         {/* Shift Timer / Clock card */}
         <div className="card glass" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '44px 28px', borderRadius: 24, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(5, 77, 175,0.08)' : 'rgba(5, 77, 175,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
           
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             {/* Attendance Mode Switcher at Top of Card */}
@@ -346,10 +347,10 @@ export default function Dashboard() {
                 onClick={() => setAttendanceMode('TAP')}
                 style={{
                   padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'TAP' ? '#2563eb' : 'transparent',
+                  background: attendanceMode === 'TAP' ? '#054daf' : 'transparent',
                   color: attendanceMode === 'TAP' ? '#ffffff' : '#475569',
                   fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
                   transition: 'all 0.2s', whiteSpace: 'nowrap'
                 }}
               >
@@ -360,10 +361,10 @@ export default function Dashboard() {
                 onClick={() => setAttendanceMode('FACE')}
                 style={{
                   padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'FACE' ? '#2563eb' : 'transparent',
+                  background: attendanceMode === 'FACE' ? '#054daf' : 'transparent',
                   color: attendanceMode === 'FACE' ? '#ffffff' : '#475569',
                   fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
                   transition: 'all 0.2s', whiteSpace: 'nowrap'
                 }}
               >
@@ -371,18 +372,18 @@ export default function Dashboard() {
                 <span style={{
                   padding: '2px 7px', borderRadius: 10,
                   background: attendanceMode === 'FACE' ? 'rgba(255,255,255,0.25)' : '#dbeafe',
-                  color: attendanceMode === 'FACE' ? '#ffffff' : '#1d4ed8',
+                  color: attendanceMode === 'FACE' ? '#ffffff' : '#043e8a',
                   fontSize: '0.68rem', fontWeight: 900
                 }}>SOON</span>
               </button>
             </div>
 
             {attendanceMode === 'FACE' ? (
-              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 16, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 360, boxShadow: '0 8px 24px rgba(37,99,235,0.06)' }}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '2rem', boxShadow: '0 6px 18px rgba(37,99,235,0.15)' }}>
+              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 16, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 360, boxShadow: '0 8px 24px rgba(5, 77, 175,0.06)' }}>
+                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dbeafe', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '2rem', boxShadow: '0 6px 18px rgba(5, 77, 175,0.15)' }}>
                   🧑‍💻
                 </div>
-                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#1d4ed8', color: 'white', fontWeight: 800, fontSize: '0.72rem', display: 'inline-block', marginBottom: 10 }}>
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#043e8a', color: 'white', fontWeight: 800, fontSize: '0.72rem', display: 'inline-block', marginBottom: 10 }}>
                   ⚡ COMING SOON
                 </span>
                 <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
@@ -398,9 +399,9 @@ export default function Dashboard() {
             ) : (
               <>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-                  <Timer size={16} color={isClockedIn ? "#2563eb" : "#64748b"} /> Active Shift Elapsed
+                  <Timer size={16} color={isClockedIn ? "#054daf" : "#64748b"} /> Active Shift Elapsed
                 </span>
-                <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#1d4ed8' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 24px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+                <p style={{ fontSize: 'clamp(2.4rem, 8vw, 3.5rem)', fontWeight: 800, color: isClockedIn ? '#043e8a' : '#94a3b8', fontVariantNumeric: 'tabular-nums', letterSpacing: '-1.5px', margin: '0 0 24px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
                   {formatElapsed(shiftMs)}
                 </p>
 
@@ -434,15 +435,15 @@ export default function Dashboard() {
                 <div style={{ position: 'relative', marginBottom: 20 }}>
                   <div ref={ringRef} style={{
                     position: 'absolute', inset: -20, borderRadius: '50%',
-                    border: `3px solid ${isClockedIn ? '#3b82f6' : '#2563eb'}`,
+                    border: `3px solid ${isClockedIn ? '#054daf' : '#054daf'}`,
                     opacity: 0.3, pointerEvents: 'none'
                   }} />
                   <button ref={btnRef} onClick={isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch} disabled={punching} style={{
                     width: 136, height: 136, borderRadius: '50%', border: 'none', outline: 'none',
                     cursor: punching ? 'wait' : 'pointer',
-                    background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#1d4ed8' : '#2563eb',
+                    background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#043e8a' : '#054daf',
                     color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'pre-wrap',
-                    boxShadow: isOutsideGeofence ? '0 6px 20px rgba(100,116,139,0.3)' : isClockedIn ? '0 12px 36px rgba(29,78,216,0.45)' : '0 12px 36px rgba(59,130,246,0.45)',
+                    boxShadow: isOutsideGeofence ? '0 6px 20px rgba(100,116,139,0.3)' : isClockedIn ? '0 12px 36px rgba(4, 62, 138,0.45)' : '0 12px 36px rgba(5, 77, 175,0.45)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     opacity: punching ? 0.85 : 1,
                   }}>
@@ -456,11 +457,11 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setShowRemoteModal(true)}
                     style={{
-                      background: 'rgba(37, 99, 235, 0.08)',
-                      border: '1px solid rgba(37, 99, 235, 0.22)',
+                      background: 'rgba(5, 77, 175, 0.08)',
+                      border: '1px solid rgba(5, 77, 175, 0.22)',
                       borderRadius: 50,
                       padding: '10px 18px',
-                      color: '#1d4ed8',
+                      color: '#043e8a',
                       fontWeight: 800,
                       fontSize: '0.82rem',
                       cursor: 'pointer',
@@ -471,7 +472,7 @@ export default function Dashboard() {
                       justifyContent: 'center',
                       gap: 8,
                       transition: 'all 0.2s',
-                      boxShadow: '0 4px 14px rgba(37,99,235,0.08)',
+                      boxShadow: '0 4px 14px rgba(5, 77, 175,0.08)',
                       maxWidth: '95%',
                       textAlign: 'center',
                       lineHeight: 1.4
@@ -502,7 +503,7 @@ export default function Dashboard() {
         <div className="card glass" style={{ padding: 0, overflow: 'hidden', borderRadius: 24, minHeight: 340, display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(15,23,42,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.4)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <MapPin size={18} color="#2563eb" />
+              <MapPin size={18} color="#054daf" />
               <p style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>Live Geolocation</p>
             </div>
             <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', background: '#ecfdf5', padding: '4px 10px', borderRadius: 8, border: '1px solid #a7f3d0' }}>
@@ -521,7 +522,7 @@ export default function Dashboard() {
               center={[geofence.lat, geofence.lng]}
               radius={geofence.radius}
               pathOptions={{
-                color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#3b82f6',
+                color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
                 fillColor: geofence.enabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
                 fillOpacity: 0.25,
                 weight: 2
@@ -553,8 +554,8 @@ export default function Dashboard() {
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: log.type === 'IN' ? 'rgba(59,130,246,0.12)' : 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#3b82f6' : '#ef4444' }} />
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: log.type === 'IN' ? 'rgba(5, 77, 175,0.12)' : 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.type === 'IN' ? '#054daf' : '#ef4444' }} />
                   </div>
                   <div>
                     <span style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.92rem', display: 'block' }}>Clock {log.type === 'IN' ? 'In' : 'Out'}</span>
@@ -605,7 +606,7 @@ export default function Dashboard() {
               <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 14, border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>
                   <span><strong>Employee:</strong> {user.name}</span>
-                  <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#2563eb' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
+                  <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#054daf' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} color="#d97706" />
@@ -651,9 +652,9 @@ export default function Dashboard() {
                   checked={remoteAttachCheck}
                   onChange={e => setRemoteAttachCheck(e.target.checked)}
                   required
-                  style={{ marginTop: 3, accentColor: '#2563eb' }}
+                  style={{ marginTop: 3, accentColor: '#054daf' }}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600, lineHeight: 1.4 }}>
+                <span style={{ fontSize: '0.8rem', color: '#033373', fontWeight: 600, lineHeight: 1.4 }}>
                   I certify that my current coordinates and time stamp represent true operational attendance. I consent to executive GPS audit verification.
                 </span>
               </label>

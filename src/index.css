@@ -76,21 +76,21 @@ body {
   transform: translateY(-50%) scaleY(0);
   width: 4px;
   height: 22px;
-  background: #2563eb;
+  background: #054daf;
   border-radius: 0 4px 4px 0;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sidebar-nav-link:hover {
-  color: #2563eb;
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.18);
+  color: #054daf;
+  background: rgba(5, 77, 175, 0.08);
+  border-color: rgba(5, 77, 175, 0.18);
   transform: translateX(6px);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 4px 16px rgba(5, 77, 175, 0.08);
 }
 
 .sidebar-nav-link:hover .nav-icon {
-  color: #2563eb;
+  color: #054daf;
   transform: scale(1.15) rotate(4deg);
 }
 
@@ -99,15 +99,15 @@ body {
 }
 
 .sidebar-nav-link.active {
-  color: #2563eb;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(37, 99, 235, 0.08));
-  border-color: rgba(59, 130, 246, 0.25);
+  color: #054daf;
+  background: linear-gradient(135deg, rgba(5, 77, 175, 0.16), rgba(5, 77, 175, 0.08));
+  border-color: rgba(5, 77, 175, 0.25);
   font-weight: 700;
-  box-shadow: 0 4px 18px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 4px 18px rgba(5, 77, 175, 0.12);
 }
 
 .sidebar-nav-link.active .nav-icon {
-  color: #2563eb;
+  color: #054daf;
 }
 
 .sidebar-nav-link.active::before {
@@ -128,8 +128,8 @@ body {
 }
 
 .sidebar-profile-link:hover {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(5, 77, 175, 0.08);
+  border-color: rgba(5, 77, 175, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
 }
@@ -173,7 +173,7 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #2563eb !important;
+  border-color: #054daf !important;
   background: #ffffff !important;
   box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.14);
 }
@@ -188,7 +188,7 @@ select option {
 }
 
 .btn-primary {
-  background: #2563eb !important;
+  background: #054daf !important;
   color: #ffffff !important;
   border: none !important;
   border-radius: 12px;
@@ -198,14 +198,14 @@ select option {
   width: 100%;
   font-size: 0.95rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 20px rgba(5, 77, 175, 0.3);
   font-family: inherit;
 }
 
 .btn-primary:hover { 
   transform: translateY(-1px); 
-  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.45); 
-  background: #1d4ed8;
+  box-shadow: 0 8px 28px rgba(5, 77, 175, 0.45); 
+  background: #043e8a;
 }
 .btn-primary:active { transform: translateY(0); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -328,4 +328,54 @@ select option {
   .stat-card      { padding: 14px 14px !important; border-radius: 14px !important; }
   .stat-card p:first-child { font-size: 0.68rem !important; }
   .stat-card p:last-child  { font-size: 1.38rem !important; }
+}
+
+/* SweetAlert2 Premium Production Styles */
+.swal2-container {
+  z-index: 2147483647 !important;
+}
+.swal-custom-popup {
+  border-radius: 28px !important;
+  padding: 28px !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+.swal-custom-title {
+  font-size: 1.45rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.02em !important;
+}
+.swal-custom-btn {
+  border-radius: 14px !important;
+  padding: 12px 24px !important;
+  font-weight: 800 !important;
+  font-size: 0.9rem !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.swal-custom-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.16) !important;
+}
+.swal-btn-danger {
+  background: #e11d48 !important;
+  color: white !important;
+}
+.swal-btn-purge {
+  background: #881337 !important;
+  color: white !important;
+}
+.swal-btn-cancel {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+.swal-btn-primary {
+  background: #054daf !important;
+  color: white !important;
+}
+.swal-custom-toast {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(6, 95, 70, 0.18) !important;
+  font-weight: 700 !important;
 }

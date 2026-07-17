@@ -49,7 +49,7 @@ const ErrorFallback = () => {
             {error.message || error.toString()}
           </pre>
         )}
-        <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: '#2563eb', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
+        <Link to="/" style={{ display: 'block', width: '100%', padding: '13px 24px', background: '#054daf', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)' }}>
           Back to Dashboard
         </Link>
       </div>

@@ -4,7 +4,7 @@ import { Check, X, Briefcase, Calendar } from 'lucide-react';
 import { db } from '../lib/db';
 
 const badge = (status) => {
-  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#1d4ed8','rgba(29,78,216,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
+  const map = { Pending: ['#b45309','rgba(245,158,11,0.15)'], Approved: ['#043e8a','rgba(4, 62, 138,0.12)'], Rejected: ['#dc2626','rgba(239,68,68,0.12)'] };
   const [color, bg] = map[status] || ['#64748b','rgba(100,116,139,0.15)'];
   return <span style={{ color, background: bg, border: `1px solid ${color}40`, borderRadius: 20, padding: '3px 12px', fontSize: '0.75rem', fontWeight: 600 }}>{status}</span>;
 };
@@ -66,18 +66,18 @@ export default function AdminLeaves() {
                   <tr key={l.leaveId} style={{ borderBottom: idx === pending.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)' }}>
                     <td style={{ padding: '16px 20px', fontWeight: 700, color: '#0f172a' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
                           {getUserName(l.userId)[0]}
                         </div>
                         {getUserName(l.userId)}
                       </div>
                     </td>
-                    <td style={{ padding: '16px 20px', fontWeight: 600, color: '#1d4ed8' }}>{l.leaveType}</td>
+                    <td style={{ padding: '16px 20px', fontWeight: 600, color: '#043e8a' }}>{l.leaveType}</td>
                     <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '0.85rem' }}>{l.startDate} → {l.endDate}</td>
                     <td style={{ padding: '16px 20px', color: '#475569', fontSize: '0.85rem', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.reason || '—'}</td>
                     <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                        <button onClick={() => updateStatus(l.leaveId, 'Approved')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', background: 'rgba(29,78,216,0.12)', border: '1px solid rgba(29,78,216,0.3)', borderRadius: 8, color: '#1d4ed8', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                        <button onClick={() => updateStatus(l.leaveId, 'Approved')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', background: 'rgba(4, 62, 138,0.12)', border: '1px solid rgba(4, 62, 138,0.3)', borderRadius: 8, color: '#043e8a', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
                           <Check size={13} /> Approve
                         </button>
                         <button onClick={() => updateStatus(l.leaveId, 'Rejected')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, color: '#dc2626', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -119,7 +119,7 @@ export default function AdminLeaves() {
                   <tr key={l.leaveId} style={{ borderBottom: idx === processed.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)' }}>
                     <td style={{ padding: '16px 20px', fontWeight: 700, color: '#0f172a' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
                           {getUserName(l.userId)[0]}
                         </div>
                         {getUserName(l.userId)}

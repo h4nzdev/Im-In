@@ -116,10 +116,10 @@ export default function Signup() {
             <button 
               onClick={() => navigate('/login')}
               style={{
-                width: '100%', padding: '14px 22px', background: '#2563eb',
+                width: '100%', padding: '14px 22px', background: '#054daf',
                 color: 'white', fontWeight: 800, borderRadius: 16, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: '0.96rem',
-                boxShadow: '0 6px 20px rgba(37,99,235,0.35)', transition: 'all 0.2s'
+                boxShadow: '0 6px 20px rgba(5, 77, 175,0.35)', transition: 'all 0.2s'
               }}
             >
               Return to Login Portal <ArrowRight size={18} />
@@ -129,7 +129,7 @@ export default function Signup() {
           <>
             <div className="field" style={{ textAlign: 'center', marginBottom: 20 }}>
               <img src={realynkLogo} alt="Realynk" style={{ height: 44, width: 'auto', margin: '0 auto 8px', display: 'block' }} />
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#2563eb', marginBottom: 2 }}>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#054daf', marginBottom: 2 }}>
                 Join Realynk Enterprise
               </div>
               <p style={{ color: '#64748b', fontSize: '0.84rem', fontWeight: 600, margin: 0 }}>Create your corporate biometric onboarding profile</p>
@@ -141,8 +141,8 @@ export default function Signup() {
                 onClick={handleDemoFill}
                 style={{
                   background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1px solid #bfdbfe',
-                  color: '#1d4ed8', padding: '6px 14px', borderRadius: 12, fontWeight: 800, fontSize: '0.76rem',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(37,99,235,0.1)'
+                  color: '#043e8a', padding: '6px 14px', borderRadius: 12, fontWeight: 800, fontSize: '0.76rem',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(5, 77, 175,0.1)'
                 }}
               >
                 <Sparkles size={14} /> Auto-Fill Demo Credentials
@@ -157,7 +157,7 @@ export default function Signup() {
                 style={{
                   padding: '10px 12px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   background: activeTab === 'IDENTITY' ? 'white' : 'transparent',
-                  color: activeTab === 'IDENTITY' ? '#2563eb' : '#64748b',
+                  color: activeTab === 'IDENTITY' ? '#054daf' : '#64748b',
                   fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   boxShadow: activeTab === 'IDENTITY' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s'
@@ -178,7 +178,7 @@ export default function Signup() {
                 style={{
                   padding: '10px 12px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   background: activeTab === 'CREDENTIALS' ? 'white' : 'transparent',
-                  color: activeTab === 'CREDENTIALS' ? '#2563eb' : '#64748b',
+                  color: activeTab === 'CREDENTIALS' ? '#054daf' : '#64748b',
                   fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   boxShadow: activeTab === 'CREDENTIALS' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s'
@@ -223,9 +223,9 @@ export default function Signup() {
                             }}
                             style={{
                               padding: '12px 14px', borderRadius: 14,
-                              border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                              background: isSelected ? 'rgba(37,99,235,0.08)' : 'white',
-                              color: isSelected ? '#1d4ed8' : '#64748b',
+                              border: isSelected ? '2px solid #054daf' : '1px solid #cbd5e1',
+                              background: isSelected ? 'rgba(5, 77, 175,0.08)' : 'white',
+                              color: isSelected ? '#043e8a' : '#64748b',
                               fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', transition: 'all 0.15s',
                               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4
                             }}
@@ -233,7 +233,7 @@ export default function Signup() {
                             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <Icon size={16} /> {item.label}
                             </span>
-                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#1e40af' : '#64748b', opacity: 0.9 }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#033373' : '#64748b', opacity: 0.9 }}>
                               {item.sub}
                             </span>
                           </button>
@@ -242,7 +242,7 @@ export default function Signup() {
                     </div>
 
                     <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 12, background: form.department === 'Service Delivery' ? '#eff6ff' : '#f8fafc', border: form.department === 'Service Delivery' ? '1px solid #bfdbfe' : '1px solid #e2e8f0', fontSize: '0.75rem', color: '#334155', lineHeight: 1.4, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <Info size={16} color="#2563eb" flexShrink={0} style={{ marginTop: 1 }} />
+                      <Info size={16} color="#054daf" flexShrink={0} style={{ marginTop: 1 }} />
                       {form.department === 'Service Delivery' ? (
                         <span><strong>Service Delivery (Operations):</strong> Select this if you are working directly on client accounts and billable customer campaigns.</span>
                       ) : (
@@ -253,7 +253,7 @@ export default function Signup() {
 
                   {form.department === 'Service Delivery' && (
                     <div className="fade-in">
-                      <label style={{ display: 'block', color: '#2563eb', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assigned Client Account / Campaign</label>
+                      <label style={{ display: 'block', color: '#054daf', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assigned Client Account / Campaign</label>
                       <select value={form.assignedAccount} onChange={e => set('assignedAccount', e.target.value)} required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #93c5fd', background: '#eff6ff', color: '#1e3a8a', fontSize: '0.88rem', fontWeight: 700, outline: 'none' }}>
                         <option value="">Select client account / campaign...</option>
                         {db.getAccounts().map(acc => (
@@ -267,7 +267,7 @@ export default function Signup() {
                     type="button"
                     onClick={handleNextTab}
                     className="btn-primary"
-                    style={{ marginTop: 6, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#2563eb', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(37,99,235,0.25)' }}
+                    style={{ marginTop: 6, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(5, 77, 175,0.25)' }}
                   >
                     Continue to Role & Credentials <ChevronRight size={18} />
                   </button>
@@ -294,7 +294,7 @@ export default function Signup() {
                     <div>
                       <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         <span>Designation Role</span>
-                        <span style={{ fontSize: '0.65rem', color: '#2563eb', fontWeight: 700 }}>Associate vs Admin</span>
+                        <span style={{ fontSize: '0.65rem', color: '#054daf', fontWeight: 700 }}>Associate vs Admin</span>
                       </label>
                       <select value={form.positionId} onChange={e => set('positionId', e.target.value)} required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, outline: 'none' }}>
                         <option value="">Select Role...</option>
@@ -314,7 +314,7 @@ export default function Signup() {
                             cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             padding: 4, borderRadius: 6, transition: 'color 0.2s'
                           }}
-                          onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+                          onMouseEnter={e => e.currentTarget.style.color = '#054daf'}
                           onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
                         >
                           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -342,7 +342,7 @@ export default function Signup() {
                       type="submit"
                       disabled={loading || (form.email && !validateEmailDomain(form.email))}
                       className="btn-primary"
-                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#2563eb', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 1 }}
+                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 1 }}
                     >
                       {loading ? 'Registering Identity...' : <>Submit Registration <CheckCircle2 size={18} /></>}
                     </button>
@@ -364,7 +364,7 @@ export default function Signup() {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   width: '100%', padding: '12px', borderRadius: 14,
-                  background: 'rgba(37,99,235,0.08)', color: '#2563eb', border: '1px solid rgba(37,99,235,0.25)',
+                  background: 'rgba(5, 77, 175,0.08)', color: '#054daf', border: '1px solid rgba(5, 77, 175,0.25)',
                   fontWeight: 800, fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.15s'
                 }}
               >

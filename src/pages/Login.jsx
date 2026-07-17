@@ -56,8 +56,8 @@ export default function Login() {
             onClick={() => { setEmail('admin@realynk.com'); setPassword('admin123'); setError(''); }}
             style={{
               background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1px solid #bfdbfe',
-              color: '#1d4ed8', padding: '6px 12px', borderRadius: 10, fontWeight: 800, fontSize: '0.75rem',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(37,99,235,0.1)'
+              color: '#043e8a', padding: '6px 12px', borderRadius: 10, fontWeight: 800, fontSize: '0.75rem',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(5, 77, 175,0.1)'
             }}
           >
             <Sparkles size={14} /> Fill Demo Credentials
@@ -97,7 +97,7 @@ export default function Login() {
                   cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   padding: 6, borderRadius: 8, transition: 'color 0.2s'
                 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+                onMouseEnter={e => e.currentTarget.style.color = '#054daf'}
                 onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -111,7 +111,7 @@ export default function Login() {
             </div>
           )}
 
-          <button className="btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(37,99,235,0.3)', cursor: 'pointer', width: '100%', opacity: 1 }}>
+          <button className="btn-primary" type="submit" disabled={loading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '1rem', padding: '14px', background: '#054daf', color: '#ffffff', border: 'none', borderRadius: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', width: '100%', opacity: 1 }}>
             <LogIn size={18} /> {loading ? 'Logging in...' : 'Sign In to Portal'}
           </button>
         </form>
@@ -122,7 +122,7 @@ export default function Login() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               width: '100%', padding: '13px', borderRadius: 14,
-              background: 'rgba(37,99,235,0.08)', color: '#2563eb', border: '1px solid rgba(37,99,235,0.25)',
+              background: 'rgba(5, 77, 175,0.08)', color: '#054daf', border: '1px solid rgba(5, 77, 175,0.25)',
               fontWeight: 800, fontSize: '0.92rem', textDecoration: 'none', transition: 'all 0.15s'
             }}
           >

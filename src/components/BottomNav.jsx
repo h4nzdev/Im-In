@@ -40,12 +40,12 @@ export default function BottomNav() {
             <Link key={to} to={to} className="bottom-nav-link" style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: 3, textDecoration: 'none',
-              color: active ? '#2563eb' : '#64748b',
+              color: active ? '#054daf' : '#64748b',
               transition: 'all 0.2s', position: 'relative'
             }}>
               <div style={{
                 padding: '4px 16px', borderRadius: 16,
-                background: active ? 'rgba(37,99,235,0.12)' : 'transparent',
+                background: active ? 'rgba(5, 77, 175,0.12)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.2s'
               }}>

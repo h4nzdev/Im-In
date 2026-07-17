@@ -104,13 +104,13 @@ export default function UserAssignments() {
             Mandatory department protocols auto-synced to your interactive checklist
           </p>
         </div>
-        <div style={{ padding: '8px 16px', borderRadius: 20, background: 'rgba(37,99,235,0.12)', color: '#2563eb', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ padding: '8px 16px', borderRadius: 20, background: 'rgba(5, 77, 175,0.12)', color: '#054daf', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Sparkles size={16} /> Auto-Sync Enabled
         </div>
       </div>
 
       {/* Progress Card */}
-      <div className="fade-item card glass" style={{ padding: 24, borderRadius: 24, marginBottom: 28, background: 'linear-gradient(135deg, #1e40af, #2563eb)', color: 'white', boxShadow: '0 12px 32px rgba(37,99,235,0.25)' }}>
+      <div className="fade-item card glass" style={{ padding: 24, borderRadius: 24, marginBottom: 28, background: 'linear-gradient(135deg, #033373, #054daf)', color: 'white', boxShadow: '0 12px 32px rgba(5, 77, 175,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
             <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.9 }}>
@@ -144,9 +144,9 @@ export default function UserAssignments() {
         <button
           type="submit"
           style={{
-            padding: '14px 24px', borderRadius: 14, background: '#2563eb', color: 'white',
+            padding: '14px 24px', borderRadius: 14, background: '#054daf', color: 'white',
             border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(37,99,235,0.3)'
+            display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)'
           }}
         >
           <Plus size={18} /> Add Task
@@ -156,7 +156,7 @@ export default function UserAssignments() {
       {/* To-Do List Items */}
       <div className="fade-item card glass" style={{ padding: 28, borderRadius: 24 }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <CheckSquare color="#2563eb" /> Interactive Shift Checklist
+          <CheckSquare color="#054daf" /> Interactive Shift Checklist
         </h2>
 
         {todoList.length === 0 ? (
@@ -202,7 +202,7 @@ export default function UserAssignments() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {item.sopId && (
-                    <span style={{ padding: '4px 10px', borderRadius: 10, background: 'rgba(59,130,246,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.72rem' }}>
+                    <span style={{ padding: '4px 10px', borderRadius: 10, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
                       SOP Protocol
                     </span>
                   )}

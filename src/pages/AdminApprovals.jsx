@@ -88,7 +88,7 @@ export default function AdminApprovals() {
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 999,
-          padding: '14px 22px', borderRadius: 16, background: '#1e40af',
+          padding: '14px 22px', borderRadius: 16, background: '#033373',
           color: 'white', fontWeight: 700, fontSize: '0.92rem',
           boxShadow: '0 12px 36px rgba(6,95,70,0.35)', display: 'flex', alignItems: 'center', gap: 10,
           animation: 'fadeIn 0.25s ease-out'
@@ -126,7 +126,7 @@ export default function AdminApprovals() {
               onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }}
               style={{
                 border: 'none', background: activeTab === tab.id ? 'white' : 'transparent',
-                color: activeTab === tab.id ? '#1d4ed8' : '#64748b',
+                color: activeTab === tab.id ? '#043e8a' : '#64748b',
                 fontWeight: 700, fontSize: '0.82rem', padding: '8px 16px', borderRadius: 10, cursor: 'pointer',
                 boxShadow: activeTab === tab.id ? '0 2px 10px rgba(0,0,0,0.06)' : 'none',
                 transition: 'all 0.15s'
@@ -203,8 +203,8 @@ export default function AdminApprovals() {
                         <span style={{
                           display: 'inline-block', whiteSpace: 'nowrap',
                           padding: '5px 12px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 800,
-                          background: isUser ? 'rgba(37,99,235,0.15)' : 'rgba(245,158,11,0.18)',
-                          color: isUser ? '#1d4ed8' : '#b45309'
+                          background: isUser ? 'rgba(5, 77, 175,0.15)' : 'rgba(245,158,11,0.18)',
+                          color: isUser ? '#043e8a' : '#b45309'
                         }}>
                           {isUser ? 'NEW SIGNUP' : `${item.leaveType} LEAVE`}
                         </span>
@@ -238,9 +238,9 @@ export default function AdminApprovals() {
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => isUser ? handleApproveUser(item.userId, name) : handleApproveLeave(item.leaveId, name)}
-                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.84rem', transition: 'background 0.15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#054daf', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.84rem', transition: 'background 0.15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#043e8a'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#054daf'}
                           >
                             <Check size={16} /> Approve
                           </button>

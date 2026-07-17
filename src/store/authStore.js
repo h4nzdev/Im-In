@@ -61,6 +61,19 @@ export const useAuthStore = create((set, get) => ({
     return user;
   },
 
+  updateProfile: (updates) => {
+    const cur = get().user;
+    if (!cur) return;
+    const updated = { ...cur, ...updates };
+    db.updateUser(cur.userId, updates);
+    localStorage.setItem('user', JSON.stringify(updated));
+    if (updates.pin !== undefined) {
+      localStorage.setItem(`realynk_user_pin_${cur.userId}`, updates.pin);
+    }
+    set({ user: updated });
+    return updated;
+  },
+
   logout: () => {
     const cur = get().user;
     if (cur) {

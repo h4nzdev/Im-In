@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { BookOpen, Plus, Search, Filter, Trash2, Edit3, ShieldAlert, CheckCircle2, Users, FileText, AlertTriangle, ArrowRight, X, Sparkles } from 'lucide-react';
 import { db } from '../lib/db';
+import { showDeleteConfirm, showSuccess } from '../lib/alert';
 
 export default function AdminAssignments() {
   const [assignments, setAssignments] = useState(() => db.getAssignments());
@@ -78,10 +79,16 @@ export default function AdminAssignments() {
     setShowModal(false);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to remove this SOP assignment?')) {
+  const handleDelete = async (id) => {
+    const confirmed = await showDeleteConfirm({
+      title: 'Remove Assignment?',
+      text: 'Are you sure you want to remove this SOP assignment?',
+      confirmButtonText: '🗑️ Yes, Remove'
+    });
+    if (confirmed) {
       db.deleteAssignment(id);
       setAssignments(db.getAssignments());
+      showSuccess('Assignment Removed', 'SOP has been deleted from employee tasklists.');
     }
   };
 
@@ -105,7 +112,7 @@ export default function AdminAssignments() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+            <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>
               Governance Suite
             </span>
           </div>
@@ -125,7 +132,7 @@ export default function AdminAssignments() {
       {/* Metrics Row */}
       <div className="stats-grid" style={{ marginBottom: 24 }}>
         <div className="card glass sop-card" style={{ padding: 20, borderRadius: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf' }}>
             <BookOpen size={24} />
           </div>
           <div>
@@ -196,7 +203,7 @@ export default function AdminAssignments() {
             <div key={sop.id} className="card glass sop-card" style={{ padding: 24, borderRadius: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'white', border: '1px solid rgba(15,23,42,0.08)' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 800, fontSize: '0.72rem' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(5, 77, 175,0.08)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
                     {sop.type || 'SOP Protocol'}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, background: pb.bg, color: pb.color, fontWeight: 800, fontSize: '0.72rem' }}>
@@ -258,7 +265,7 @@ export default function AdminAssignments() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 16, background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 16, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf' }}>
                 <BookOpen size={24} />
               </div>
               <div>

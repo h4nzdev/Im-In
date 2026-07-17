@@ -143,7 +143,7 @@ export default function AdminGeofence() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Shield size={14} /> Security & Attendance Boundary
             </span>
             <span style={{ color: '#94a3b8' }}>•</span>
@@ -157,13 +157,13 @@ export default function AdminGeofence() {
         {/* Quick Enforcement Toggle Switch right in header */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 14, padding: '10px 16px',
-          borderRadius: 18, background: geoEnabled ? 'rgba(37,99,235,0.08)' : '#f1f5f9',
-          border: geoEnabled ? '1.5px solid rgba(37,99,235,0.3)' : '1px solid #cbd5e1',
+          borderRadius: 18, background: geoEnabled ? 'rgba(5, 77, 175,0.08)' : '#f1f5f9',
+          border: geoEnabled ? '1.5px solid rgba(5, 77, 175,0.3)' : '1px solid #cbd5e1',
           boxShadow: '0 4px 16px rgba(15,23,42,0.04)'
         }}>
           <div>
             <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Perimeter Enforcement</div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: geoEnabled ? '#2563eb' : '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: geoEnabled ? '#054daf' : '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
               {geoEnabled ? <><Lock size={14} /> Strict Geofence Active</> : <><Unlock size={14} /> Bypass / Disabled</>}
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function AdminGeofence() {
             />
             <span style={{
               position: 'absolute', inset: 0, borderRadius: 28,
-              background: geoEnabled ? '#2563eb' : '#cbd5e1', transition: 'all 0.25s',
+              background: geoEnabled ? '#054daf' : '#cbd5e1', transition: 'all 0.25s',
               boxShadow: 'inner 0 2px 4px rgba(0,0,0,0.1)'
             }} />
             <span style={{
@@ -207,7 +207,7 @@ export default function AdminGeofence() {
       {/* Quick Address / Landmark Search Bar */}
       <div className="card glass" style={{ padding: 22, borderRadius: 22, marginBottom: 24, background: 'white', border: '1px solid rgba(15,23,42,0.08)', boxShadow: '0 6px 20px rgba(15,23,42,0.04)' }}>
         <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Globe size={18} color="#2563eb" /> Quick Search Geofence Landmark / Address
+          <Globe size={18} color="#054daf" /> Quick Search Geofence Landmark / Address
         </h3>
         <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 14px', fontWeight: 500 }}>
           Search any building name, office complex, street, or city worldwide to instantly center your biometric circle.
@@ -247,7 +247,7 @@ export default function AdminGeofence() {
                   onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <MapPin size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <MapPin size={18} color="#054daf" style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
                     <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{item.display_name.split(', ')[0]}</p>
                     <p style={{ margin: '2px 0 0', fontSize: '0.8rem', fontWeight: 500, color: '#64748b' }}>{item.display_name.split(', ').slice(1).join(', ')}</p>
@@ -266,7 +266,7 @@ export default function AdminGeofence() {
         <form onSubmit={handleSaveGeofence} className="card glass" style={{ padding: 26, borderRadius: 24, background: 'white', border: '1px solid rgba(15,23,42,0.08)', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: 14 }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Sliders size={20} color="#2563eb" /> Geofence Parameters
+              <Sliders size={20} color="#054daf" /> Geofence Parameters
             </h2>
             <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, fontWeight: 500 }}>
               Adjust boundary radius and precise GPS coordinates for clock-ins.
@@ -315,7 +315,7 @@ export default function AdminGeofence() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <label style={{ color: '#475569', fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase' }}>
-                Perimeter Radius: <strong style={{ color: '#2563eb', fontSize: '0.92rem' }}>{geoRadius} meters</strong>
+                Perimeter Radius: <strong style={{ color: '#054daf', fontSize: '0.92rem' }}>{geoRadius} meters</strong>
               </label>
               <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>({Math.round(geoRadius * 3.28084)} feet)</span>
             </div>
@@ -326,7 +326,7 @@ export default function AdminGeofence() {
               step="25"
               value={geoRadius}
               onChange={e => setGeoRadius(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#2563eb', height: 6, cursor: 'pointer', marginBottom: 12 }}
+              style={{ width: '100%', accentColor: '#054daf', height: 6, cursor: 'pointer', marginBottom: 12 }}
             />
 
             {/* Quick Presets */}
@@ -338,9 +338,9 @@ export default function AdminGeofence() {
                   onClick={() => setGeoRadius(preset.value)}
                   style={{
                     padding: '8px 10px', borderRadius: 10, border: '1px solid',
-                    borderColor: geoRadius === preset.value ? '#2563eb' : '#e2e8f0',
+                    borderColor: geoRadius === preset.value ? '#054daf' : '#e2e8f0',
                     background: geoRadius === preset.value ? '#eff6ff' : '#f8fafc',
-                    color: geoRadius === preset.value ? '#1d4ed8' : '#475569',
+                    color: geoRadius === preset.value ? '#043e8a' : '#475569',
                     fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', transition: 'all 0.15s'
                   }}
                 >
@@ -367,7 +367,7 @@ export default function AdminGeofence() {
                 cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
               }}
             >
-              <Navigation size={16} color="#2563eb" /> Snap to Current Device GPS
+              <Navigation size={16} color="#054daf" /> Snap to Current Device GPS
             </button>
 
             {/* Save Button with Loading State */}
@@ -376,9 +376,9 @@ export default function AdminGeofence() {
               disabled={savingGeo}
               style={{
                 width: '100%', padding: '14px 18px', borderRadius: 14,
-                background: savingGeo ? '#64748b' : '#2563eb', color: 'white', border: 'none',
+                background: savingGeo ? '#64748b' : '#054daf', color: 'white', border: 'none',
                 fontWeight: 800, fontSize: '0.94rem', cursor: savingGeo ? 'wait' : 'pointer',
-                boxShadow: savingGeo ? 'none' : '0 8px 24px rgba(37,99,235,0.35)',
+                boxShadow: savingGeo ? 'none' : '0 8px 24px rgba(5, 77, 175,0.35)',
                 transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
               }}
             >
@@ -397,14 +397,14 @@ export default function AdminGeofence() {
 
         {/* Right Side: Leaflet Interactive Map Preview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '12px 16px', borderRadius: 16, display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '0.82rem', color: '#1e40af', fontWeight: 700 }}>
-            <MapPin size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '12px 16px', borderRadius: 16, display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '0.82rem', color: '#033373', fontWeight: 700 }}>
+            <MapPin size={18} color="#054daf" style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
               <strong>Interactive Map Picker:</strong> Click anywhere on the map or drag the center marker pin (`📍`) to relocate your office center. Reverse geocoding will automatically update your address!
             </div>
           </div>
 
-          <div style={{ height: 490, borderRadius: 24, overflow: 'hidden', border: geoEnabled ? '3px solid #3b82f6' : '2px solid #cbd5e1', position: 'relative', boxShadow: '0 12px 36px rgba(15,23,42,0.1)' }}>
+          <div style={{ height: 490, borderRadius: 24, overflow: 'hidden', border: geoEnabled ? '3px solid #054daf' : '2px solid #cbd5e1', position: 'relative', boxShadow: '0 12px 36px rgba(15,23,42,0.1)' }}>
             <MapContainer center={[Number(geoLat) || 14.5995, Number(geoLng) || 120.9842]} zoom={16} style={{ height: '100%', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MapUpdater center={[Number(geoLat) || 14.5995, Number(geoLng) || 120.9842]} />
@@ -422,11 +422,11 @@ export default function AdminGeofence() {
               >
                 <Popup>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', marginBottom: 4 }}>
-                    <MapPin size={16} color="#2563eb" /> {geoAddress}
+                    <MapPin size={16} color="#054daf" /> {geoAddress}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#475569' }}>
                     Radius: <strong>{geoRadius} meters</strong> ({Math.round(geoRadius * 3.28084)} ft)<br />
-                    Enforcement: <strong style={{ color: geoEnabled ? '#2563eb' : '#64748b' }}>{geoEnabled ? 'STRICT LOCK' : 'BYPASS'}</strong>
+                    Enforcement: <strong style={{ color: geoEnabled ? '#054daf' : '#64748b' }}>{geoEnabled ? 'STRICT LOCK' : 'BYPASS'}</strong>
                   </div>
                 </Popup>
               </Marker>
@@ -434,8 +434,8 @@ export default function AdminGeofence() {
                 center={[Number(geoLat) || 14.5995, Number(geoLng) || 120.9842]}
                 radius={Number(geoRadius) || 300}
                 pathOptions={{
-                  color: geoEnabled ? '#2563eb' : '#64748b',
-                  fillColor: geoEnabled ? '#3b82f6' : '#cbd5e1',
+                  color: geoEnabled ? '#054daf' : '#64748b',
+                  fillColor: geoEnabled ? '#054daf' : '#cbd5e1',
                   fillOpacity: 0.25,
                   weight: 3
                 }}

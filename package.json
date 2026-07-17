@@ -26,6 +26,7 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.18.0",
     "recharts": "^3.9.0",
+    "sweetalert2": "^11.26.25",
     "tailwindcss": "^4.3.1",
     "zustand": "^5.0.14"
   },

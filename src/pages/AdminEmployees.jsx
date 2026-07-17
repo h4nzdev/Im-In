@@ -10,7 +10,7 @@ const statusBadge = (status) => {
     Pending: ['#f59e0b', 'rgba(245,158,11,0.15)', 'Pending Sync'],
     Inactive: ['#64748b', 'rgba(100,116,139,0.15)', 'Deactivated']
   };
-  const [color, bg, label] = map[status] || ['#2563eb', 'rgba(37,99,235,0.12)', status];
+  const [color, bg, label] = map[status] || ['#054daf', 'rgba(5, 77, 175,0.12)', status];
   return (
     <span style={{ color, background: bg, border: `1px solid ${color}40`, borderRadius: 20, padding: '4px 12px', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
@@ -106,7 +106,7 @@ export default function AdminEmployees() {
           <div className="glass" style={{ width: '100%', maxWidth: 440, borderRadius: 24, padding: 28, background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Calendar size={20} color="#2563eb" /> Assign Employee Deadline
+                <Calendar size={20} color="#054daf" /> Assign Employee Deadline
               </h3>
               <button onClick={() => setDeadlineModalUser(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
                 <X size={20} />
@@ -144,7 +144,7 @@ export default function AdminEmployees() {
                 <button type="button" onClick={() => setDeadlineModalUser(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>
                   Cancel
                 </button>
-                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#2563eb', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
+                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#054daf', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>
                   Save Deadline
                 </button>
               </div>
@@ -195,7 +195,7 @@ export default function AdminEmployees() {
                   onClick={() => setStatusFilter(st)}
                   style={{
                     padding: '6px 14px', borderRadius: 10, border: 'none',
-                    background: statusFilter === st ? '#2563eb' : '#f1f5f9',
+                    background: statusFilter === st ? '#054daf' : '#f1f5f9',
                     color: statusFilter === st ? 'white' : '#475569',
                     fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.15s'
                   }}
@@ -226,7 +226,7 @@ export default function AdminEmployees() {
       <div className="card glass table-card" style={{ padding: 0, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(15,23,42,0.08)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(15,23,42,0.08)', background: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ margin: 0, fontWeight: 800, color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Users size={18} color="#2563eb" /> Personnel Records
+            <Users size={18} color="#054daf" /> Personnel Records
           </p>
           <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>
             Showing {displayedUsers.length} of {filteredUsers.length}
@@ -257,7 +257,7 @@ export default function AdminEmployees() {
                   <tr key={u.userId} style={{ borderBottom: idx === displayedUsers.length - 1 ? 'none' : '1px solid rgba(15,23,42,0.06)', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(241,245,249,0.5)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td style={{ padding: '14px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: u.role === 'Admin' ? '#1e40af' : '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: u.role === 'Admin' ? '#033373' : '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(5, 77, 175,0.25)' }}>
                           {u.name[0]}
                         </div>
                         <div>
@@ -269,7 +269,7 @@ export default function AdminEmployees() {
                     <td style={{ padding: '14px 20px', fontWeight: 700, color: '#334155', fontSize: '0.86rem' }}>
                       <div>{getPositionInfo(u.positionId)}</div>
                       {u.assignedAccount && (
-                        <div style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 800, marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div style={{ fontSize: '0.74rem', color: '#054daf', fontWeight: 800, marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Briefcase size={12} style={{ flexShrink: 0 }} /> {u.assignedAccount}
                         </div>
                       )}
@@ -282,7 +282,7 @@ export default function AdminEmployees() {
                     <td style={{ padding: '14px 20px' }}>
                       {u.deadlineDate ? (
                         <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px', borderRadius: 10 }}>
-                          <span style={{ color: '#4f46e5', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ color: '#054daf', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Clock size={12} /> {u.deadlineDate}
                           </span>
                           {u.deadlineTitle && <span style={{ fontSize: '0.68rem', color: '#64748b', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.deadlineTitle}</span>}
@@ -299,12 +299,12 @@ export default function AdminEmployees() {
                         <button
                           onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); }}
                           style={{
-                            padding: '8px 12px', borderRadius: 10, background: 'white', color: '#4f46e5',
+                            padding: '8px 12px', borderRadius: 10, background: 'white', color: '#054daf',
                             border: '1px solid #c7d2fe', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
                             display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all 0.15s'
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.background = '#4f46e5'; e.currentTarget.style.color = 'white'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#4f46e5'; }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#054daf'; e.currentTarget.style.color = 'white'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#054daf'; }}
                         >
                           <Calendar size={14} /> Assign Deadline
                         </button>
@@ -312,10 +312,10 @@ export default function AdminEmployees() {
                         <button
                           onClick={() => navigate(`/profile?userId=${u.userId}`)}
                           style={{
-                            padding: '8px 14px', borderRadius: 10, background: '#2563eb', color: 'white',
+                            padding: '8px 14px', borderRadius: 10, background: '#054daf', color: 'white',
                             border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
                             display: 'inline-flex', alignItems: 'center', gap: 5,
-                            boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.15s'
+                            boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)', transition: 'all 0.15s'
                           }}
                           onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                           onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}

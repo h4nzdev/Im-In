@@ -101,7 +101,7 @@ function AdminNotificationHeader() {
   return (
     <header className="card glass" style={{
       position: 'relative',
-      zIndex: 9999,
+      zIndex: 40,
       padding: '14px 22px',
       borderRadius: 20,
       marginBottom: 24,
@@ -129,7 +129,7 @@ function AdminNotificationHeader() {
             fontWeight: 800, color: '#0f172a', fontSize: '0.85rem'
           }}
         >
-          <Bell size={18} color="#2563eb" />
+          <Bell size={18} color="#054daf" />
           Realtime Alerts
           {unreadCount > 0 && (
             <span style={{
@@ -145,13 +145,13 @@ function AdminNotificationHeader() {
           <div className="card glass" style={{
             position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 370,
             borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
-            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 99999
+            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 200
           }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
               <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
+                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#054daf', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
                     Mark Read
                   </button>
                 )}
@@ -172,7 +172,7 @@ function AdminNotificationHeader() {
                 notifications.map((n) => (
                   <div key={n.id} style={{
                     padding: '12px 18px', borderBottom: '1px solid #f1f5f9',
-                    background: n.unread ? 'rgba(59,130,246,0.06)' : 'white',
+                    background: n.unread ? 'rgba(5, 77, 175,0.06)' : 'white',
                     transition: 'background 0.15s'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -264,7 +264,7 @@ export default function Layout() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, paddingLeft: 8 }}>
           <img src={realynkLogo} alt="Realynk Logo" style={{ height: 34, width: 'auto' }} />
-          <span style={{ fontSize: 24, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.5px' }}>
+          <span style={{ fontSize: 24, fontWeight: 800, color: '#054daf', letterSpacing: '-0.5px' }}>
             Realynk
           </span>
         </div>
@@ -279,7 +279,7 @@ export default function Layout() {
 
         <div style={{ borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: 16, marginTop: 16 }}>
           <Link to="/profile" className="sidebar-profile-link">
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.95rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.95rem', flexShrink: 0, boxShadow: '0 2px 8px rgba(5, 77, 175,0.3)' }}>
               {user?.name?.[0] || '?'}
             </div>
             <div style={{ overflow: 'hidden' }}>
@@ -298,7 +298,7 @@ export default function Layout() {
         <div style={{ padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src={realynkLogo} alt="Realynk Logo" style={{ height: 28, width: 'auto' }} />
-            <span style={{ fontSize: 22, fontWeight: 800, color: '#2563eb', flexShrink: 0 }}>
+            <span style={{ fontSize: 22, fontWeight: 800, color: '#054daf', flexShrink: 0 }}>
               Realynk
             </span>
           </div>
@@ -307,7 +307,7 @@ export default function Layout() {
               <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.name || 'Employee'}
               </span>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', fontWeight: 800, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', fontWeight: 800, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(5, 77, 175,0.3)' }}>
                 {user?.name?.[0] || '?'}
               </div>
             </Link>
@@ -318,7 +318,7 @@ export default function Layout() {
       {/* Center Main Content */}
       <div className="layout-content-area" style={{ minHeight: '100vh', position: 'relative' }}>
         <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ position: 'relative', zIndex: 999999, width: '100%' }}>
+          <div style={{ position: 'relative', zIndex: 30, width: '100%' }}>
             {isAdmin && <AdminNotificationHeader />}
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -335,7 +335,7 @@ export default function Layout() {
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Smartphone size={22} color="white" />
             </div>
             <div>
@@ -345,9 +345,9 @@ export default function Layout() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={() => setShowModal(true)} style={{
-              padding: '8px 16px', borderRadius: 10, background: '#2563eb', color: 'white', border: 'none',
+              padding: '8px 16px', borderRadius: 10, background: '#054daf', color: 'white', border: 'none',
               fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.4)'
+              boxShadow: '0 4px 12px rgba(5, 77, 175,0.4)'
             }}>
               Install
             </button>
@@ -383,7 +383,7 @@ export default function Layout() {
               <X size={16} />
             </button>
 
-            <div style={{ width: 64, height: 64, borderRadius: 20, background: '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(37,99,235,0.35)' }}>
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: '#054daf', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(5, 77, 175,0.35)' }}>
               <Smartphone size={32} />
             </div>
 
@@ -395,7 +395,7 @@ export default function Layout() {
             </p>
 
             {installed ? (
-              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(59,130,246,0.12)', color: '#2563eb', fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(5, 77, 175,0.12)', color: '#054daf', fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <CheckCircle2 size={20} /> App Successfully Installed!
               </div>
             ) : (
@@ -408,9 +408,9 @@ export default function Layout() {
                     setTimeout(() => setShowModal(false), 2000);
                   }}
                   style={{
-                    width: '100%', padding: '14px 24px', borderRadius: 16, background: '#2563eb',
+                    width: '100%', padding: '14px 24px', borderRadius: 16, background: '#054daf',
                     color: 'white', fontWeight: 800, fontSize: '0.95rem', border: 'none', cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(37,99,235,0.3)', transition: 'all 0.2s'
+                    boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', transition: 'all 0.2s'
                   }}
                 >
                   Add to Home Screen
