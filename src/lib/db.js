@@ -46,81 +46,26 @@ function cleanInitialSetup() {
 
 cleanInitialSetup();
 
+// Sync status: 'idle' | 'loading' | 'done' | 'error'
+// Components can import this to show loading/error states
+export let syncStatus = isSupabaseConfigured ? 'loading' : 'idle';
+export const syncListeners = new Set();
+function setSyncStatus(s) {
+  syncStatus = s;
+  syncListeners.forEach(fn => fn(s));
+}
+
 export async function initSupabaseSync() {
-  if (!isSupabaseConfigured || !supabase) return;
+  if (!isSupabaseConfigured || !supabase) { setSyncStatus('idle'); return; }
+  setSyncStatus('loading');
+  let hasError = false;
   try {
-    // ── PROFILES (users + invite codes) ──────────────────────────────────────
-    const { data: profiles, error: pErr } = await supabase.from('profiles').select('*');
-    if (!pErr && profiles) {
-      if (profiles.length > 0) {
-        // Pull invite codes from the cloud
-        const inviteProfiles = profiles.filter(p => p.role === 'InviteCode');
-        if (inviteProfiles.length > 0) {
-          const iCodes = inviteProfiles.map(p => ({
-            code: p.user_id.replace('INV-', ''),
-            status: p.status,
-            generatedAt: p.created_at,
-            usedBy: p.status === 'Used' ? p.name : null
-          }));
-          save('inviteCodes', iCodes);
-        }
 
-        // Pull real users from the cloud
-        const currentUsers = get('users') || [];
-        const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-        const realUsersProfiles = profiles.filter(p => p.role !== 'InviteCode');
-        const users = realUsersProfiles.map(p => {
-          const exist = currentUsers.find(u => u.userId === p.user_id);
-          const isOnline = Boolean(p.is_active !== undefined ? p.is_active : (exist?.isActive || onlineUsersMap[p.user_id]));
-          return {
-            userId: p.user_id, name: p.name, email: p.email,
-            password: p.password || 'user123', department: p.department,
-            assignedAccount: p.assigned_account, role: p.role, status: p.status,
-            positionId: p.position_id, deadlineDate: p.deadline_date || null,
-            deadlineTitle: p.deadline_title || null,
-            managedTeam: p.managed_team || exist?.managedTeam || [],
-            isActive: isOnline, createdAt: p.created_at || new Date().toISOString()
-          };
-        });
-        save('users', users);
-      } else {
-        // ── AUTO-MIGRATE: push local users + invite codes up ─────────────────
-        const localUsers = get('users') || [];
-        if (localUsers.length > 0) {
-          const userRows = localUsers.map(u => ({
-            user_id: u.userId, name: u.name, email: u.email,
-            password: u.password || 'user123', department: u.department || 'Management',
-            assigned_account: u.assignedAccount || null, role: u.role,
-            status: u.status || 'Active', position_id: u.positionId || 'POS-001',
-            managed_team: u.managedTeam || []
-          }));
-          await supabase.from('profiles').insert(userRows).then();
-        } else {
-          // Seed default admin
-          await supabase.from('profiles').insert([{
-            user_id: 'ADM-001', name: 'Executive Admin', email: 'admin@realynk.com',
-            password: 'admin123', department: 'Management', role: 'Admin',
-            status: 'Active', position_id: 'POS-001'
-          }]);
-        }
-
-        // Migrate local invite codes
-        const localCodes = get('inviteCodes') || [];
-        if (localCodes.length > 0) {
-          const codeRows = localCodes.map(c => ({
-            user_id: `INV-${c.code}`, name: c.usedBy || 'Invite Code',
-            email: `invite_${c.code}@system.local`, password: 'invite123',
-            department: 'System', role: 'InviteCode', status: c.status,
-            position_id: 'POS-SYS'
-          }));
-          await supabase.from('profiles').insert(codeRows).then();
-        }
-      }
-    }
-
-    // ── POSITIONS ─────────────────────────────────────────────────────────────
-    const { data: pos } = await supabase.from('positions').select('*');
-    if (pos) {
+    // ── STEP 1: POSITIONS (must be first — profiles.position_id FK depends on it) ──
+    const { data: pos, error: posErr } = await supabase.from('positions').select('*');
+    if (posErr) {
+      console.error('[Sync] positions fetch error:', posErr.message);
+    } else if (pos) {
       if (pos.length > 0) {
         save('positions', pos.map(p => ({ positionId: p.position_id, positionName: p.position_name, department: p.department })));
       } else {
@@ -130,15 +75,93 @@ export async function initSupabaseSync() {
           : [
               { position_id: 'POS-001', position_name: 'Executive Administrator', department: 'Management' },
               { position_id: 'POS-002', position_name: 'Service Delivery Specialist', department: 'Service Delivery' },
-              { position_id: 'POS-003', position_name: 'Shared Services Analyst', department: 'Shared Services' }
+              { position_id: 'POS-003', position_name: 'Shared Services Analyst', department: 'Shared Services' },
+              { position_id: 'POS-004', position_name: 'Full-Stack Engineer', department: 'Engineering' }
             ];
-        await supabase.from('positions').insert(posRows).then();
+        const { error: posInsErr } = await supabase.from('positions').insert(posRows);
+        if (posInsErr) console.error('[Sync] positions insert error:', posInsErr.message);
+        else {
+          console.log('[Sync] Migrated', posRows.length, 'positions');
+          save('positions', posRows.map(p => ({ positionId: p.position_id, positionName: p.position_name, department: p.department })));
+        }
       }
     }
 
-    // ── ATTENDANCE LOGS ───────────────────────────────────────────────────────
-    const { data: logs } = await supabase.from('attendance_logs').select('*');
-    if (logs) {
+    // ── STEP 2: PROFILES (users) ───────────────────────────────────────────────
+    const { data: profiles, error: pErr } = await supabase.from('profiles').select('*');
+    if (pErr) {
+      console.error('[Sync] profiles fetch error:', pErr.message);
+      hasError = true;
+    } else if (profiles) {
+      if (profiles.length > 0) {
+        const currentUsers = get('users') || [];
+        const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
+        const users = profiles.map(p => {
+          const exist = currentUsers.find(u => u.userId === p.user_id);
+          return {
+            userId: p.user_id, name: p.name, email: p.email,
+            password: p.password || 'user123', department: p.department,
+            assignedAccount: p.assigned_account, role: p.role, status: p.status,
+            positionId: p.position_id, deadlineDate: p.deadline_date || null,
+            deadlineTitle: p.deadline_title || null,
+            managedTeam: exist?.managedTeam || [],
+            isActive: Boolean(p.is_active ?? exist?.isActive ?? onlineUsersMap[p.user_id]),
+            createdAt: p.created_at || new Date().toISOString()
+          };
+        });
+        save('users', users);
+      } else {
+        // AUTO-MIGRATE: push local users up
+        const localUsers = get('users') || [];
+        const usersToInsert = localUsers.length > 0 ? localUsers : [{
+          userId: 'ADM-001', name: 'Executive Admin', email: 'admin@realynk.com',
+          password: 'admin123', department: 'Management', role: 'Admin',
+          status: 'Active', positionId: 'POS-001'
+        }];
+        const userRows = usersToInsert.map(u => ({
+          user_id: u.userId, name: u.name, email: u.email,
+          password: u.password || 'user123', department: u.department || 'Management',
+          assigned_account: u.assignedAccount || null, role: u.role || 'Associate',
+          status: u.status || 'Active', position_id: u.positionId || 'POS-001'
+        }));
+        const { error: usrErr } = await supabase.from('profiles').insert(userRows);
+        if (usrErr) { console.error('[Sync] users insert error:', usrErr.message); hasError = true; }
+        else console.log('[Sync] Migrated', userRows.length, 'users');
+      }
+    }
+
+    // ── STEP 2b: INVITE CODES (dedicated table) ───────────────────────────────
+    const { data: inviteCodes, error: icErr } = await supabase.from('invite_codes').select('*');
+    if (icErr) {
+      if (!icErr.message.includes('schema cache')) { console.error('[Sync] invite_codes fetch error:', icErr.message); hasError = true; }
+    } else if (inviteCodes) {
+      if (inviteCodes.length > 0) {
+        // Cloud is source of truth — overwrite local
+        save('inviteCodes', inviteCodes.map(r => ({
+          code: r.code, status: r.status,
+          generatedAt: r.generated_at, usedBy: r.used_by
+        })));
+      } else {
+        // Auto-migrate local invite codes up to the cloud
+        const localCodes = get('inviteCodes') || [];
+        if (localCodes.length > 0) {
+          const codeRows = localCodes.map(c => ({
+            code: c.code, status: c.status,
+            generated_at: c.generatedAt || new Date().toISOString(),
+            used_by: c.usedBy || null
+          }));
+          const { error: icInsErr } = await supabase.from('invite_codes').insert(codeRows);
+          if (icInsErr) { console.error('[Sync] invite_codes insert error:', icInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated', codeRows.length, 'invite codes');
+        }
+      }
+    }
+
+    // ── STEP 3: ATTENDANCE LOGS ──────────────────────────────────────────────
+    const { data: logs, error: logsErr } = await supabase.from('attendance_logs').select('*');
+    if (logsErr) {
+      console.error('[Sync] attendance_logs fetch error:', logsErr.message);
+    } else if (logs) {
       if (logs.length > 0) {
         if (logs[0]) knownLogColumns = new Set(Object.keys(logs[0]));
         save('logs', logs.map(l => ({
@@ -147,7 +170,6 @@ export async function initSupabaseSync() {
           deviceInfo: l.device_info, status: l.status, lateMinutes: l.late_minutes
         })));
       } else {
-        // Auto-migrate local logs
         const localLogs = get('logs') || [];
         if (localLogs.length > 0) {
           const logRows = localLogs.map(l => ({
@@ -156,14 +178,18 @@ export async function initSupabaseSync() {
             address: l.address || null, device_info: l.deviceInfo || null,
             status: l.status || null, late_minutes: l.lateMinutes || null
           }));
-          await supabase.from('attendance_logs').insert(logRows).then();
+          const { error: logInsErr } = await supabase.from('attendance_logs').insert(logRows);
+          if (logInsErr) console.error('[Sync] logs insert error:', logInsErr.message);
+          else console.log('[Sync] Migrated', logRows.length, 'attendance logs');
         }
       }
     }
 
-    // ── LEAVES ────────────────────────────────────────────────────────────────
-    const { data: leaves } = await supabase.from('leaves').select('*');
-    if (leaves) {
+    // ── STEP 4: LEAVES ────────────────────────────────────────────────────────
+    const { data: leaves, error: lvErr } = await supabase.from('leaves').select('*');
+    if (lvErr) {
+      console.error('[Sync] leaves fetch error:', lvErr.message);
+    } else if (leaves) {
       if (leaves.length > 0) {
         save('leaves', leaves.map(l => ({
           leaveId: l.leave_id, userId: l.user_id, leaveType: l.leave_type,
@@ -177,21 +203,25 @@ export async function initSupabaseSync() {
             start_date: l.startDate, end_date: l.endDate,
             reason: l.reason || null, status: l.status || 'Pending'
           }));
-          await supabase.from('leaves').insert(leaveRows).then();
+          const { error: lvInsErr } = await supabase.from('leaves').insert(leaveRows);
+          if (lvInsErr) console.error('[Sync] leaves insert error:', lvInsErr.message);
+          else console.log('[Sync] Migrated', leaveRows.length, 'leaves');
         }
       }
     }
 
-    // ── AGGREGATED HOURS ─────────────────────────────────────────────────────
-    const { data: aggHours } = await supabase.from('aggregated_hours').select('*');
-    if (aggHours) {
+    // ── STEP 5: AGGREGATED HOURS ─────────────────────────────────────────────
+    const { data: aggHours, error: aggErr } = await supabase.from('aggregated_hours').select('*');
+    if (aggErr) {
+      if (!aggErr.message.includes('schema cache')) console.error('[Sync] aggregated_hours fetch error:', aggErr.message);
+      // Table may not exist yet — skip silently
+    } else if (aggHours) {
       if (aggHours.length > 0) {
         save('aggregated_hours', aggHours.map(a => ({
           id: a.id, userId: a.user_id, date: a.date,
           hours: a.hours, clientId: a.client_id, timestamp: a.timestamp
         })));
       } else {
-        // Auto-migrate local aggregated hours
         const localAgg = get('aggregated_hours') || [];
         if (localAgg.length > 0) {
           const aggRows = localAgg.map(a => ({
@@ -199,13 +229,46 @@ export async function initSupabaseSync() {
             hours: a.hours, client_id: a.clientId || null,
             timestamp: a.timestamp || new Date().toISOString()
           }));
-          await supabase.from('aggregated_hours').insert(aggRows).then();
+          const { error: aggInsErr } = await supabase.from('aggregated_hours').insert(aggRows);
+          if (aggInsErr) console.error('[Sync] aggregated_hours insert error:', aggInsErr.message);
+          else console.log('[Sync] Migrated', aggRows.length, 'aggregated hour records');
         }
       }
     }
 
+    // ── STEP 6: CLIENTS ──────────────────────────────────────────────────────
+    const { data: clients, error: cliErr } = await supabase.from('clients').select('*');
+    if (cliErr) {
+      if (!cliErr.message.includes('schema cache')) console.error('[Sync] clients fetch error:', cliErr.message);
+      // Table may not exist yet — skip silently
+    } else if (clients) {
+      if (clients.length > 0) {
+        save('clients', clients.map(c => ({
+          id: c.id, code: c.code, name: c.name,
+          description: c.description || '', status: c.status,
+          createdAt: c.created_at, updatedAt: c.updated_at
+        })));
+      } else {
+        const localClients = get('clients') || [];
+        if (localClients.length > 0) {
+          const cliRows = localClients.map(c => ({
+            id: c.id, code: c.code, name: c.name,
+            description: c.description || null, status: c.status || 'Active',
+            created_at: c.createdAt || new Date().toISOString(),
+            updated_at: c.updatedAt || null
+          }));
+          const { error: cliInsErr } = await supabase.from('clients').insert(cliRows);
+          if (cliInsErr) console.error('[Sync] clients insert error:', cliInsErr.message);
+          else console.log('[Sync] Migrated', cliRows.length, 'clients');
+        }
+      }
+    }
+
+    console.log('[Sync] Supabase sync complete');
+    setSyncStatus(hasError ? 'error' : 'done');
   } catch (err) {
-    console.error('Supabase sync error:', err);
+    console.error('[Sync] Fatal error:', err);
+    setSyncStatus('error');
   }
 }
 
@@ -264,9 +327,8 @@ export const db = {
       supabase.from('profiles').insert([{
         user_id: newUser.userId, name: newUser.name, email: newUser.email, password: newUser.password,
         department: newUser.department || 'General', assigned_account: newUser.assignedAccount || null,
-        role: newUser.role || 'Associate', status: newUser.status || 'Pending', position_id: newUser.positionId,
-        managed_team: newUser.managedTeam, assigned_client_ids: newUser.assignedClientIds
-      }]).then(({ error }) => error && console.error('Supabase profile sync error:', error));
+        role: newUser.role || 'Associate', status: newUser.status || 'Pending', position_id: newUser.positionId
+      }]).then(({ error }) => error && console.error('[DB] createUser error:', error.message));
     }
     return newUser;
   },
@@ -471,7 +533,7 @@ export const db = {
     const u = get('users').map(x => x.userId === leadId ? { ...x, managedTeam: teamIds } : x);
     save('users', u);
     if (isSupabaseConfigured && supabase) {
-      supabase.from('profiles').update({ managed_team: teamIds }).eq('user_id', leadId).then();
+      // managed_team not in DB schema — stored locally only
     }
     return u;
   },
@@ -499,40 +561,38 @@ export const db = {
     const list = get('inviteCodes');
     list.push(codeRecord);
     save('inviteCodes', list);
-    
     if (isSupabaseConfigured && supabase) {
-      supabase.from('profiles').insert([{
-        user_id: `INV-${codeRecord.code}`,
-        name: 'Invite Code',
-        email: `invite_${codeRecord.code}@system.local`,
-        department: 'System',
-        role: 'InviteCode',
-        status: codeRecord.status
-      }]).then();
+      supabase.from('invite_codes').insert([{
+        code: codeRecord.code,
+        status: codeRecord.status,
+        generated_at: codeRecord.generatedAt || new Date().toISOString(),
+        used_by: codeRecord.usedBy || null
+      }]).then(({ error }) => {
+        if (error) console.error('[DB] addInviteCode error:', error.message);
+        else console.log('[DB] Invite code saved to Supabase:', codeRecord.code);
+      });
     }
-    
     return list;
   },
   markInviteCodeUsed: (code, assignedUserId) => {
     const list = get('inviteCodes').map(r => r.code === code ? { ...r, status: 'Used', usedBy: assignedUserId } : r);
     save('inviteCodes', list);
-    
     if (isSupabaseConfigured && supabase) {
-      supabase.from('profiles').update({ status: 'Used', name: assignedUserId }).eq('user_id', `INV-${code}`).then();
+      supabase.from('invite_codes').update({ status: 'Used', used_by: assignedUserId }).eq('code', code)
+        .then(({ error }) => { if (error) console.error('[DB] markInviteCodeUsed error:', error.message); });
     }
-    
     return list;
   },
   deleteInviteCode: (code) => {
     const list = get('inviteCodes').filter(r => r.code !== code);
     save('inviteCodes', list);
-    
     if (isSupabaseConfigured && supabase) {
-      supabase.from('profiles').delete().eq('user_id', `INV-${code}`).then();
+      supabase.from('invite_codes').delete().eq('code', code)
+        .then(({ error }) => { if (error) console.error('[DB] deleteInviteCode error:', error.message); });
     }
-    
     return list;
   },
+
 
   // Client Management (ERP Module)
   getClients: () => get('clients'),
@@ -541,14 +601,22 @@ export const db = {
     const newClient = { ...client, createdAt: new Date().toISOString() };
     const c = get('clients'); c.push(newClient); save('clients', c);
     if (isSupabaseConfigured && supabase) {
-      supabase.from('clients').insert([newClient]).then();
+      supabase.from('clients').insert([{
+        id: newClient.id, code: newClient.code, name: newClient.name,
+        description: newClient.description || null, status: newClient.status || 'Active',
+        created_at: newClient.createdAt
+      }]).then(({ error }) => { if (error) console.error('[DB] addClient error:', error.message); });
     }
     return newClient;
   },
   updateClient: (id, updates) => {
     const c = get('clients').map(x => x.id === id ? { ...x, ...updates, updatedAt: new Date().toISOString() } : x); save('clients', c);
     if (isSupabaseConfigured && supabase) {
-      supabase.from('clients').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).then();
+      supabase.from('clients').update({
+        name: updates.name, code: updates.code,
+        description: updates.description || null, status: updates.status,
+        updated_at: new Date().toISOString()
+      }).eq('id', id).then(({ error }) => { if (error) console.error('[DB] updateClient error:', error.message); });
     }
     return c;
   },

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2 } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2, AlertTriangle, Loader } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
 import { realtimeBus } from '../lib/realtime';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { useSyncStatus } from '../lib/useSyncStatus';
 
 function AdminNotificationHeader() {
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
@@ -216,6 +217,8 @@ export default function Layout() {
   const [showBanner, setShowBanner] = useState(() => !localStorage.getItem('realynk_app_installed'));
   const [showModal, setShowModal] = useState(false);
   const [installed, setInstalled] = useState(false);
+  const syncStatus = useSyncStatus();
+  const [dismissedSyncError, setDismissedSyncError] = useState(false);
   
   const [openNavSections, setOpenNavSections] = useState({ 'Main': true, 'Workforce': true, 'Operations': true, 'Records': true, 'Team Management': true });
 
@@ -553,6 +556,33 @@ export default function Layout() {
           </div>
         </main>
       </div>
+
+      {/* Sync Status Banner */}
+      {isSupabaseConfigured && syncStatus === 'loading' && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: '#1e3a5f', color: 'white', padding: '10px 16px',
+          display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.82rem', fontWeight: 700
+        }}>
+          <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+          Syncing data with server — please wait...
+        </div>
+      )}
+      {isSupabaseConfigured && syncStatus === 'error' && !dismissedSyncError && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: '#7f1d1d', color: 'white', padding: '10px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontSize: '0.82rem', fontWeight: 700
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={16} />
+            Database sync failed — some data shown may not be saved to the server. Check console for details.
+          </span>
+          <button onClick={() => setDismissedSyncError(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 4 }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Global Floating App Install Popup Banner */}
       {showBanner && (
