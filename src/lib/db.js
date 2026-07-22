@@ -53,7 +53,19 @@ export async function initSupabaseSync() {
     if (!pErr && profiles && profiles.length > 0) {
       const currentUsers = get('users') || [];
       const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-      const users = profiles.map(p => {
+      const inviteProfiles = profiles.filter(p => p.role === 'InviteCode');
+      if (inviteProfiles.length > 0) {
+        const iCodes = inviteProfiles.map(p => ({
+          code: p.user_id.replace('INV-', ''),
+          status: p.status,
+          generatedAt: p.created_at,
+          usedBy: p.status === 'Used' ? p.name : null
+        }));
+        save('inviteCodes', iCodes);
+      }
+      
+      const realUsersProfiles = profiles.filter(p => p.role !== 'InviteCode');
+      const users = realUsersProfiles.map(p => {
         const exist = currentUsers.find(u => u.userId === p.user_id);
         const isOnline = Boolean(p.is_active !== undefined ? p.is_active : (exist?.isActive || onlineUsersMap[p.user_id]));
         return {
@@ -409,16 +421,38 @@ export const db = {
     const list = get('inviteCodes');
     list.push(codeRecord);
     save('inviteCodes', list);
+    
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('profiles').insert([{
+        user_id: `INV-${codeRecord.code}`,
+        name: 'Invite Code',
+        email: `invite_${codeRecord.code}@system.local`,
+        department: 'System',
+        role: 'InviteCode',
+        status: codeRecord.status
+      }]).then();
+    }
+    
     return list;
   },
   markInviteCodeUsed: (code, assignedUserId) => {
     const list = get('inviteCodes').map(r => r.code === code ? { ...r, status: 'Used', usedBy: assignedUserId } : r);
     save('inviteCodes', list);
+    
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('profiles').update({ status: 'Used', name: assignedUserId }).eq('user_id', `INV-${code}`).then();
+    }
+    
     return list;
   },
   deleteInviteCode: (code) => {
     const list = get('inviteCodes').filter(r => r.code !== code);
     save('inviteCodes', list);
+    
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('profiles').delete().eq('user_id', `INV-${code}`).then();
+    }
+    
     return list;
   },
 
