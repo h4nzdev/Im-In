@@ -229,11 +229,13 @@ export default function ClockIn() {
           department: user.department || 'General'
         };
         localStorage.setItem(`realynk_active_shift_${user.userId}`, JSON.stringify(sessionObj));
+        db.updateUser(user.userId, { activeShift: sessionObj });
         const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {};
         activeAll[user.userId] = sessionObj;
         localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));
       } else {
         localStorage.removeItem(`realynk_active_shift_${user.userId}`);
+        db.updateUser(user.userId, { activeShift: null });
         const activeAll = JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {};
         delete activeAll[user.userId];
         localStorage.setItem('realynk_live_active_shifts', JSON.stringify(activeAll));

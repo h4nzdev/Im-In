@@ -90,7 +90,7 @@ function AdminNotificationHeader() {
     e.stopPropagation();
     const updated = notifications.filter(n => n.id !== id);
     setNotifications(updated);
-    localStorage.setItem('realynk_admin_notifications', JSON.stringify(updated));
+    db.deleteNotification(id);
   };
 
   const clearAllNotifications = (e) => {

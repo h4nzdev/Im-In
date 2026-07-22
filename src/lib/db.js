@@ -104,6 +104,8 @@ export async function initSupabaseSync() {
             assignedAccount: p.assigned_account, role: p.role, status: p.status,
             positionId: p.position_id, deadlineDate: p.deadline_date || null,
             deadlineTitle: p.deadline_title || null,
+            assignedClientIds: p.assigned_client_ids || exist?.assignedClientIds || [],
+            activeShift: p.active_shift_json || exist?.activeShift || null,
             managedTeam: exist?.managedTeam || [],
             isActive: Boolean(p.is_active ?? exist?.isActive ?? onlineUsersMap[p.user_id]),
             createdAt: p.created_at || new Date().toISOString()
@@ -122,7 +124,9 @@ export async function initSupabaseSync() {
           user_id: u.userId, name: u.name, email: u.email,
           password: u.password || 'user123', department: u.department || 'Management',
           assigned_account: u.assignedAccount || null, role: u.role || 'Associate',
-          status: u.status || 'Active', position_id: u.positionId || 'POS-001'
+          status: u.status || 'Active', position_id: u.positionId || 'POS-001',
+          assigned_client_ids: u.assignedClientIds || [],
+          active_shift_json: u.activeShift || null
         }));
         const { error: usrErr } = await supabase.from('profiles').insert(userRows);
         if (usrErr) { console.error('[Sync] users insert error:', usrErr.message); hasError = true; }
@@ -342,6 +346,14 @@ export async function initSupabaseSync() {
       }
     }
 
+    // ── STEP 11: ADMIN NOTIFICATIONS ─────────────────────────────────────
+    const { data: notifs, error: notifErr } = await supabase.from('admin_notifications').select('*').order('timestamp', { ascending: false }).limit(50);
+    if (notifErr) {
+      if (!notifErr.message.includes('schema cache')) { console.error('[Sync] admin_notifications fetch error:', notifErr.message); hasError = true; }
+    } else if (notifs) {
+      localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs));
+    }
+
     console.log('[Sync] Supabase sync complete');
     setSyncStatus(hasError ? 'error' : 'done');
   } catch (err) {
@@ -434,6 +446,7 @@ export const db = {
       if (updates.isActive !== undefined) su.is_active = updates.isActive;
       if (updates.status !== undefined) su.status = updates.status;
       if (updates.assignedClientIds !== undefined) su.assigned_client_ids = updates.assignedClientIds;
+      if (updates.activeShift !== undefined) su.active_shift_json = updates.activeShift;
       if (Object.keys(su).length > 0) supabase.from('profiles').update(su).eq('user_id', id).then();
     }
     return u;
@@ -628,7 +641,31 @@ export const db = {
   getTeamMembers: (leadId) => {
     const lead = db.getUserById(leadId);
     if (!lead || !lead.managedTeam || lead.managedTeam.length === 0) return [];
-    return db.getUsers().filter(u => lead.managedTeam.includes(u.userId));
+    const users = get('users');
+    return users.filter(u => lead.managedTeam.includes(u.userId));
+  },
+
+  // Admin Notifications
+  getNotifications: () => {
+    return JSON.parse(localStorage.getItem('realynk_admin_notifications')) || [];
+  },
+  addNotification: (message, type = 'info') => {
+    const notifs = db.getNotifications();
+    const newNotif = { id: `NOT-${Date.now()}`, message, type, timestamp: new Date().toISOString() };
+    notifs.unshift(newNotif);
+    const trimmed = notifs.slice(0, 50);
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify(trimmed));
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('admin_notifications').insert([newNotif]).then();
+    }
+    return newNotif;
+  },
+  deleteNotification: (id) => {
+    const notifs = db.getNotifications().filter(n => n.id !== id);
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs));
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('admin_notifications').delete().eq('id', id).then();
+    }
   },
 
   // Returns all Success Leads that manage a given userId (a VA can be in multiple teams)
