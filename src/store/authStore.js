@@ -35,14 +35,14 @@ export const useAuthStore = create((set, get) => ({
     return pub;
   },
 
-  signup: ({ employeeId, name, email, password, department, assignedAccount, positionId }) => {
+  signup: ({ employeeId, name, email, password, department, assignedAccount, positionId, status }) => {
     if (db.getUserByEmail(email)) throw new Error('Email already in use');
     const userId = employeeId || `RLK-${Date.now().toString().slice(-4)}`;
     if (db.getUserById(userId)) throw new Error('Employee ID already exists');
     const user = {
       userId, name, email, password, positionId: positionId || 'POS-002',
       department: department || 'Shared Services', assignedAccount: assignedAccount || null,
-      role: 'User', status: 'Pending', isActive: false, createdAt: new Date().toISOString()
+      role: 'User', status: status || 'Pending', isActive: false, createdAt: new Date().toISOString()
     };
     db.createUser(user);
 

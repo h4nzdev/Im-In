@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock, Briefcase, Star, UserCheck, Shield } from 'lucide-react';
+import { Users, Search, Eye, Mail, Calendar, X, CheckCircle2, Clock, Briefcase, Star, UserCheck, Shield, Building2, ChevronDown } from 'lucide-react';
 import { db } from '../lib/db';
 
 const roleBadge = (role) => {
@@ -42,6 +42,11 @@ export default function AdminEmployees() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [toast, setToast] = useState('');
 
+  // ERP Client Assignment modal
+  const [allClients] = useState(() => db.getClients());
+  const [clientModalUser, setClientModalUser] = useState(null);
+  const [selectedClients, setSelectedClients] = useState([]);
+
   // Deadline modal
   const [deadlineModalUser, setDeadlineModalUser] = useState(null);
   const [deadlineDate, setDeadlineDate] = useState('');
@@ -53,6 +58,9 @@ export default function AdminEmployees() {
 
   // Role modal (promote / demote)
   const [roleModalUser, setRoleModalUser] = useState(null);
+
+  // Actions Dropdown state
+  const [openActionDropdown, setOpenActionDropdown] = useState(null);
 
   const containerRef = useRef();
 
@@ -114,6 +122,27 @@ export default function AdminEmployees() {
     setUsers(upd);
     showToast(`Team updated for ${teamModalLead.name} — ${selectedTeam.length} member(s)`);
     setTeamModalLead(null);
+  };
+
+  // ─── Client Assignment ──────────────────────────────────────
+  const openClientModal = (u) => {
+    setClientModalUser(u);
+    setSelectedClients(u.assignedClientIds || []);
+  };
+
+  const toggleClientSelection = (clientId) => {
+    if (selectedClients.includes(clientId)) {
+      setSelectedClients(selectedClients.filter(id => id !== clientId));
+    } else {
+      setSelectedClients([...selectedClients, clientId]);
+    }
+  };
+
+  const handleClientSave = () => {
+    db.updateUser(clientModalUser.userId, { assignedClientIds: selectedClients });
+    setUsers(db.getUsers());
+    setClientModalUser(null);
+    showToast(`Updated client assignments for ${clientModalUser.name}`);
   };
 
   // ─── Role Change ─────────────────────────────────────────────
@@ -250,6 +279,45 @@ export default function AdminEmployees() {
         </div>
       )}
 
+      {/* Assign Clients Modal */}
+      {clientModalUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="fade-in card glass" style={{ background: 'white', padding: 24, borderRadius: 24, width: '100%', maxWidth: 460, margin: 20, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Building2 size={22} color="#054daf" /> Assign Clients
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>For {clientModalUser.name}</p>
+              </div>
+              <button onClick={() => setClientModalUser(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: 12, padding: 8 }}>
+              {allClients.filter(c => c.status === 'Active').length === 0 ? (
+                <p style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>No active clients found in the system.</p>
+              ) : (
+                allClients.filter(c => c.status === 'Active').map(client => (
+                  <label key={client.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', background: selectedClients.includes(client.id) ? '#f8fafc' : 'transparent' }}>
+                    <input type="checkbox" checked={selectedClients.includes(client.id)} onChange={() => toggleClientSelection(client.id)} style={{ width: 18, height: 18, accentColor: '#054daf' }} />
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{client.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{client.code || 'No Code'}</div>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+
+            <button onClick={handleClientSave} style={{ width: '100%', marginTop: 20, padding: '12px', borderRadius: 12, background: '#054daf', color: 'white', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              Save Assignments <CheckCircle2 size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─── Page Header ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
@@ -374,33 +442,54 @@ export default function AdminEmployees() {
 
                     {/* Actions */}
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-
-                        {/* Change Role (not for existing Admins) */}
-                        {u.role !== 'Admin' && (
-                          <button onClick={() => setRoleModalUser(u)} style={{ padding: '7px 12px', borderRadius: 10, background: 'rgba(124,58,237,0.08)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.25)', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Shield size={13} /> Role
-                          </button>
-                        )}
-
-                        {/* Assign Team — only for Success Leads */}
-                        {u.role === 'Success Lead' && (
-                          <button onClick={() => openTeamModal(u)} style={{ padding: '7px 12px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.3)', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <UserCheck size={13} /> Team
-                          </button>
-                        )}
-
-                        {/* Assign Deadline — not for Admins */}
-                        {u.role !== 'Admin' && (
-                          <button onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); }} style={{ padding: '7px 12px', borderRadius: 10, background: 'white', color: '#054daf', border: '1px solid #c7d2fe', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }}>
-                            <Calendar size={13} /> Deadline
-                          </button>
-                        )}
-
-                        {/* Profile */}
-                        <button onClick={() => navigate(`/profile?userId=${u.userId}`)} style={{ padding: '7px 12px', borderRadius: 10, background: '#054daf', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, boxShadow: '0 4px 12px rgba(5, 77, 175,0.3)' }}>
-                          <Eye size={13} /> Profile
+                      <div 
+                        style={{ position: 'relative', display: 'inline-block', textAlign: 'left' }}
+                        tabIndex={-1}
+                        onBlur={(e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget)) {
+                            setOpenActionDropdown(null);
+                          }
+                        }}
+                      >
+                        <button 
+                          onClick={() => setOpenActionDropdown(openActionDropdown === u.userId ? null : u.userId)}
+                          style={{ padding: '8px 14px', borderRadius: 10, background: openActionDropdown === u.userId ? '#e2e8f0' : '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, transition: 'background 0.2s', outline: 'none' }}
+                        >
+                          Actions <ChevronDown size={14} style={{ transform: openActionDropdown === u.userId ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         </button>
+
+                        {openActionDropdown === u.userId && (
+                          <div className="fade-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 8, minWidth: 160, zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            
+                            <button onClick={() => navigate(`/profile?userId=${u.userId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                              <Eye size={14} color="#64748b" /> View Profile
+                            </button>
+
+                            {u.role !== 'Admin' && (
+                              <button onClick={() => { setRoleModalUser(u); setOpenActionDropdown(null); }} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <Shield size={14} color="#64748b" /> Manage Role
+                              </button>
+                            )}
+
+                            {u.role !== 'Admin' && (
+                              <button onClick={() => { openClientModal(u); setOpenActionDropdown(null); }} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <Building2 size={14} color="#64748b" /> Assign Clients
+                              </button>
+                            )}
+
+                            {u.role === 'Success Lead' && (
+                              <button onClick={() => { openTeamModal(u); setOpenActionDropdown(null); }} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <UserCheck size={14} color="#64748b" /> Manage Team
+                              </button>
+                            )}
+
+                            {u.role !== 'Admin' && (
+                              <button onClick={() => { setDeadlineModalUser(u); setDeadlineDate(u.deadlineDate || ''); setDeadlineTitle(u.deadlineTitle || ''); setOpenActionDropdown(null); }} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <Calendar size={14} color="#64748b" /> Set Deadline
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

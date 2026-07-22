@@ -22,6 +22,9 @@ const AdminAssignments = lazy(() => import('./pages/AdminAssignments'));
 const AdminGeofence = lazy(() => import('./pages/AdminGeofence'));
 const UserAssignments = lazy(() => import('./pages/UserAssignments'));
 const MyTeam = lazy(() => import('./pages/MyTeam'));
+const LiveWorkforce = lazy(() => import('./pages/LiveWorkforce'));
+const AdminPreRegistration = lazy(() => import('./pages/AdminPreRegistration'));
+const AdminClients = lazy(() => import('./pages/AdminClients'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -113,6 +116,10 @@ export const router = createBrowserRouter([
         element: wrap(<ProtectedRoute element={<AdminApprovals />} requireAdmin allowSuccessLead />),
       },
       {
+        path: 'admin/live',
+        element: wrap(<ProtectedRoute element={<LiveWorkforce />} requireAdmin />),
+      },
+      {
         path: 'admin/logs',
         element: wrap(<ProtectedRoute element={<Logs />} requireAdmin />),
       },
@@ -131,6 +138,14 @@ export const router = createBrowserRouter([
       {
         path: 'admin/geofence',
         element: wrap(<ProtectedRoute element={<AdminGeofence />} requireAdmin />),
+      },
+      {
+        path: 'admin/pre-register',
+        element: wrap(<ProtectedRoute element={<AdminPreRegistration />} requireAdmin />),
+      },
+      {
+        path: 'admin/clients',
+        element: wrap(<ProtectedRoute element={<AdminClients />} requireAdmin />),
       },
       {
         path: 'profile',

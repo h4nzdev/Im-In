@@ -24,6 +24,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isIdVerified, setIsIdVerified] = useState(false);
+  const [idStatusMsg, setIdStatusMsg] = useState('');
   const cardRef = useRef();
 
   useEffect(() => {
@@ -34,6 +36,20 @@ export default function Signup() {
   }, [submitted]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleVerifyId = () => {
+    const id = form.employeeId.trim().toUpperCase();
+    if (!id) return;
+    const preReg = db.getPreRegisteredIds().find(r => r.employeeId === id);
+    if (preReg) {
+      setForm(f => ({ ...f, name: preReg.name, department: preReg.department, email: preReg.email || f.email }));
+      setIsIdVerified(true);
+      setIdStatusMsg('✓ ID Verified: Auto-filled securely from corporate directory.');
+    } else {
+      setIsIdVerified(false);
+      setIdStatusMsg('! ID not pre-registered. Proceeding requires manual Admin verification.');
+    }
+  };
 
   const handleDemoFill = () => {
     const randomBadge = `RLK-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -88,8 +104,12 @@ export default function Signup() {
       signup({
         ...form,
         email: form.email.trim().toLowerCase(),
-        employeeId: form.employeeId.trim().toUpperCase()
+        employeeId: form.employeeId.trim().toUpperCase(),
+        status: isIdVerified ? 'Active' : 'Pending'
       });
+      if (isIdVerified) {
+        db.updatePreRegisteredStatus(form.employeeId.trim().toUpperCase(), 'Registered');
+      }
       setSubmitted(true);
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -195,14 +215,23 @@ export default function Signup() {
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
-                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee Name</label>
-                      <input type="text" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Full Name" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none' }} />
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee ID</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input type="text" value={form.employeeId} onChange={e => { set('employeeId', e.target.value); setIsIdVerified(false); setIdStatusMsg(''); }} onBlur={handleVerifyId} placeholder="e.g. RLK-2026" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none', textTransform: 'uppercase' }} />
+                        <button type="button" onClick={handleVerifyId} style={{ padding: '0 16px', borderRadius: 12, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 800, cursor: 'pointer' }}>Verify</button>
+                      </div>
                     </div>
                     <div>
-                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee ID</label>
-                      <input type="text" value={form.employeeId} onChange={e => set('employeeId', e.target.value)} placeholder="e.g. RLK-2026" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none' }} />
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee Name</label>
+                      <input type="text" value={form.name} onChange={e => set('name', e.target.value)} disabled={isIdVerified} placeholder="Full Name" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', background: isIdVerified ? '#f8fafc' : 'white', fontSize: '0.88rem', fontWeight: 600, outline: 'none', color: isIdVerified ? '#64748b' : '#0f172a' }} />
                     </div>
                   </div>
+                  
+                  {idStatusMsg && (
+                    <div className="fade-in" style={{ padding: '8px 12px', borderRadius: 10, background: isIdVerified ? '#ecfdf5' : '#fffbeb', border: isIdVerified ? '1px solid #a7f3d0' : '1px solid #fde68a', color: isIdVerified ? '#059669' : '#d97706', fontSize: '0.8rem', fontWeight: 700, marginTop: -6 }}>
+                      {idStatusMsg}
+                    </div>
+                  )}
 
                   <div>
                     <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Department / Division Designation</label>

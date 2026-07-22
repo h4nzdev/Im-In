@@ -39,6 +39,33 @@ function calcPeriodHours(logs, userId, daysBack) {
   return msToHours(ms);
 }
 
+function calcHoursByClient(logs, userId, daysBack, allClients) {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - daysBack); cutoff.setHours(0, 0, 0, 0);
+  const filtered = logs.filter(l => l.userId === userId && new Date(l.timestamp) >= cutoff)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  const clientMs = {};
+  let openIn = null;
+  filtered.forEach(l => {
+    if (l.type === 'IN') openIn = l;
+    else if (openIn) { 
+      const cId = openIn.clientId || 'unassigned';
+      if (!clientMs[cId]) clientMs[cId] = 0;
+      clientMs[cId] += new Date(l.timestamp) - new Date(openIn.timestamp); 
+      openIn = null; 
+    }
+  });
+
+  return Object.entries(clientMs).map(([cId, ms]) => {
+    const c = allClients.find(x => x.id === cId);
+    return {
+      clientId: cId,
+      clientName: c ? c.name : 'Unassigned Account',
+      hours: parseFloat(msToHours(ms))
+    };
+  }).sort((a, b) => b.hours - a.hours);
+}
+
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -62,6 +89,7 @@ export default function Analytics() {
 
   const [allLogs] = useState(() => db.getLogs());
   const [allLeaves] = useState(() => db.getLeaves());
+  const [allClients] = useState(() => db.getClients());
 
   const logs = allLogs.filter(l => l.userId === targetUserId);
   const leaves = allLeaves.filter(l => l.userId === targetUserId);
@@ -81,6 +109,7 @@ export default function Analytics() {
   const todayHours = calcPeriodHours(logs, targetUserId, 1);
   const weekHours = calcPeriodHours(logs, targetUserId, 7);
   const monthHours = calcPeriodHours(logs, targetUserId, 30);
+  const clientBreakdown = calcHoursByClient(logs, targetUserId, daysFilter, allClients);
 
   const leaveStats = {
     total: leaves.length,
@@ -209,6 +238,24 @@ export default function Analytics() {
             <Area type="monotone" dataKey="hours" stroke="#043e8a" strokeWidth={2.5} fill="url(#areaGrad)" dot={{ fill: '#043e8a', r: 3.5 }} />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Client Breakdown */}
+      <div className="card glass" style={{ padding: 24, borderRadius: 24, marginBottom: 24 }}>
+        <p style={{ color: '#0f172a', fontWeight: 800, fontSize: '1rem', margin: '0 0 16px' }}>Client Hours Breakdown ({daysFilter === 7 ? 'Last 7 Days' : daysFilter === 14 ? 'Last 14 Days' : 'Last 30 Days'})</p>
+        
+        {clientBreakdown.length === 0 ? (
+          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>No hours logged for any clients in this period.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            {clientBreakdown.map(c => (
+              <div key={c.clientId} style={{ padding: '16px', background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#043e8a' }}>{c.hours}h</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>{c.clientName}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Leave summary */}

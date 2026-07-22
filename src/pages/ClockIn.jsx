@@ -74,6 +74,13 @@ export default function ClockIn() {
   const [remoteAttachCheck, setRemoteAttachCheck] = useState(true);
   const [submittingRemote, setSubmittingRemote] = useState(false);
   const [remoteSuccessMessage, setRemoteSuccessMessage] = useState(null);
+
+  // Client Management (ERP)
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [shiftClient, setShiftClient] = useState('');
+  const [shiftCampaign, setShiftCampaign] = useState('');
+  const [shiftTask, setShiftTask] = useState('');
+  const [allClients] = useState(() => db.getClients());
   const btnRef = useRef();
   const ringRef = useRef();
   const pulseAnim = useRef(null);
@@ -148,14 +155,41 @@ export default function ClockIn() {
 
   const handlePunch = () => {
     if (punching || isOutsideGeofence) return;
-    setPunching(true);
-    gsap.to(btnRef.current, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' });
     const nextType = isClockedIn ? 'OUT' : 'IN';
+    
+    if (nextType === 'IN') {
+      if (!user.assignedClientIds || user.assignedClientIds.length === 0) {
+        showToast('No clients have been assigned. Please contact your administrator.');
+        return;
+      }
+      setShiftClient(user.assignedClientIds[0]);
+      setShowClientModal(true);
+    } else {
+      executePunch('OUT');
+    }
+  };
+
+  const executePunch = (nextType) => {
+    setPunching(true);
+    setShowClientModal(false);
+    gsap.to(btnRef.current, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' });
     const nowObj = new Date();
     const validation = getPunchValidation(nextType, nowObj, user.userId);
 
     const punch = async (lat, lng) => {
       const address = await getRealAddress(lat, lng);
+      
+      // If OUT, find the last IN log to keep the client data matching (or backend will pair them)
+      let currentClient = shiftClient;
+      let currentCamp = shiftCampaign;
+      let currentTask = shiftTask;
+      
+      if (nextType === 'OUT' && lastLog && lastLog.type === 'IN') {
+        currentClient = lastLog.clientId || null;
+        currentCamp = lastLog.campaignId || null;
+        currentTask = lastLog.taskName || null;
+      }
+
       const addedLog = db.addLog({
         logId: `LOG-${Date.now()}`,
         userId: user.userId,
@@ -164,7 +198,10 @@ export default function ClockIn() {
         latitude: lat, longitude: lng, address,
         deviceInfo: navigator.userAgent.slice(0, 80),
         status: validation.status,
-        lateMinutes: validation.lateMinutes
+        lateMinutes: validation.lateMinutes,
+        clientId: nextType === 'IN' ? shiftClient : currentClient,
+        campaignId: nextType === 'IN' ? shiftCampaign : currentCamp,
+        taskName: nextType === 'IN' ? shiftTask : currentTask
       });
 
       // Realtime Active Shift Management
@@ -294,6 +331,42 @@ export default function ClockIn() {
     <div ref={pageRef} style={{ maxWidth: 480, margin: '0 auto', position: 'relative' }}>
       
       {/* Validation Result Modal / Toast */}
+      {/* Client Selection Modal */}
+      {showClientModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="fade-in card glass" style={{ background: 'white', padding: 24, borderRadius: 24, width: '100%', maxWidth: 420, margin: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Start Timer</h2>
+              <button onClick={() => setShowClientModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>Client *</label>
+                <select value={shiftClient} onChange={e => setShiftClient(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none' }}>
+                  {(user.assignedClientIds || []).map(id => {
+                    const c = allClients.find(client => client.id === id);
+                    return c ? <option key={id} value={id}>{c.name} {c.code ? `(${c.code})` : ''}</option> : null;
+                  })}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>Campaign (Optional)</label>
+                <input type="text" value={shiftCampaign} onChange={e => setShiftCampaign(e.target.value)} placeholder="e.g. Q3 Sales Outreach" style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>Task (Optional)</label>
+                <input type="text" value={shiftTask} onChange={e => setShiftTask(e.target.value)} placeholder="e.g. Lead Generation" style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none' }} />
+              </div>
+
+              <button onClick={() => executePunch('IN')} style={{ width: '100%', marginTop: 12, padding: '14px', borderRadius: 14, background: '#10b981', color: 'white', fontWeight: 900, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <CheckCircle2 size={18} /> Start Timer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {punchResultModal && (
         <div className="fade-in" style={{
           position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,

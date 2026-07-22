@@ -216,9 +216,14 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <span style={{ padding: '6px 14px', borderRadius: 20, background: '#10b981', color: 'white', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'white', display: 'inline-block' }} /> Live Broadcast Active
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ padding: '6px 14px', borderRadius: 20, background: '#10b981', color: 'white', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'white', display: 'inline-block' }} /> Live
+            </span>
+            <Link to="/admin/live" style={{ padding: '6px 16px', borderRadius: 20, background: 'white', color: '#047857', border: '1px solid #10b981', fontWeight: 800, fontSize: '0.78rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }} onMouseEnter={e => { e.currentTarget.style.background = '#ecfdf5'; e.currentTarget.style.transform = 'translateY(-1px)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+              View Expanded Roster ➔
+            </Link>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>

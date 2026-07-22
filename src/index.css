@@ -52,8 +52,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
   color: #64748b;
   text-decoration: none;
   font-size: 0.92rem;
@@ -62,6 +62,8 @@ body {
   position: relative;
   overflow: hidden;
   border: 1px solid transparent;
+  box-sizing: border-box;
+  margin-right: 6px;
 }
 
 .sidebar-nav-link .nav-icon {
@@ -86,8 +88,8 @@ body {
   color: #054daf;
   background: rgba(5, 77, 175, 0.08);
   border-color: rgba(5, 77, 175, 0.18);
-  transform: translateX(6px);
-  box-shadow: 0 4px 16px rgba(5, 77, 175, 0.08);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(5, 77, 175, 0.08);
 }
 
 .sidebar-nav-link:hover .nav-icon {
@@ -295,7 +297,7 @@ select option {
   .sidebar             { display: flex !important; }
   .top-header          { display: none !important; }
   .layout-content-area { margin-left: 240px !important; width: calc(100% - 240px); display: flex; justify-content: center; overflow-x: hidden; }
-  .main-content        { margin: 0 auto !important; width: 100%; max-width: 1100px; padding: 28px 24px !important; box-sizing: border-box; }
+  .main-content        { margin: 0 auto !important; width: 100%; max-width: 100%; padding: 16px 20px !important; box-sizing: border-box; }
 }
 
 .profile-grid {

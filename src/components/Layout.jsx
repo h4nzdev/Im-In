@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
@@ -216,6 +216,8 @@ export default function Layout() {
   const [showBanner, setShowBanner] = useState(() => !localStorage.getItem('realynk_app_installed'));
   const [showModal, setShowModal] = useState(false);
   const [installed, setInstalled] = useState(false);
+  
+  const [openNavSections, setOpenNavSections] = useState({ 'Main': true, 'Workforce': true, 'Operations': true, 'Records': true, 'Team Management': true });
 
   // 4-Digit Quick Access PIN Lock State
   const [pinEntry, setPinEntry] = useState('');
@@ -300,31 +302,56 @@ export default function Layout() {
   const isSuccessLead = user?.role === 'Success Lead';
 
   const userLinks = [
-    { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
-    { to: '/logs',      icon: Clock,           label: 'Logs'      },
-    { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
-    { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
-    { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
+    { category: 'Main', items: [
+      { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
+    ]},
+    { category: 'Workforce', items: [
+      { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
+      { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
+    ]},
+    { category: 'Records', items: [
+      { to: '/logs',      icon: Clock,           label: 'Logs'      },
+      { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+    ]}
   ];
+  
   const successLeadLinks = [
-    { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/team',      icon: Users,           label: 'My Team'   },
-    { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
-    { to: '/logs',      icon: Clock,           label: 'Logs'      },
-    { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
-    { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
-    { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
+    { category: 'Main', items: [
+      { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
+    ]},
+    { category: 'Team Management', items: [
+      { to: '/team',      icon: Users,           label: 'My Team'   },
+      { to: '/assignments', icon: BookOpen,      label: 'SOP & Tasks' },
+      { to: '/calendar',  icon: Calendar,        label: 'Schedule'  },
+    ]},
+    { category: 'Records', items: [
+      { to: '/logs',      icon: Clock,           label: 'Logs'      },
+      { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+    ]}
   ];
+  
   const adminLinks = [
-    { to: '/admin',           icon: Shield,    label: 'Overview'  },
-    { to: '/admin/employees', icon: Users,     label: 'Employees' },
-    { to: '/admin/geofence',  icon: MapPin,    label: 'Geofence Map' },
-    { to: '/admin/assignments', icon: BookOpen, label: 'SOP & Tasks' },
-    { to: '/admin/approvals', icon: UserCheck, label: 'Approvals' },
-    { to: '/calendar',        icon: Calendar,  label: 'Schedule'  },
-    { to: '/admin/logs',      icon: Clock,     label: 'Logs'      },
-    { to: '/admin/leaves',    icon: FileText,  label: 'Leaves'    },
+    { category: 'Main', items: [
+      { to: '/admin',           icon: Shield,    label: 'Overview'  },
+      { to: '/admin/live',      icon: Activity,  label: 'Live Roster' },
+    ]},
+    { category: 'Workforce', items: [
+      { to: '/admin/employees', icon: Users,     label: 'Employees' },
+      { to: '/admin/clients',   icon: Building2, label: 'Clients' },
+      { to: '/admin/pre-register', icon: UserPlus, label: 'Pre-Register' },
+      { to: '/admin/geofence',  icon: MapPin,    label: 'Geofence Map' },
+    ]},
+    { category: 'Operations', items: [
+      { to: '/admin/assignments', icon: BookOpen, label: 'SOP & Tasks' },
+      { to: '/admin/approvals', icon: UserCheck, label: 'Approvals' },
+      { to: '/calendar',        icon: Calendar,  label: 'Schedule'  },
+    ]},
+    { category: 'Records', items: [
+      { to: '/admin/logs',      icon: Clock,     label: 'Logs'      },
+      { to: '/admin/leaves',    icon: FileText,  label: 'Leaves'    },
+    ]}
   ];
   const links = isAdmin ? adminLinks : isSuccessLead ? successLeadLinks : userLinks;
 
@@ -461,11 +488,40 @@ export default function Layout() {
           </span>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-          {links.map(({ to, icon: Icon, label }) => (
-            <Link key={to} to={to} className={`sidebar-nav-link ${isActive(to) ? 'active' : ''}`}>
-              <Icon size={18} className="nav-icon" /> {label}
-            </Link>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto', paddingRight: 8 }} className="custom-scrollbar">
+          {links.map((group) => (
+            <div key={group.category} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button 
+                onClick={() => setOpenNavSections(prev => ({ ...prev, [group.category]: !prev[group.category] }))}
+                style={{ background: 'transparent', border: 'none', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', outline: 'none', width: '100%' }}
+              >
+                {group.category}
+                <ChevronDown size={14} style={{ transform: openNavSections[group.category] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
+              
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateRows: openNavSections[group.category] ? '1fr' : '0fr',
+                transition: 'grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 4, 
+                    paddingTop: openNavSections[group.category] ? 6 : 0,
+                    opacity: openNavSections[group.category] ? 1 : 0,
+                    transition: 'padding-top 0.3s, opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+                  }}>
+                    {group.items.map(({ to, icon: Icon, label }) => (
+                      <Link key={to} to={to} className={`sidebar-nav-link ${isActive(to) ? 'active' : ''}`}>
+                        <Icon size={18} className="nav-icon" /> {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -509,7 +565,7 @@ export default function Layout() {
 
       {/* Center Main Content */}
       <div className="layout-content-area" style={{ minHeight: '100vh', position: 'relative' }}>
-        <main className="main-content" style={{ maxWidth: 1100, margin: '0 auto', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <main className="main-content" style={{ margin: '0 auto', minHeight: 'calc(100vh - 60px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'relative', zIndex: 30, width: '100%' }}>
             {isAdmin && <AdminNotificationHeader />}
           </div>

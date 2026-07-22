@@ -168,14 +168,14 @@ export const db = {
   getUserByEmail:  (email)    => db.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase()),
   getUserById:     (id)       => db.getUsers().find(u => u.userId === id),
   createUser:      (user)     => {
-    const newUser = { ...user, managedTeam: user.managedTeam || [] };
+    const newUser = { ...user, managedTeam: user.managedTeam || [], assignedClientIds: user.assignedClientIds || [] };
     const u = get('users'); u.push(newUser); save('users', u);
     if (isSupabaseConfigured && supabase) {
       supabase.from('profiles').insert([{
         user_id: newUser.userId, name: newUser.name, email: newUser.email, password: newUser.password,
         department: newUser.department || 'General', assigned_account: newUser.assignedAccount || null,
         role: newUser.role || 'Associate', status: newUser.status || 'Pending', position_id: newUser.positionId,
-        managed_team: []
+        managed_team: newUser.managedTeam, assigned_client_ids: newUser.assignedClientIds
       }]).then(({ error }) => error && console.error('Supabase profile sync error:', error));
     }
     return newUser;
@@ -200,6 +200,7 @@ export const db = {
       const su = {};
       if (updates.isActive !== undefined) su.is_active = updates.isActive;
       if (updates.status !== undefined) su.status = updates.status;
+      if (updates.assignedClientIds !== undefined) su.assigned_client_ids = updates.assignedClientIds;
       if (Object.keys(su).length > 0) supabase.from('profiles').update(su).eq('user_id', id).then();
     }
     return u;
@@ -244,6 +245,9 @@ export const db = {
         if (knownLogColumns.has('device_info')) rowToInsert.device_info = log.deviceInfo || null;
         if (knownLogColumns.has('status')) rowToInsert.status = log.status || 'ON TIME';
         if (knownLogColumns.has('late_minutes')) rowToInsert.late_minutes = log.lateMinutes || 0;
+        if (knownLogColumns.has('client_id')) rowToInsert.client_id = log.clientId || null;
+        if (knownLogColumns.has('campaign_id')) rowToInsert.campaign_id = log.campaignId || null;
+        if (knownLogColumns.has('task_name')) rowToInsert.task_name = log.taskName || null;
       } else {
         rowToInsert.address = log.address || null;
       }
@@ -340,4 +344,69 @@ export const db = {
 
   // All non-admin, non-lead users (candidates to be assigned to a team)
   getAssociates: () => db.getUsers().filter(u => u.role !== 'Admin'),
+
+  // Pre-Registered IDs (Admin whitelist for signup)
+  getPreRegisteredIds: () => get('preRegisteredIds'),
+  addPreRegisteredId: (record) => {
+    // record: { employeeId, name, department, email, status: 'Pending' }
+    const list = get('preRegisteredIds');
+    const existingIndex = list.findIndex(r => r.employeeId === record.employeeId);
+    if (existingIndex >= 0) {
+      list[existingIndex] = { ...list[existingIndex], ...record };
+    } else {
+      list.push({ ...record, status: record.status || 'Pending' });
+    }
+    save('preRegisteredIds', list);
+    return list;
+  },
+  bulkAddPreRegisteredIds: (records) => {
+    let list = get('preRegisteredIds');
+    records.forEach(record => {
+      const existingIndex = list.findIndex(r => r.employeeId === record.employeeId);
+      if (existingIndex >= 0) {
+        list[existingIndex] = { ...list[existingIndex], ...record };
+      } else {
+        list.push({ ...record, status: record.status || 'Pending' });
+      }
+    });
+    save('preRegisteredIds', list);
+    return list;
+  },
+  updatePreRegisteredStatus: (employeeId, status) => {
+    const list = get('preRegisteredIds').map(r => r.employeeId === employeeId ? { ...r, status } : r);
+    save('preRegisteredIds', list);
+    return list;
+  },
+  deletePreRegisteredId: (employeeId) => {
+    const list = get('preRegisteredIds').filter(r => r.employeeId !== employeeId);
+    save('preRegisteredIds', list);
+    return list;
+  },
+
+  // Client Management (ERP Module)
+  getClients: () => get('clients'),
+  getClientById: (id) => db.getClients().find(c => c.id === id),
+  addClient: (client) => {
+    const newClient = { ...client, createdAt: new Date().toISOString() };
+    const c = get('clients'); c.push(newClient); save('clients', c);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('clients').insert([newClient]).then();
+    }
+    return newClient;
+  },
+  updateClient: (id, updates) => {
+    const c = get('clients').map(x => x.id === id ? { ...x, ...updates, updatedAt: new Date().toISOString() } : x); save('clients', c);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('clients').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).then();
+    }
+    return c;
+  },
+  deleteClient: (id) => {
+    const c = get('clients').filter(x => x.id !== id); save('clients', c);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('clients').delete().eq('id', id).then();
+    }
+    return c;
+  }
 };
+
