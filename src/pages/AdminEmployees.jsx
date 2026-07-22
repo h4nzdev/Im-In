@@ -85,7 +85,7 @@ export default function AdminEmployees() {
       const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
                           u.email.toLowerCase().includes(search.toLowerCase()) ||
                           u.userId.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = statusFilter === 'All' || u.status === statusFilter;
+      const matchStatus = statusFilter === 'All' ? u.status !== 'Pending' : u.status === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [users, search, statusFilter]);
@@ -347,7 +347,7 @@ export default function AdminEmployees() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {['All', 'Active', 'Pending', 'Inactive'].map(st => (
+              {['All', 'Active', 'Inactive'].map(st => (
                 <button key={st} onClick={() => setStatusFilter(st)} style={{ padding: '6px 14px', borderRadius: 10, border: 'none', background: statusFilter === st ? '#054daf' : '#f1f5f9', color: statusFilter === st ? 'white' : '#475569', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.15s' }}>{st}</button>
               ))}
             </div>

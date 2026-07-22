@@ -264,6 +264,84 @@ export async function initSupabaseSync() {
       }
     }
 
+    // ── STEP 7: EOD REPORTS ──────────────────────────────────────────────
+    const { data: eodReports, error: eodErr } = await supabase.from('eod_reports').select('*');
+    if (eodErr) {
+      if (!eodErr.message.includes('schema cache')) { console.error('[Sync] eod_reports fetch error:', eodErr.message); hasError = true; }
+    } else if (eodReports) {
+      if (eodReports.length > 0) {
+        save('reports', eodReports.map(r => ({ reportId: r.report_id, userId: r.user_id, content: r.content, date: r.date, timestamp: r.timestamp })));
+      } else {
+        const localEOD = get('reports') || [];
+        if (localEOD.length > 0) {
+          const eodRows = localEOD.map(r => ({ report_id: r.reportId, user_id: r.userId, content: r.content, date: r.date, timestamp: r.timestamp || new Date().toISOString() }));
+          const { error: eodInsErr } = await supabase.from('eod_reports').insert(eodRows);
+          if (eodInsErr) { console.error('[Sync] eod_reports insert error:', eodInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated', eodRows.length, 'EOD reports');
+        }
+      }
+    }
+
+    // ── STEP 8: GEOFENCE ─────────────────────────────────────────────────
+    const { data: geofences, error: geoErr } = await supabase.from('geofences').select('*');
+    if (geoErr) {
+      if (!geoErr.message.includes('schema cache')) { console.error('[Sync] geofences fetch error:', geoErr.message); hasError = true; }
+    } else if (geofences) {
+      if (geofences.length > 0) {
+        save('geofence', { addressName: geofences[0].address_name, lat: geofences[0].lat, lng: geofences[0].lng, radius: geofences[0].radius, enabled: geofences[0].enabled });
+      } else {
+        const localGeo = get('geofence');
+        if (localGeo && Object.keys(localGeo).length > 0) {
+          const { error: geoInsErr } = await supabase.from('geofences').insert([{ id: 'global', address_name: localGeo.addressName, lat: localGeo.lat, lng: localGeo.lng, radius: localGeo.radius, enabled: localGeo.enabled ?? true }]);
+          if (geoInsErr) { console.error('[Sync] geofences insert error:', geoInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated Geofence settings');
+        }
+      }
+    }
+
+    // ── STEP 9: ASSIGNMENTS (SOPs) ───────────────────────────────────────
+    const { data: assignments, error: assErr } = await supabase.from('assignments').select('*');
+    if (assErr) {
+      if (!assErr.message.includes('schema cache')) { console.error('[Sync] assignments fetch error:', assErr.message); hasError = true; }
+    } else if (assignments) {
+      if (assignments.length > 0) {
+        save('assignments', assignments.map(a => ({ id: a.id, title: a.title, type: a.type, target: a.target, priority: a.priority, description: a.description, status: a.status, createdAt: a.created_at })));
+      } else {
+        const localAss = get('assignments') || [];
+        if (localAss.length > 0) {
+          const assRows = localAss.map(a => ({ id: a.id, title: a.title, type: a.type, target: a.target, priority: a.priority, description: a.description, status: a.status, created_at: a.createdAt }));
+          const { error: assInsErr } = await supabase.from('assignments').insert(assRows);
+          if (assInsErr) { console.error('[Sync] assignments insert error:', assInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated', assRows.length, 'SOP assignments');
+        }
+      }
+    }
+
+    // ── STEP 10: SCHEDULES (Rosters) ─────────────────────────────────────
+    const { data: schedules, error: schErr } = await supabase.from('schedules').select('*');
+    if (schErr) {
+      if (!schErr.message.includes('schema cache')) { console.error('[Sync] schedules fetch error:', schErr.message); hasError = true; }
+    } else if (schedules) {
+      if (schedules.length > 0) {
+        schedules.forEach(s => localStorage.setItem(`realynk_roster_${s.user_id}`, JSON.stringify(s.roster_data_json)));
+      } else {
+        // Auto migrate any local rosters
+        const users = get('users') || [];
+        const schRows = [];
+        users.forEach(u => {
+          const localRoster = localStorage.getItem(`realynk_roster_${u.userId}`);
+          if (localRoster) {
+            schRows.push({ user_id: u.userId, roster_data_json: JSON.parse(localRoster) });
+          }
+        });
+        if (schRows.length > 0) {
+          const { error: schInsErr } = await supabase.from('schedules').insert(schRows);
+          if (schInsErr) { console.error('[Sync] schedules insert error:', schInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated', schRows.length, 'user schedules');
+        }
+      }
+    }
+
     console.log('[Sync] Supabase sync complete');
     setSyncStatus(hasError ? 'error' : 'done');
   } catch (err) {
@@ -313,6 +391,9 @@ export const db = {
     const current = db.getGeofence();
     const next = { ...current, ...upd };
     save('geofence', next);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('geofences').upsert({ id: 'global', address_name: next.addressName, lat: next.lat, lng: next.lng, radius: next.radius, enabled: next.enabled ?? true }).then();
+    }
     return next;
   },
 
@@ -485,6 +566,9 @@ export const db = {
     const newReport = { ...report, reportId: `REP-${Date.now()}`, timestamp: new Date().toISOString() };
     r.push(newReport);
     save('reports', r);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('eod_reports').insert([{ report_id: newReport.reportId, user_id: newReport.userId, content: newReport.content, date: newReport.date, timestamp: newReport.timestamp }]).then();
+    }
     return newReport;
   },
 
@@ -511,9 +595,33 @@ export const db = {
 
   // Assignments / SOPs
   getAssignments:    ()         => get('assignments'),
-  addAssignment:     (item)     => { const a = get('assignments'); a.push(item); save('assignments', a); return item; },
-  updateAssignment:  (id, upd)  => { const a = get('assignments').map(x => x.id === id ? { ...x, ...upd } : x); save('assignments', a); return a; },
-  deleteAssignment:  (id)       => { const a = get('assignments').filter(x => x.id !== id); save('assignments', a); return a; },
+  addAssignment:     (item)     => { 
+    const a = get('assignments'); a.push(item); save('assignments', a); 
+    if (isSupabaseConfigured && supabase) supabase.from('assignments').insert([{ id: item.id, title: item.title, type: item.type, target: item.target, priority: item.priority, description: item.description, status: item.status, created_at: item.createdAt }]).then();
+    return item; 
+  },
+  updateAssignment:  (id, upd)  => { 
+    const a = get('assignments').map(x => x.id === id ? { ...x, ...upd } : x); save('assignments', a); 
+    if (isSupabaseConfigured && supabase) supabase.from('assignments').update(upd).eq('id', id).then();
+    return a; 
+  },
+  deleteAssignment:  (id)       => { 
+    const a = get('assignments').filter(x => x.id !== id); save('assignments', a); 
+    if (isSupabaseConfigured && supabase) supabase.from('assignments').delete().eq('id', id).then();
+    return a; 
+  },
+
+  // Schedules (Rosters)
+  getSchedule: (userId) => {
+    const str = localStorage.getItem(`realynk_roster_${userId}`);
+    return str ? JSON.parse(str) : null;
+  },
+  saveSchedule: (userId, rosterArray) => {
+    localStorage.setItem(`realynk_roster_${userId}`, JSON.stringify(rosterArray));
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('schedules').upsert({ user_id: userId, roster_data_json: rosterArray }).then();
+    }
+  },
 
   // Success Lead — Team Management
   // Returns all users managed by a given Success Lead

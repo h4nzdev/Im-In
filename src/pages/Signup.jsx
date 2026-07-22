@@ -315,7 +315,7 @@ export default function Signup() {
                       </label>
                       <select value={form.positionId} onChange={e => set('positionId', e.target.value)} required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, outline: 'none' }}>
                         <option value="">Select Role...</option>
-                        {positions.map(p => <option key={p.positionId} value={p.positionId}>{p.positionName}</option>)}
+                        {positions.filter(p => p.positionName !== 'Executive Administrator').map(p => <option key={p.positionId} value={p.positionId}>{p.positionName}</option>)}
                       </select>
                     </div>
                     <div>
@@ -352,9 +352,9 @@ export default function Signup() {
                       type="submit"
                       disabled={loading || (form.email && !validateEmailDomain(form.email))}
                       className="btn-primary"
-                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 1 }}
+                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', opacity: 1 }}
                     >
-                      {loading ? 'Registering...' : <>Submit Registration <CheckCircle2 size={18} /></>}
+                      {loading ? 'Registering...' : 'Submit Registration'}
                     </button>
                   </div>
                 </div>

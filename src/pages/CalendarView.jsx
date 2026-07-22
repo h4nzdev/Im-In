@@ -12,12 +12,8 @@ export default function CalendarView() {
   const [leaves] = useState(() => db.getUserLeaves(user.userId));
 
   const [customRoster, setCustomRoster] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`realynk_roster_${user.userId}`);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
+      const saved = db.getSchedule(user.userId);
+      return saved || {};
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -72,7 +68,7 @@ export default function CalendarView() {
     }
 
     setCustomRoster(sample);
-    localStorage.setItem(`realynk_roster_${user.userId}`, JSON.stringify(sample));
+    db.saveSchedule(user.userId, sample);
     setUploadSuccess(true);
     setTimeout(() => {
       setShowUploadModal(false);
