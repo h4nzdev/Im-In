@@ -125,7 +125,7 @@ export default function Signup() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', background: '#f8fafc' }}>
-      <div ref={cardRef} className="glass" style={{ width: '100%', maxWidth: 510, borderRadius: 28, padding: '34px 36px', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
+      <div ref={cardRef} className="glass" style={{ width: '100%', borderRadius: 28, padding: '34px 36px', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
 
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -188,7 +188,7 @@ export default function Signup() {
                   transition: 'all 0.2s'
                 }}
               >
-                <User size={15} /> 1. Identity & Division
+                <User size={15} /> <span style={{ whiteSpace: 'nowrap' }}>1. Identity</span>
               </button>
               <button
                 type="button"
@@ -209,7 +209,7 @@ export default function Signup() {
                   transition: 'all 0.2s'
                 }}
               >
-                <Key size={15} /> 2. Role & Credentials
+                <Key size={15} /> <span style={{ whiteSpace: 'nowrap' }}>2. Credentials</span>
               </button>
             </div>
 
@@ -240,7 +240,7 @@ export default function Signup() {
 
                   <div>
                     <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Department / Division Designation</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                       {[
                         { id: 'Shared Services', label: 'Shared Services', sub: 'Non-Ops & Support Team', icon: Building2 },
                         { id: 'Service Delivery', label: 'Service Delivery', sub: 'Operations & Campaigns', icon: Briefcase }
@@ -267,7 +267,7 @@ export default function Signup() {
                             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <Icon size={16} /> {item.label}
                             </span>
-                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#033373' : '#64748b', opacity: 0.9 }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#033373' : '#64748b', opacity: 0.9, textAlign: 'center' }}>
                               {item.sub}
                             </span>
                           </button>
