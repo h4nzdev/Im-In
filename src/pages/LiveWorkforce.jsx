@@ -68,9 +68,6 @@ export default function LiveWorkforce() {
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
-      const isOnline = activeData.onlineMap[u.userId] || u.isActive;
-      if (!isOnline) return false;
-      
       if (search.trim()) {
         const q = search.toLowerCase();
         return u.name.toLowerCase().includes(q) || u.userId.toLowerCase().includes(q) || u.department.toLowerCase().includes(q);
@@ -86,6 +83,7 @@ export default function LiveWorkforce() {
       'warning'
     ).then((confirmed) => {
       if (confirmed) {
+        db.updateUser(userId, { activeShift: null });
         db.addLog({
           logId: `LOG-${Date.now()}`,
           userId,
@@ -96,6 +94,8 @@ export default function LiveWorkforce() {
           longitude: 120.9842,
           deviceInfo: 'Admin Force Clock Out'
         });
+        realtimeBus.broadcast({ type: 'ADMIN_FORCE_LOGOUT', targetUserId: userId });
+        realtimeBus.broadcast({ type: 'CLOCK_OUT', userId: userId, userName: name });
         setLogs(db.getLogs());
         showToast(`Forced Clock Out applied to ${name}`);
       }
@@ -170,25 +170,27 @@ export default function LiveWorkforce() {
               statusLabel = shiftInfo.status;
             }
 
+            const isOnline = Boolean(activeData.onlineMap[u.userId]);
             const isOnBreak = statusLabel === 'On Break';
 
             return (
               <div key={u.userId} className="stagger-item glass" style={{
                 padding: '20px', borderRadius: 20, background: 'white',
-                border: isOnBreak ? '1.5px solid #fcd34d' : '1.5px solid #6ee7b7',
-                boxShadow: isOnBreak ? '0 8px 24px rgba(245,158,11,0.08)' : '0 8px 24px rgba(16,185,129,0.08)',
-                position: 'relative', overflow: 'hidden'
+                border: !isOnline ? '1.5px solid #e2e8f0' : isOnBreak ? '1.5px solid #fcd34d' : '1.5px solid #6ee7b7',
+                boxShadow: !isOnline ? 'none' : isOnBreak ? '0 8px 24px rgba(245,158,11,0.08)' : '0 8px 24px rgba(16,185,129,0.08)',
+                position: 'relative', overflow: 'hidden',
+                opacity: isOnline ? 1 : 0.7
               }}>
                 {/* Status Indicator Bar */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: isOnBreak ? '#fbbf24' : '#10b981' }} />
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: !isOnline ? '#cbd5e1' : isOnBreak ? '#fbbf24' : '#10b981' }} />
                 
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 16, background: isOnBreak ? '#fffbeb' : '#ecfdf5', color: isOnBreak ? '#d97706' : '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 900 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 16, background: !isOnline ? '#f1f5f9' : isOnBreak ? '#fffbeb' : '#ecfdf5', color: !isOnline ? '#94a3b8' : isOnBreak ? '#d97706' : '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 900 }}>
                       {u.name.charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{u.name}</div>
+                      <div style={{ fontWeight: 800, fontSize: '1.05rem', color: !isOnline ? '#64748b' : '#0f172a' }}>{u.name}</div>
                       <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{u.department} · {u.userId}</div>
                     </div>
                   </div>
@@ -199,16 +201,16 @@ export default function LiveWorkforce() {
                     <p style={{ margin: '0 0 4px', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Current Session</p>
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 10,
-                      background: isOnBreak ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
-                      color: isOnBreak ? '#b45309' : '#047857', fontWeight: 800, fontSize: '0.75rem'
+                      background: !isOnline ? 'rgba(148,163,184,0.1)' : isOnBreak ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
+                      color: !isOnline ? '#64748b' : isOnBreak ? '#b45309' : '#047857', fontWeight: 800, fontSize: '0.75rem'
                     }}>
-                      <Activity size={12} /> {statusLabel}
+                      <Activity size={12} /> {!isOnline ? 'Offline' : statusLabel}
                     </span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ margin: '0 0 4px', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Active Duration</p>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Clock size={14} color="#94a3b8" /> {elapsedStr}
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: !isOnline ? '#94a3b8' : '#0f172a', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Clock size={14} color="#94a3b8" /> {!isOnline ? '--:--:--' : elapsedStr}
                     </div>
                   </div>
                 </div>
@@ -229,13 +231,14 @@ export default function LiveWorkforce() {
                   </button>
                   <button
                     onClick={() => handleForceClockOut(u.userId, u.name)}
+                    disabled={!isOnline}
                     style={{
-                      padding: '10px', borderRadius: 12, border: '1px solid #fecdd3', background: '#fff1f2',
-                      color: '#e11d48', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
+                      padding: '10px', borderRadius: 12, border: !isOnline ? '1px solid #f1f5f9' : '1px solid #fecdd3', background: !isOnline ? '#f8fafc' : '#fff1f2',
+                      color: !isOnline ? '#94a3b8' : '#e11d48', fontWeight: 700, fontSize: '0.8rem', cursor: !isOnline ? 'not-allowed' : 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#ffe4e6'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#fff1f2'}
+                    onMouseEnter={e => { if (isOnline) e.currentTarget.style.background = '#ffe4e6'; }}
+                    onMouseLeave={e => { if (isOnline) e.currentTarget.style.background = '#fff1f2'; }}
                   >
                     <LogOut size={14} /> Force Out
                   </button>

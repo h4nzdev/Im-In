@@ -369,7 +369,7 @@ export default function AdminEmployees() {
           </p>
           <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>Showing {displayedUsers.length} of {filteredUsers.length}</span>
         </div>
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', minHeight: 260 }}>
           <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 900, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>

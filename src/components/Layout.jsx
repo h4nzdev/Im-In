@@ -8,6 +8,7 @@ import realynkLogo from '../assets/realynk.png';
 import { realtimeBus } from '../lib/realtime';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useSyncStatus } from '../lib/useSyncStatus';
+import { db } from '../lib/db';
 
 function AdminNotificationHeader() {
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
@@ -234,6 +235,44 @@ export default function Layout() {
     const isUnlocked = sessionStorage.getItem(`realynk_pin_unlocked_${user.userId}`) === 'true';
     return hasPin && !isUnlocked;
   });
+
+  // Force Logout Listener & Background Timer
+  useEffect(() => {
+    if (!user) return;
+    
+    // 1. Listen for Admin Force Logout
+    const unsub = realtimeBus.subscribe((payload) => {
+      if (payload && payload.type === 'ADMIN_FORCE_LOGOUT' && payload.targetUserId === user.userId) {
+        logout();
+        navigate('/login');
+      }
+    });
+
+    // 2. Background Notification Timer (Document Title)
+    const updateTitle = () => {
+      const uData = db.getUserById(user.userId);
+      if (uData && uData.activeShift && document.visibilityState === 'hidden') {
+        const shiftInfo = typeof uData.activeShift === 'string' ? JSON.parse(uData.activeShift) : uData.activeShift;
+        if (shiftInfo.status === 'Active' && shiftInfo.startTime) {
+          const diffSec = Math.max(0, Math.floor((Date.now() - new Date(shiftInfo.startTime).getTime()) / 1000));
+          const h = String(Math.floor(diffSec / 3600)).padStart(2, '0');
+          const m = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
+          const s = String(diffSec % 60).padStart(2, '0');
+          document.title = `(${h}:${m}:${s}) Clocked In - Im'In`;
+          return;
+        }
+      }
+      document.title = "Im'In | Modern Workforce OS";
+    };
+
+    const interval = setInterval(updateTitle, 1000);
+
+    return () => {
+      unsub();
+      clearInterval(interval);
+      document.title = "Im'In | Modern Workforce OS";
+    };
+  }, [user, navigate, logout]);
 
   useEffect(() => {
     if (!user) return;
