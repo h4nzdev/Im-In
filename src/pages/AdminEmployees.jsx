@@ -39,6 +39,7 @@ export default function AdminEmployees() {
   const [positions] = useState(() => db.getPositions());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [toast, setToast] = useState('');
 
@@ -90,7 +91,17 @@ export default function AdminEmployees() {
     });
   }, [users, search, statusFilter]);
 
-  const displayedUsers = filteredUsers.slice(0, rowsPerPage);
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / rowsPerPage) || 1;
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * rowsPerPage;
+  const endIdx = startIdx + rowsPerPage;
+  const displayedUsers = filteredUsers.slice(startIdx, endIdx);
+
+  // If page is out of bounds, reset to 1
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [filteredUsers.length, totalPages, currentPage]);
 
   const stats = useMemo(() => [
     { label: 'Total Workforce',    value: users.length,                                                color: '#0f172a' },
@@ -369,7 +380,7 @@ export default function AdminEmployees() {
           </p>
           <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>Showing {displayedUsers.length} of {filteredUsers.length}</span>
         </div>
-        <div style={{ overflowX: 'auto', minHeight: 260 }}>
+        <div style={{ overflowX: 'auto', minHeight: 300, paddingBottom: 20 }}>
           <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 900, whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
@@ -459,7 +470,7 @@ export default function AdminEmployees() {
                         </button>
 
                         {openActionDropdown === u.userId && (
-                          <div className="fade-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 8, minWidth: 160, zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div className="fade-in" style={{ position: 'absolute', ...(idx >= Math.max(1, displayedUsers.length - 2) ? { bottom: 'calc(100% + 8px)' } : { top: 'calc(100% + 8px)' }), right: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 8, minWidth: 160, zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: 4 }}>
                             
                             <button onClick={() => navigate(`/profile?userId=${u.userId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: 'transparent', color: '#0f172a', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', width: '100%', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                               <Eye size={14} color="#64748b" /> View Profile
@@ -497,6 +508,43 @@ export default function AdminEmployees() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(15,23,42,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>Rows per page:</span>
+            <select 
+              value={rowsPerPage} 
+              onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(15,23,42,0.1)', outline: 'none', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', cursor: 'pointer' }}
+            >
+              {[10, 25, 50, 100].map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              Showing {startIdx + 1}-{Math.min(endIdx, filteredUsers.length)} of {filteredUsers.length}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(15,23,42,0.1)', background: safePage === 1 ? '#f8fafc' : 'white', color: safePage === 1 ? '#94a3b8' : '#0f172a', fontWeight: 700, fontSize: '0.8rem', cursor: safePage === 1 ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
+            >
+              Previous
+            </button>
+            <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 700, minWidth: 60, textAlign: 'center' }}>
+              {safePage} / {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(15,23,42,0.1)', background: safePage === totalPages ? '#f8fafc' : 'white', color: safePage === totalPages ? '#94a3b8' : '#0f172a', fontWeight: 700, fontSize: '0.8rem', cursor: safePage === totalPages ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

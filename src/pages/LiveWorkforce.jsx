@@ -12,7 +12,13 @@ export default function LiveWorkforce() {
   const [logs, setLogs] = useState(() => db.getLogs());
   const [now, setNow] = useState(Date.now());
   const [search, setSearch] = useState('');
+  const [livePresence, setLivePresence] = useState({});
   const containerRef = useRef();
+
+  useEffect(() => {
+    const unsubPresence = realtimeBus.onPresenceSync(setLivePresence);
+    return () => unsubPresence();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -45,7 +51,6 @@ export default function LiveWorkforce() {
   // Compute active status and shift times
   const activeData = useMemo(() => {
     const map = {};
-    const onlineMap = {};
 
     users.forEach(u => {
       // Find latest log for user today
@@ -53,7 +58,6 @@ export default function LiveWorkforce() {
       if (userLogs.length > 0) {
         const latest = userLogs[0];
         if (latest.type === 'IN') {
-          onlineMap[u.userId] = true;
           map[u.userId] = {
             startTime: new Date(latest.timestamp).getTime(),
             status: 'Active',
@@ -63,7 +67,7 @@ export default function LiveWorkforce() {
       }
     });
 
-    return { map, onlineMap };
+    return { map };
   }, [users, logs]);
 
   const filteredUsers = useMemo(() => {
@@ -74,7 +78,7 @@ export default function LiveWorkforce() {
       }
       return true;
     });
-  }, [users, activeData, search]);
+  }, [users, search]);
 
   const handleForceClockOut = (userId, name) => {
     showAlert(
@@ -170,7 +174,7 @@ export default function LiveWorkforce() {
               statusLabel = shiftInfo.status;
             }
 
-            const isOnline = Boolean(activeData.onlineMap[u.userId]);
+            const isOnline = Boolean(livePresence[u.userId]);
             const isOnBreak = statusLabel === 'On Break';
 
             return (

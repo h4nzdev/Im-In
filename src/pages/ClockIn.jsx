@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { realtimeBus } from '../lib/realtime';
 import { getRealAddress, calculateDistanceMeters } from '../lib/geo';
+import { showToast } from '../lib/alert';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -172,6 +173,14 @@ export default function ClockIn() {
     if (punching || isOutsideGeofence || hasNoClients) return;
     const nextType = isClockedIn ? 'OUT' : 'IN';
     
+    if (nextType === 'OUT' && lastLog?.timestamp) {
+      const diffSecs = Math.floor((Date.now() - new Date(lastLog.timestamp).getTime()) / 1000);
+      if (diffSecs < 60) {
+        showToast(`Please wait ${60 - diffSecs} seconds before clocking out.`);
+        return;
+      }
+    }
+
     if (nextType === 'IN') {
       setShiftClient(validClients[0].id);
       setShowClientModal(true);

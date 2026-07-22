@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const [logs] = useState(() => db.getLogs());
   const [leaves] = useState(() => db.getLeaves());
 
-  const [onlineMap, setOnlineMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
+  const [onlineMap, setOnlineMap] = useState({});
   const [activeShiftsMap, setActiveShiftsMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
   const [now, setNow] = useState(Date.now());
 
@@ -50,18 +50,19 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    const unsubPresence = realtimeBus.onPresenceSync(setOnlineMap);
+
     const unsub = realtimeBus.subscribe(() => {
-      setOnlineMap(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
       setActiveShiftsMap(JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
     });
 
     const t = setInterval(() => {
-      setOnlineMap(JSON.parse(localStorage.getItem('realynk_live_online_users')) || {});
       setActiveShiftsMap(JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
       setNow(Date.now());
     }, 1000);
 
     return () => {
+      unsubPresence();
       unsub();
       clearInterval(t);
     };

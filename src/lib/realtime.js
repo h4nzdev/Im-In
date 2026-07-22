@@ -4,6 +4,7 @@ const CHANNEL_NAME = 'realynk_enterprise_live_v1';
 const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL_NAME) : null;
 
 let listeners = [];
+let presenceListeners = [];
 
 function handleIncomingPayload(payload) {
   if (!payload) return;
@@ -12,21 +13,6 @@ function handleIncomingPayload(payload) {
     if (!notifs.some(n => n.id === payload.id)) {
       notifs.unshift(payload);
       localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs.slice(0, 50)));
-    }
-
-    if (payload.userId) {
-      const activeUsers = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-      if (payload.isActive || payload.type === 'LOGIN' || payload.type === 'CLOCK_IN') {
-        activeUsers[payload.userId] = {
-          userId: payload.userId,
-          name: payload.userName || payload.userId,
-          department: payload.department || 'Shared Services',
-          loginTime: Date.now()
-        };
-      } else if (payload.isActive === false || payload.type === 'LOGOUT') {
-        delete activeUsers[payload.userId];
-      }
-      localStorage.setItem('realynk_live_online_users', JSON.stringify(activeUsers));
     }
 
     if (payload.type === 'CLOCK_IN' && payload.userId) {
@@ -53,14 +39,36 @@ function handleIncomingPayload(payload) {
 }
 
 let supaChannel = null;
+let currentPresenceKey = null;
+
 if (isSupabaseConfigured && supabase) {
+  const existing = supabase.getChannels().find(c => c.topic === `realtime:${CHANNEL_NAME}`);
+  if (existing) {
+    supabase.removeChannel(existing);
+  }
+
   supaChannel = supabase.channel(CHANNEL_NAME, {
-    config: { broadcast: { self: true } }
-  })
-  .on('broadcast', { event: 'realynk_alert' }, (res) => {
-    handleIncomingPayload(res.payload);
-  })
-  .subscribe();
+    config: { 
+      broadcast: { self: true },
+      presence: { key: 'temp_key' } // will be overridden in track()
+    }
+  });
+
+  supaChannel
+    .on('broadcast', { event: 'realynk_alert' }, (res) => {
+      handleIncomingPayload(res.payload);
+    })
+    .on('presence', { event: 'sync' }, () => {
+      const state = supaChannel.presenceState();
+      const onlineMap = {};
+      for (const [key, presences] of Object.entries(state)) {
+        if (presences.length > 0) {
+          onlineMap[key] = presences[0];
+        }
+      }
+      presenceListeners.forEach(cb => cb(onlineMap));
+    })
+    .subscribe();
 }
 
 if (bc) {
@@ -71,15 +79,10 @@ if (bc) {
 
 export const realtimeBus = {
   broadcast: (eventData) => {
-    // 1. Process locally first
     handleIncomingPayload(eventData);
-
-    // 2. BroadcastChannel (cross-tab in same browser profile)
     if (bc) {
       try { bc.postMessage(eventData); } catch (e) {}
     }
-
-    // 3. Supabase Cloud Broadcast (cross-browser / cross-device across internet)
     if (supaChannel && isSupabaseConfigured) {
       supaChannel.send({
         type: 'broadcast',
@@ -93,6 +96,39 @@ export const realtimeBus = {
     listeners.push(callback);
     return () => {
       listeners = listeners.filter(cb => cb !== callback);
+    };
+  },
+
+  trackPresence: async (userId, userInfo) => {
+    if (supaChannel && isSupabaseConfigured) {
+      try {
+        await supaChannel.track({
+          userId: userId,
+          name: userInfo.name || userId,
+          department: userInfo.department || 'Shared Services',
+          onlineAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error('Failed to track presence:', err);
+      }
+    }
+  },
+
+  onPresenceSync: (callback) => {
+    presenceListeners.push(callback);
+    // Return current state immediately if available
+    if (supaChannel && isSupabaseConfigured) {
+      const state = supaChannel.presenceState();
+      const onlineMap = {};
+      for (const [key, presences] of Object.entries(state)) {
+        if (presences.length > 0) {
+          onlineMap[key] = presences[0];
+        }
+      }
+      callback(onlineMap);
+    }
+    return () => {
+      presenceListeners = presenceListeners.filter(cb => cb !== callback);
     };
   }
 };

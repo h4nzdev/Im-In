@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { db, SERVICE_DELIVERY_ACCOUNTS } from '../lib/db';
 import realynkLogo from '../assets/realynk.png';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -43,9 +44,24 @@ export default function Signup() {
 
     const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
     
-    scanner.render((decodedText) => {
+    scanner.render(async (decodedText) => {
+      const scannedCode = decodedText.trim().toUpperCase();
       const codes = db.getInviteCodes();
-      const validCode = codes.find(c => c.code === decodedText.trim().toUpperCase() && c.status === 'Active');
+      let validCode = codes.find(c => c.code === scannedCode && c.status === 'Active');
+      
+      // Fallback to Supabase if not found locally (realtime gap)
+      if (!validCode && isSupabaseConfigured && supabase) {
+        try {
+          const { data } = await supabase.from('invite_codes').select('*').eq('code', scannedCode).eq('status', 'Active').maybeSingle();
+          if (data) {
+            validCode = { code: data.code, status: data.status, generatedAt: data.generated_at, usedBy: data.used_by };
+            db.addInviteCode(validCode);
+          }
+        } catch (e) {
+          console.error('Supabase QR check error:', e);
+        }
+      }
+
       if (validCode) {
         setForm(f => ({ ...f, inviteCode: validCode.code }));
         setIsIdVerified(true);
@@ -340,7 +356,7 @@ export default function Signup() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                     <button
                       type="button"
                       onClick={() => setActiveTab('IDENTITY')}
@@ -352,9 +368,9 @@ export default function Signup() {
                       type="submit"
                       disabled={loading || (form.email && !validateEmailDomain(form.email))}
                       className="btn-primary"
-                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', opacity: 1 }}
+                      style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.85rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', opacity: 1, minWidth: 0, gap: 6 }}
                     >
-                      {loading ? 'Registering...' : 'Submit Registration'}
+                      {loading ? 'Registering...' : 'Submit Registration'} <CheckCircle2 size={16} />
                     </button>
                   </div>
                 </div>

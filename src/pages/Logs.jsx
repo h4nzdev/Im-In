@@ -121,6 +121,40 @@ export default function Logs() {
     document.body.removeChild(link);
   };
 
+  const handleArchive = () => {
+    if (selectedLogIds.size === 0) return;
+    const ids = Array.from(selectedLogIds);
+    db.archiveLogs(ids);
+    setAllLogs(db.getLogs());
+    setSelectedLogIds(new Set());
+    setIsSelectMode(false);
+    showSuccess(`Successfully archived ${ids.length} logs.`);
+  };
+
+  const handleRestore = () => {
+    if (selectedLogIds.size === 0) return;
+    const ids = Array.from(selectedLogIds);
+    db.restoreLogs(ids);
+    setAllLogs(db.getLogs());
+    setSelectedLogIds(new Set());
+    setIsSelectMode(false);
+    showSuccess(`Successfully restored ${ids.length} logs.`);
+  };
+
+  const handlePermanentDelete = () => {
+    if (selectedLogIds.size === 0) return;
+    const ids = Array.from(selectedLogIds);
+    showDeleteConfirm(`Delete ${ids.length} logs permanently?`, 'This action cannot be undone.').then(confirmed => {
+      if (confirmed) {
+        db.deleteArchivedLogs(ids);
+        setAllLogs(db.getLogs());
+        setSelectedLogIds(new Set());
+        setIsSelectMode(false);
+        showSuccess(`Permanently deleted ${ids.length} logs.`);
+      }
+    });
+  };
+
   return (
     <div ref={containerRef}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>

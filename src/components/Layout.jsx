@@ -144,15 +144,20 @@ function AdminNotificationHeader() {
         </button>
 
         {showDropdown && (
-          <div className="card glass" style={{
-            position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 370,
-            borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
-            border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 200
-          }}>
-            <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
-              <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {unreadCount > 0 && (
+          <>
+            <div 
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 199, cursor: 'default' }}
+              onClick={() => setShowDropdown(false)}
+            />
+            <div className="card glass" style={{
+              position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 370,
+              borderRadius: 20, background: 'white', boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
+              border: '1px solid rgba(15,23,42,0.1)', overflow: 'hidden', zIndex: 200
+            }}>
+              <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>Realtime Notifications</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {unreadCount > 0 && (
                   <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#054daf', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
                     Mark Read
                   </button>
@@ -204,6 +209,7 @@ function AdminNotificationHeader() {
               )}
             </div>
           </div>
+          </>
         )}
       </div>
     </header>
@@ -240,6 +246,9 @@ export default function Layout() {
   useEffect(() => {
     if (!user) return;
     
+    // 0. Track Presence for Live Roster
+    realtimeBus.trackPresence(user.userId, user);
+
     // 1. Listen for Admin Force Logout
     const unsub = realtimeBus.subscribe((payload) => {
       if (payload && payload.type === 'ADMIN_FORCE_LOGOUT' && payload.targetUserId === user.userId) {

@@ -366,7 +366,7 @@ export default function Profile() {
                 <h2 style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Personal Attendance Summary</h2>
                 <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '2px 0 0', fontWeight: 600 }}>Accumulated work hours & biometric event history</p>
               </div>
-              <span style={{ padding: '4px 12px', borderRadius: 20, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.75rem' }}>
+              <span style={{ padding: '4px 12px', borderRadius: 20, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                 Verified Records
               </span>
             </div>

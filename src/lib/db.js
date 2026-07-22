@@ -533,6 +533,14 @@ export const db = {
     }
     return l;
   },
+  restoreLogs: (logIds) => {
+    const l = get('logs').map(x => logIds.includes(x.logId) ? { ...x, isArchived: false } : x);
+    save('logs', l);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('attendance_logs').update({ is_archived: false }).in('log_id', logIds).then();
+    }
+    return l;
+  },
   deleteArchivedLogs: (logIds) => {
     const l = get('logs').filter(x => !logIds.includes(x.logId));
     save('logs', l);
