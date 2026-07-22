@@ -279,6 +279,53 @@ export const db = {
     return updated;
   },
 
+  archiveLogs: (logIds) => {
+    const l = get('logs').map(x => logIds.includes(x.logId) ? { ...x, isArchived: true } : x);
+    save('logs', l);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('attendance_logs').update({ is_archived: true }).in('log_id', logIds).then();
+    }
+    return l;
+  },
+  deleteArchivedLogs: (logIds) => {
+    const l = get('logs').filter(x => !logIds.includes(x.logId));
+    save('logs', l);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('attendance_logs').delete().in('log_id', logIds).then();
+    }
+    return l;
+  },
+
+  // Aggregated Hours
+  getAggregatedHours: (userId) => {
+    const agg = get('aggregated_hours') || [];
+    return userId ? agg.filter(a => a.userId === userId) : agg;
+  },
+  addAggregatedHour: (userId, date, hours, clientId = null) => {
+    const agg = get('aggregated_hours') || [];
+    const newRecord = {
+      id: `AGG-${Date.now()}`,
+      userId,
+      date,
+      hours,
+      clientId,
+      timestamp: new Date().toISOString()
+    };
+    agg.push(newRecord);
+    save('aggregated_hours', agg);
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('aggregated_hours').insert([{
+        id: newRecord.id,
+        user_id: userId,
+        date: date,
+        hours: hours,
+        client_id: clientId,
+        timestamp: newRecord.timestamp
+      }]).then();
+    }
+    return newRecord;
+  },
+
   // EOD Reports
   getReports: () => get('reports'),
   addReport: (report) => {
