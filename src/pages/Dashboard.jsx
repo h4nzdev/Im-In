@@ -57,6 +57,8 @@ export default function Dashboard() {
 
   // Remote / Exception Clock-In Request States
   const [showRemoteModal, setShowRemoteModal] = useState(false);
+  const [showEODModal, setShowEODModal] = useState(false);
+  const [eodReportText, setEodReportText] = useState('');
   const [remoteCategory, setRemoteCategory] = useState('Remote Work / Work From Home (WFH)');
   const [remoteNote, setRemoteNote] = useState('');
   const [remoteAttachCheck, setRemoteAttachCheck] = useState(true);
@@ -134,6 +136,17 @@ export default function Dashboard() {
   const handlePunch = () => {
     if (punching || isOutsideGeofence || hasNoClients) return;
     setError('');
+
+    if (isClockedIn) {
+      // Intercept clock out to require EOD report
+      setShowEODModal(true);
+      return;
+    }
+
+    executePunch('IN');
+  };
+
+  const executePunch = (type, reportText = null) => {
     setPunching(true);
     gsap.to(btnRef.current, { scale: 0.93, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' });
 
@@ -142,12 +155,28 @@ export default function Dashboard() {
       db.addLog({
         logId: `LOG-${Date.now()}`,
         userId: user.userId,
-        type: isClockedIn ? 'OUT' : 'IN',
+        type: type,
         timestamp: new Date().toISOString(),
         latitude: lat,
         longitude: lng, address,
         deviceInfo: navigator.userAgent.slice(0, 80),
       });
+      if (type === 'OUT' && lastLog && lastLog.type === 'IN') {
+        const start = new Date(lastLog.timestamp);
+        const nowObj = new Date();
+        const diffMs = nowObj - start;
+        const hours = diffMs / (1000 * 60 * 60);
+        if (hours > 0) {
+          db.addAggregatedHour(user.userId, nowObj.toISOString().split('T')[0], hours);
+        }
+      }
+      if (reportText) {
+        db.addReport({
+          userId: user.userId,
+          content: reportText,
+          date: new Date().toLocaleDateString()
+        });
+      }
       if (lat && lng) setLocation({ lat, lng });
       setLogs(db.getUserLogs(user.userId));
       setPunching(false);
@@ -162,6 +191,13 @@ export default function Dashboard() {
     } else {
       punch(14.5995, 120.9842);
     }
+  };
+
+  const submitEODReport = (e) => {
+    if (e) e.preventDefault();
+    setShowEODModal(false);
+    executePunch('OUT', eodReportText);
+    setEodReportText('');
   };
 
   const handleRemoteSubmit = (e) => {
@@ -712,6 +748,52 @@ export default function Dashboard() {
 
       {/* Todo List Feature */}
       <TodosWidget />
+      {/* EOD Report Modal */}
+      {showEODModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(6px)' }} onClick={() => setShowEODModal(false)} />
+          <div className="fade-in card glass" style={{ position: 'relative', width: '90%', maxWidth: 500, padding: 32, borderRadius: 28, boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(5, 77, 175, 0.15)', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>End of Shift Report</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Please summarize your accomplishments.</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowEODModal(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={submitEODReport} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase' }}>
+                  Shift Accomplishments
+                </label>
+                <textarea
+                  value={eodReportText}
+                  onChange={e => setEodReportText(e.target.value)}
+                  required
+                  placeholder="What did you complete today? Any blockers?"
+                  style={{ width: '100%', minHeight: 120, padding: '14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#0f172a', outline: 'none', background: 'white', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                <button type="button" onClick={() => setShowEODModal(false)} style={{ flex: 1, padding: '14px', borderRadius: 14, background: '#f1f5f9', color: '#475569', border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={punching || submittingRemote} style={{ flex: 2, padding: '14px', borderRadius: 14, background: '#054daf', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: (punching || submittingRemote) ? 'not-allowed' : 'pointer', opacity: (punching || submittingRemote) ? 0.7 : 1, transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(5,77,175,0.3)' }}>
+                  {(punching || submittingRemote) ? 'Processing...' : 'Submit & Clock Out'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

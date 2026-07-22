@@ -44,6 +44,7 @@ export default function Logs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedLogIds, setSelectedLogIds] = useState(new Set());
+  const [isViewingArchived, setIsViewingArchived] = useState(false);
   const containerRef = useRef();
 
   useEffect(() => {
@@ -66,7 +67,9 @@ export default function Logs() {
       ? allLogs.filter(l => l.userId === user.userId || managedTeam.includes(l.userId))
       : allLogs.filter(l => l.userId === user.userId);
 
-  const filteredLogs = baseLogs.filter(log => {
+  const archiveFilteredLogs = baseLogs.filter(l => isViewingArchived ? l.isArchived : !l.isArchived);
+
+  const filteredLogs = archiveFilteredLogs.filter(log => {
     if (userFilter !== 'ALL' && log.userId !== userFilter) return false;
     if (typeFilter !== 'ALL' && log.type !== typeFilter) return false;
     if (search.trim()) {
@@ -120,6 +123,23 @@ export default function Logs() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {isAdmin && (
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(15,23,42,0.05)', padding: 4, borderRadius: 14 }}>
+              <button 
+                onClick={() => { setIsViewingArchived(false); setIsSelectMode(false); setSelectedLogIds(new Set()); }}
+                style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: !isViewingArchived ? 'white' : 'transparent', color: !isViewingArchived ? '#0f172a' : '#64748b', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', boxShadow: !isViewingArchived ? '0 2px 8px rgba(15,23,42,0.05)' : 'none', transition: 'all 0.2s' }}
+              >
+                Active
+              </button>
+              <button 
+                onClick={() => { setIsViewingArchived(true); setIsSelectMode(false); setSelectedLogIds(new Set()); }}
+                style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: isViewingArchived ? 'white' : 'transparent', color: isViewingArchived ? '#0f172a' : '#64748b', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', boxShadow: isViewingArchived ? '0 2px 8px rgba(15,23,42,0.05)' : 'none', transition: 'all 0.2s' }}
+              >
+                Archived
+              </button>
+            </div>
+          )}
+
           {isAdmin && !isSelectMode && (
             <button
               type="button"
@@ -131,7 +151,7 @@ export default function Logs() {
                 boxShadow: '0 2px 10px rgba(225,29,72,0.06)', transition: 'all 0.2s'
               }}
             >
-              <Trash2 size={16} /> Delete / Purge Logs
+              <Trash2 size={16} /> {isViewingArchived ? 'Select to Delete/Restore' : 'Select to Archive'}
             </button>
           )}
 
@@ -151,7 +171,7 @@ export default function Logs() {
         </div>
       </div>
 
-      {/* Bulk Delete / Purge Action Banner */}
+      {/* Bulk Action Banner */}
       {isAdmin && isSelectMode && (
         <div className="card glass fade-in" style={{
           padding: '16px 22px', borderRadius: 20, marginBottom: 18,
@@ -165,13 +185,13 @@ export default function Logs() {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Bulk Purge & Deletion Checklist</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{isViewingArchived ? 'Archived Action Checklist' : 'Bulk Archive Checklist'}</span>
                 <span style={{ background: '#ffe4e6', color: '#9f1239', padding: '2px 8px', borderRadius: 10, fontSize: '0.72rem', fontWeight: 800 }}>
                   {selectedLogIds.size} of {filteredLogs.length} Selected
                 </span>
               </div>
               <p style={{ margin: '2px 0 0', fontSize: '0.88rem', fontWeight: 700, color: '#881337' }}>
-                Check records below to delete individually, check all, or purge the entire attendance database.
+                {isViewingArchived ? 'Select archived records below to permanently delete them or restore them.' : 'Select records below to archive them. Archived records will not break total hours.'}
               </p>
             </div>
           </div>
@@ -199,33 +219,53 @@ export default function Logs() {
               )}
             </button>
 
-            <button
-              type="button"
-              disabled={selectedLogIds.size === 0}
-              onClick={async () => {
-                if (selectedLogIds.size === 0) return;
-                const confirmed = await showDeleteConfirm({
-                  title: `Delete ${selectedLogIds.size} Log(s)?`,
-                  text: 'The selected biometric attendance logs will be permanently removed.',
-                  confirmButtonText: `🗑️ Yes, Delete (${selectedLogIds.size})`
-                });
-                if (confirmed) {
-                  selectedLogIds.forEach(id => db.deleteLog(id));
-                  const updated = db.getLogs();
-                  setAllLogs(updated);
-                  setSelectedLogIds(new Set());
-                  showSuccess('Records Deleted!', `Successfully removed ${selectedLogIds.size} attendance log(s).`);
-                }
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 12,
-                background: selectedLogIds.size > 0 ? '#e11d48' : '#cbd5e1', color: 'white', border: 'none',
-                fontWeight: 800, fontSize: '0.82rem', cursor: selectedLogIds.size > 0 ? 'pointer' : 'not-allowed',
-                boxShadow: selectedLogIds.size > 0 ? '0 4px 12px rgba(225,29,72,0.3)' : 'none', transition: 'all 0.2s'
-              }}
-            >
-              <Trash2 size={16} /> Delete Selected ({selectedLogIds.size})
-            </button>
+            {isViewingArchived ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  disabled={selectedLogIds.size === 0}
+                  onClick={handleRestore}
+                  style={{
+                    padding: '10px 16px', borderRadius: 10,
+                    background: selectedLogIds.size > 0 ? '#10b981' : 'rgba(16,185,129,0.5)',
+                    color: 'white', fontWeight: 800, border: 'none', cursor: selectedLogIds.size > 0 ? 'pointer' : 'not-allowed',
+                    boxShadow: selectedLogIds.size > 0 ? '0 4px 12px rgba(16,185,129,0.3)' : 'none',
+                    display: 'flex', alignItems: 'center', gap: 8
+                  }}
+                >
+                  Restore Logs
+                </button>
+                <button
+                  type="button"
+                  disabled={selectedLogIds.size === 0}
+                  onClick={handlePermanentDelete}
+                  style={{
+                    padding: '10px 16px', borderRadius: 10,
+                    background: selectedLogIds.size > 0 ? '#be123c' : 'rgba(190,18,60,0.5)',
+                    color: 'white', fontWeight: 800, border: 'none', cursor: selectedLogIds.size > 0 ? 'pointer' : 'not-allowed',
+                    boxShadow: selectedLogIds.size > 0 ? '0 4px 12px rgba(190,18,60,0.3)' : 'none',
+                    display: 'flex', alignItems: 'center', gap: 8
+                  }}
+                >
+                  <Trash2 size={16} /> Permanent Delete
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={selectedLogIds.size === 0}
+                onClick={handleArchive}
+                style={{
+                  padding: '10px 16px', borderRadius: 10,
+                  background: selectedLogIds.size > 0 ? '#be123c' : 'rgba(190,18,60,0.5)',
+                  color: 'white', fontWeight: 800, border: 'none', cursor: selectedLogIds.size > 0 ? 'pointer' : 'not-allowed',
+                  boxShadow: selectedLogIds.size > 0 ? '0 4px 12px rgba(190,18,60,0.3)' : 'none',
+                  display: 'flex', alignItems: 'center', gap: 8
+                }}
+              >
+                Archive Selected
+              </button>
+            )}
 
             <button
               type="button"

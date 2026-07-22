@@ -279,6 +279,16 @@ export const db = {
     return updated;
   },
 
+  // EOD Reports
+  getReports: () => get('reports'),
+  addReport: (report) => {
+    const r = get('reports');
+    const newReport = { ...report, reportId: `REP-${Date.now()}`, timestamp: new Date().toISOString() };
+    r.push(newReport);
+    save('reports', r);
+    return newReport;
+  },
+
   // Leaves
   getLeaves:       ()         => get('leaves'),
   getUserLeaves:   (uid)      => get('leaves').filter(l => l.userId === uid),

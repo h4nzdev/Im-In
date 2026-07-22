@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone, Clock, Calendar, Briefcase, Mail, Award, MapPin, UserCheck, Activity, Lock } from 'lucide-react';
+import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone, Clock, Calendar, Briefcase, Mail, Award, MapPin, UserCheck, Activity, Lock, FileText } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { showSuccess } from '../lib/alert';
@@ -137,13 +137,9 @@ export default function Profile() {
   };
 
   const totalHoursLogged = () => {
-    const sorted = [...logs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    let ms = 0, openIn = null;
-    sorted.forEach(l => {
-      if (l.type === 'IN') openIn = l;
-      else if (openIn) { ms += new Date(l.timestamp) - new Date(openIn.timestamp); openIn = null; }
-    });
-    return (ms / 3600000).toFixed(1);
+    const agg = db.getAggregatedHours(user.userId) || [];
+    const total = agg.reduce((acc, curr) => acc + (curr.hours || 0), 0);
+    return total.toFixed(1);
   };
 
   const initials = (user?.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
@@ -373,6 +369,20 @@ export default function Profile() {
                 Verified Records
               </span>
             </div>
+
+            <button 
+              onClick={() => navigate(`/user-reports?userId=${user.userId}`)}
+              style={{
+                width: '100%', padding: '12px 16px', borderRadius: 14, border: 'none',
+                background: 'rgba(5, 77, 175, 0.08)', color: '#054daf', fontWeight: 800, fontSize: '0.9rem',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                marginBottom: 20, transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5, 77, 175, 0.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(5, 77, 175, 0.08)'; }}
+            >
+              <FileText size={18} /> View Comprehensive Reports
+            </button>
 
             <div className="profile-stats-grid">
               {[

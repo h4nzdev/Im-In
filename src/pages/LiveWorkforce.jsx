@@ -86,15 +86,18 @@ export default function LiveWorkforce() {
       'warning'
     ).then((confirmed) => {
       if (confirmed) {
-        const newLog = db.addLog({
+        db.addLog({
+          logId: `LOG-${Date.now()}`,
           userId,
-          type: 'Clock Out',
-          status: 'Force Logged Out by Admin'
+          type: 'OUT',
+          timestamp: new Date().toISOString(),
+          status: 'Force Logged Out by Admin',
+          latitude: 14.5995,
+          longitude: 120.9842,
+          deviceInfo: 'Admin Force Clock Out'
         });
-        if (newLog) {
-          setLogs(db.getLogs());
-          showToast(`Forced Clock Out applied to ${name}`);
-        }
+        setLogs(db.getLogs());
+        showToast(`Forced Clock Out applied to ${name}`);
       }
     });
   };

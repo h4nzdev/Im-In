@@ -25,6 +25,7 @@ const MyTeam = lazy(() => import('./pages/MyTeam'));
 const LiveWorkforce = lazy(() => import('./pages/LiveWorkforce'));
 const AdminPreRegistration = lazy(() => import('./pages/AdminPreRegistration'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
+const UserReports = lazy(() => import('./pages/UserReports'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -146,6 +147,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin/clients',
         element: wrap(<ProtectedRoute element={<AdminClients />} requireAdmin />),
+      },
+      {
+        path: 'user-reports',
+        element: wrap(<ProtectedRoute element={<UserReports />} />),
       },
       {
         path: 'profile',
