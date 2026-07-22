@@ -1,19 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { ShieldCheck, ArrowRight, Building2, Briefcase, Mail, Key, User, AlertCircle, Sparkles, LogIn, Eye, EyeOff, Info, CheckCircle2, ChevronRight, ChevronLeft, Layers } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Building2, Briefcase, Mail, Key, User, AlertCircle, Sparkles, LogIn, Eye, EyeOff, Info, CheckCircle2, ChevronRight, ChevronLeft, QrCode } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db, SERVICE_DELIVERY_ACCOUNTS } from '../lib/db';
 import realynkLogo from '../assets/realynk.png';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function Signup() {
   const navigate = useNavigate();
   const signup = useAuthStore((s) => s.signup);
   const user = useAuthStore((s) => s.user);
-  const [activeTab, setActiveTab] = useState('IDENTITY'); // 'IDENTITY' | 'CREDENTIALS'
+  const [activeTab, setActiveTab] = useState('IDENTITY');
   const [form, setForm] = useState({
+    inviteCode: '',
     name: '',
-    employeeId: '',
     department: 'Shared Services',
     assignedAccount: '',
     email: '',
@@ -27,6 +28,7 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isIdVerified, setIsIdVerified] = useState(false);
   const [idStatusMsg, setIdStatusMsg] = useState('');
+  const [assignedId, setAssignedId] = useState('');
   const cardRef = useRef();
 
   useEffect(() => {
@@ -36,35 +38,30 @@ export default function Signup() {
     return () => ctx.revert();
   }, [submitted]);
 
+  useEffect(() => {
+    if (activeTab !== 'IDENTITY' || isIdVerified || submitted) return;
+
+    const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+    
+    scanner.render((decodedText) => {
+      const codes = db.getInviteCodes();
+      const validCode = codes.find(c => c.code === decodedText.trim().toUpperCase() && c.status === 'Active');
+      if (validCode) {
+        setForm(f => ({ ...f, inviteCode: validCode.code }));
+        setIsIdVerified(true);
+        setIdStatusMsg('✓ Secure QR Code Scanned & Verified!');
+        scanner.clear();
+      } else {
+        setIdStatusMsg('! Invalid or Expired QR Code');
+      }
+    }, (err) => { /* ignore */ });
+
+    return () => {
+      scanner.clear().catch(console.error);
+    };
+  }, [activeTab, isIdVerified, submitted]);
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleVerifyId = () => {
-    const id = form.employeeId.trim().toUpperCase();
-    if (!id) return;
-    const preReg = db.getPreRegisteredIds().find(r => r.employeeId === id);
-    if (preReg) {
-      setForm(f => ({ ...f, name: preReg.name, department: preReg.department, email: preReg.email || f.email }));
-      setIsIdVerified(true);
-      setIdStatusMsg('✓ ID Verified: Auto-filled securely from corporate directory.');
-    } else {
-      setIsIdVerified(false);
-      setIdStatusMsg('! ID not pre-registered. Proceeding requires manual Admin verification.');
-    }
-  };
-
-  const handleDemoFill = () => {
-    const randomBadge = `RLK-${Math.floor(1000 + Math.random() * 9000)}`;
-    setForm({
-      name: 'Johnathan Vance',
-      employeeId: randomBadge,
-      department: 'Service Delivery',
-      assignedAccount: 'FinTech Global Support',
-      email: `j.vance.${randomBadge.slice(4)}@realynk.com`,
-      password: 'password123',
-      positionId: positions[1]?.positionId || positions[0]?.positionId || 'POS-002'
-    });
-    setError('');
-  };
 
   const validateEmailDomain = (email) => {
     return /^[^@]+@(realynk\.com|realynk\.net)$/i.test(email.trim());
@@ -73,8 +70,8 @@ export default function Signup() {
   const handleNextTab = (e) => {
     e.preventDefault();
     setError('');
+    if (!isIdVerified) { setError('Please scan a valid registration QR code first'); return; }
     if (!form.name.trim()) { setError('Employee Name is required'); return; }
-    if (!form.employeeId.trim()) { setError('Employee ID is required'); return; }
     if (form.department === 'Service Delivery' && !form.assignedAccount) {
       setError('Please select an assigned account/campaign for Service Delivery');
       return;
@@ -86,8 +83,8 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
+    if (!isIdVerified) { setError('Please scan a valid registration QR code first'); setActiveTab('IDENTITY'); return; }
     if (!form.name.trim()) { setError('Employee Name is required'); setActiveTab('IDENTITY'); return; }
-    if (!form.employeeId.trim()) { setError('Employee ID is required'); setActiveTab('IDENTITY'); return; }
     if (!validateEmailDomain(form.email)) {
       setError('Invalid corporate email domain. Must end with @realynk.com or @realynk.net');
       return;
@@ -102,15 +99,17 @@ export default function Signup() {
 
     setLoading(true);
     try {
+      const generatedId = `RLK-${Math.floor(1000 + Math.random() * 9000)}`;
+      setAssignedId(generatedId);
+      
       signup({
         ...form,
         email: form.email.trim().toLowerCase(),
-        employeeId: form.employeeId.trim().toUpperCase(),
-        status: isIdVerified ? 'Active' : 'Pending'
+        employeeId: generatedId,
+        status: 'Pending'
       });
-      if (isIdVerified) {
-        db.updatePreRegisteredStatus(form.employeeId.trim().toUpperCase(), 'Registered');
-      }
+      
+      db.markInviteCodeUsed(form.inviteCode, generatedId);
       setSubmitted(true);
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -126,7 +125,7 @@ export default function Signup() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', background: '#f8fafc' }}>
       <div ref={cardRef} className="glass" style={{ width: '100%', maxWidth: 510, borderRadius: 28, padding: '34px 36px', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
-
+        
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', boxShadow: '0 8px 24px rgba(16,185,129,0.25)' }}>
@@ -136,46 +135,33 @@ export default function Signup() {
               Registration Submitted!
             </h2>
             <p style={{ color: '#475569', fontSize: '0.92rem', lineHeight: 1.55, margin: '0 0 24px' }}>
-              Corporate credentials for <b>{form.email}</b> (Badge: <b>{form.employeeId}</b>) have been registered under <b>{form.department}</b>. An executive administrator will verify your profile before login activation.
+              Corporate credentials for <b>{form.email}</b> have been registered under <b>{form.department}</b>.
+              <br/><br/>
+              Your auto-generated Employee ID is:
             </p>
-            <button 
-              onClick={() => navigate('/login')}
-              style={{
-                width: '100%', padding: '14px 22px', background: '#054daf',
-                color: 'white', fontWeight: 800, borderRadius: 16, border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: '0.96rem',
-                boxShadow: '0 6px 20px rgba(5, 77, 175,0.35)', transition: 'all 0.2s'
-              }}
-            >
-              Return to Login Portal <ArrowRight size={18} />
-            </button>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#054daf', background: '#eff6ff', padding: '12px 24px', borderRadius: 16, border: '2px dashed #93c5fd', margin: '0 auto 24px', display: 'inline-block', letterSpacing: '0.1em' }}>
+              {assignedId}
+            </div>
+            <p style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: 700, margin: '0 0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <AlertCircle size={16}/> Your account is pending Admin verification. You cannot login yet.
+            </p>
+            <Link to="/login" className="btn-primary" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 14, background: '#0f172a', color: 'white', fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 14px rgba(15,23,42,0.25)' }}>
+              Return to Login
+            </Link>
           </div>
         ) : (
           <>
-            <div className="field" style={{ textAlign: 'center', marginBottom: 20 }}>
-              <img src={realynkLogo} alt="Realynk" style={{ height: 44, width: 'auto', margin: '0 auto 8px', display: 'block' }} />
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#054daf', marginBottom: 2 }}>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <img src={realynkLogo} alt="Realynk" style={{ height: 42, marginBottom: 16 }} />
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#054daf', letterSpacing: '-0.5px' }}>
                 Join Realynk Enterprise
               </div>
-              <p style={{ color: '#64748b', fontSize: '0.84rem', fontWeight: 600, margin: 0 }}>Create your corporate biometric onboarding profile</p>
+              <p style={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 600, marginTop: 6 }}>
+                Create your corporate biometric onboarding profile
+              </p>
             </div>
 
-            <div className="field" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-              <button
-                type="button"
-                onClick={handleDemoFill}
-                style={{
-                  background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1px solid #bfdbfe',
-                  color: '#043e8a', padding: '6px 14px', borderRadius: 12, fontWeight: 800, fontSize: '0.76rem',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(5, 77, 175,0.1)'
-                }}
-              >
-                <Sparkles size={14} /> Auto-Fill Demo Credentials
-              </button>
-            </div>
-
-            {/* Tab Header Navigation */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: 4, background: '#f1f5f9', borderRadius: 14, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               <button
                 type="button"
                 onClick={() => setActiveTab('IDENTITY')}
@@ -192,13 +178,10 @@ export default function Signup() {
               </button>
               <button
                 type="button"
+                disabled={!isIdVerified}
                 onClick={() => {
-                  if (!form.name.trim() || !form.employeeId.trim()) {
-                    setError('Please complete identity fields first');
-                    return;
-                  }
                   setError('');
-                  setActiveTab('CREDENTIALS');
+                  if (isIdVerified) setActiveTab('CREDENTIALS');
                 }}
                 style={{
                   padding: '10px 12px', borderRadius: 11, border: 'none', cursor: 'pointer',
@@ -206,7 +189,8 @@ export default function Signup() {
                   color: activeTab === 'CREDENTIALS' ? '#054daf' : '#64748b',
                   fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   boxShadow: activeTab === 'CREDENTIALS' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  opacity: !isIdVerified ? 0.5 : 1
                 }}
               >
                 <Key size={15} /> <span style={{ whiteSpace: 'nowrap' }}>2. Credentials</span>
@@ -215,96 +199,95 @@ export default function Signup() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               
-              {/* Tab 1: Identity & Division */}
+              {/* Tab 1: Identity */}
               {activeTab === 'IDENTITY' && (
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee ID</label>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        <input type="text" value={form.employeeId} onChange={e => { set('employeeId', e.target.value); setIsIdVerified(false); setIdStatusMsg(''); }} onBlur={handleVerifyId} placeholder="e.g. RLK-2026" required style={{ flex: '1 1 120px', width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none', textTransform: 'uppercase' }} />
-                        <button type="button" onClick={handleVerifyId} style={{ flex: '1 1 auto', padding: '11px 16px', borderRadius: 12, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 800, cursor: 'pointer' }}>Verify</button>
-                      </div>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee Name</label>
-                      <input type="text" value={form.name} onChange={e => set('name', e.target.value)} disabled={isIdVerified} placeholder="Full Name" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', background: isIdVerified ? '#f8fafc' : 'white', fontSize: '0.88rem', fontWeight: 600, outline: 'none', color: isIdVerified ? '#64748b' : '#0f172a' }} />
-                    </div>
-                  </div>
                   
-                  {idStatusMsg && (
-                    <div className="fade-in" style={{ padding: '8px 12px', borderRadius: 10, background: isIdVerified ? '#ecfdf5' : '#fffbeb', border: isIdVerified ? '1px solid #a7f3d0' : '1px solid #fde68a', color: isIdVerified ? '#059669' : '#d97706', fontSize: '0.8rem', fontWeight: 700, marginTop: -6 }}>
-                      {idStatusMsg}
-                    </div>
-                  )}
-
-                  <div>
-                    <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Department / Division Designation</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-                      {[
-                        { id: 'Shared Services', label: 'Shared Services', sub: 'Non-Ops & Support Team', icon: Building2 },
-                        { id: 'Service Delivery', label: 'Service Delivery', sub: 'Operations & Campaigns', icon: Briefcase }
-                      ].map(item => {
-                        const Icon = item.icon;
-                        const isSelected = form.department === item.id;
-                        return (
-                          <button
-                            type="button"
-                            key={item.id}
-                            onClick={() => {
-                              set('department', item.id);
-                              if (item.id === 'Shared Services') set('assignedAccount', '');
-                            }}
-                            style={{
-                              padding: '12px 14px', borderRadius: 14,
-                              border: isSelected ? '2px solid #054daf' : '1px solid #cbd5e1',
-                              background: isSelected ? 'rgba(5, 77, 175,0.08)' : 'white',
-                              color: isSelected ? '#043e8a' : '#64748b',
-                              fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', transition: 'all 0.15s',
-                              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <Icon size={16} /> {item.label}
-                            </span>
-                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#033373' : '#64748b', opacity: 0.9, textAlign: 'center' }}>
-                              {item.sub}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 12, background: form.department === 'Service Delivery' ? '#eff6ff' : '#f8fafc', border: form.department === 'Service Delivery' ? '1px solid #bfdbfe' : '1px solid #e2e8f0', fontSize: '0.75rem', color: '#334155', lineHeight: 1.4, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <Info size={16} color="#054daf" flexShrink={0} style={{ marginTop: 1 }} />
-                      {form.department === 'Service Delivery' ? (
-                        <span><strong>Service Delivery (Operations):</strong> Select this if you are working directly on client accounts and billable customer campaigns.</span>
-                      ) : (
-                        <span><strong>Shared Services (Non-Operations):</strong> Select this if you are internal corporate staff (HR, IT, Accounting, Recruitment, Internal Ops).</span>
+                  {!isIdVerified ? (
+                    <div style={{ background: '#fff', border: '2px dashed #cbd5e1', borderRadius: 16, padding: '16px', textAlign: 'center' }}>
+                      <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <QrCode size={18} color="#054daf"/> Scan Registration QR
+                      </h3>
+                      <div id="qr-reader" style={{ width: '100%', maxWidth: 400, margin: '0 auto', overflow: 'hidden', borderRadius: 12 }}></div>
+                      {idStatusMsg && (
+                        <p style={{ margin: '12px 0 0', color: '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>{idStatusMsg}</p>
                       )}
                     </div>
-                  </div>
-
-                  {form.department === 'Service Delivery' && (
-                    <div className="fade-in">
-                      <label style={{ display: 'block', color: '#054daf', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assigned Client Account / Campaign</label>
-                      <select value={form.assignedAccount} onChange={e => set('assignedAccount', e.target.value)} required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #93c5fd', background: '#eff6ff', color: '#1e3a8a', fontSize: '0.88rem', fontWeight: 700, outline: 'none' }}>
-                        <option value="">Select client account / campaign...</option>
-                        {db.getAccounts().map(acc => (
-                          <option key={acc} value={acc}>{acc}</option>
-                        ))}
-                      </select>
+                  ) : (
+                    <div style={{ padding: '16px', borderRadius: 16, background: '#ecfdf5', border: '1px solid #a7f3d0', textAlign: 'center' }}>
+                      <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px' }} />
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#065f46', margin: '0 0 4px' }}>QR Verified!</h3>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#047857', fontWeight: 600 }}>Registration Code: {form.inviteCode}</p>
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={handleNextTab}
-                    className="btn-primary"
-                    style={{ marginTop: 6, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(5, 77, 175,0.25)' }}
-                  >
-                    Continue to Role & Credentials <ChevronRight size={18} />
-                  </button>
+                  {isIdVerified && (
+                    <>
+                      <div>
+                        <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Name</label>
+                        <input type="text" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Jane Doe" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none' }} />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Department / Division Designation</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                          {[
+                            { id: 'Shared Services', label: 'Shared Services', sub: 'Non-Ops & Support Team', icon: Building2 },
+                            { id: 'Service Delivery', label: 'Service Delivery', sub: 'Operations & Campaigns', icon: Briefcase }
+                          ].map(item => {
+                            const Icon = item.icon;
+                            const isSelected = form.department === item.id;
+                            return (
+                              <button
+                                type="button"
+                                key={item.id}
+                                onClick={() => {
+                                  set('department', item.id);
+                                  if (item.id === 'Shared Services') set('assignedAccount', '');
+                                }}
+                                style={{
+                                  padding: '12px 14px', borderRadius: 14,
+                                  border: isSelected ? '2px solid #054daf' : '1px solid #cbd5e1',
+                                  background: isSelected ? 'rgba(5, 77, 175,0.04)' : 'white',
+                                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                                  cursor: 'pointer', transition: 'all 0.2s'
+                                }}
+                              >
+                                <Icon size={22} color={isSelected ? '#054daf' : '#94a3b8'} />
+                                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isSelected ? '#033373' : '#475569' }}>
+                                  {item.label}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isSelected ? '#033373' : '#64748b', opacity: 0.9, textAlign: 'center' }}>
+                                  {item.sub}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {form.department === 'Service Delivery' && (
+                        <div className="fade-in">
+                          <label style={{ display: 'block', color: '#054daf', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assigned Client Account / Campaign</label>
+                          <select value={form.assignedAccount} onChange={e => set('assignedAccount', e.target.value)} required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #93c5fd', background: '#eff6ff', color: '#1e3a8a', fontSize: '0.88rem', fontWeight: 700, outline: 'none' }}>
+                            <option value="">Select client account / campaign...</option>
+                            {db.getAccounts().map(acc => (
+                              <option key={acc} value={acc}>{acc}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleNextTab}
+                        className="btn-primary"
+                        style={{ marginTop: 6, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(5, 77, 175,0.25)' }}
+                      >
+                        Continue to Role & Credentials <ChevronRight size={18} />
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -324,7 +307,7 @@ export default function Signup() {
                     )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     <div>
                       <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         <span>Designation Role</span>
@@ -357,13 +340,6 @@ export default function Signup() {
                     </div>
                   </div>
 
-                  <div style={{ padding: '9px 12px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <Info size={15} color="#64748b" flexShrink={0} style={{ marginTop: 1 }} />
-                    <p style={{ margin: 0, fontSize: '0.72rem', color: '#475569', fontWeight: 600, lineHeight: 1.35 }}>
-                      <strong>Role Note:</strong> Associates track daily attendance & tasks; Admins/Team Leads manage shift rosters and payroll reports.
-                    </p>
-                  </div>
-
                   <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                     <button
                       type="button"
@@ -378,7 +354,7 @@ export default function Signup() {
                       className="btn-primary"
                       style={{ flex: 1, padding: '13px', borderRadius: 14, fontWeight: 800, fontSize: '0.94rem', background: '#054daf', color: 'white', border: 'none', boxShadow: '0 4px 16px rgba(5, 77, 175,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 1 }}
                     >
-                      {loading ? 'Registering Identity...' : <>Submit Registration <CheckCircle2 size={18} /></>}
+                      {loading ? 'Registering...' : <>Submit Registration <CheckCircle2 size={18} /></>}
                     </button>
                   </div>
                 </div>

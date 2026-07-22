@@ -402,41 +402,23 @@ export const db = {
   // All non-admin, non-lead users (candidates to be assigned to a team)
   getAssociates: () => db.getUsers().filter(u => u.role !== 'Admin'),
 
-  // Pre-Registered IDs (Admin whitelist for signup)
-  getPreRegisteredIds: () => get('preRegisteredIds'),
-  addPreRegisteredId: (record) => {
-    // record: { employeeId, name, department, email, status: 'Pending' }
-    const list = get('preRegisteredIds');
-    const existingIndex = list.findIndex(r => r.employeeId === record.employeeId);
-    if (existingIndex >= 0) {
-      list[existingIndex] = { ...list[existingIndex], ...record };
-    } else {
-      list.push({ ...record, status: record.status || 'Pending' });
-    }
-    save('preRegisteredIds', list);
+  // Invite Codes (Admin generated QR codes for signup)
+  getInviteCodes: () => get('inviteCodes'),
+  addInviteCode: (codeRecord) => {
+    // codeRecord: { code: string, status: 'Active' | 'Used', generatedAt: string, usedBy: string | null }
+    const list = get('inviteCodes');
+    list.push(codeRecord);
+    save('inviteCodes', list);
     return list;
   },
-  bulkAddPreRegisteredIds: (records) => {
-    let list = get('preRegisteredIds');
-    records.forEach(record => {
-      const existingIndex = list.findIndex(r => r.employeeId === record.employeeId);
-      if (existingIndex >= 0) {
-        list[existingIndex] = { ...list[existingIndex], ...record };
-      } else {
-        list.push({ ...record, status: record.status || 'Pending' });
-      }
-    });
-    save('preRegisteredIds', list);
+  markInviteCodeUsed: (code, assignedUserId) => {
+    const list = get('inviteCodes').map(r => r.code === code ? { ...r, status: 'Used', usedBy: assignedUserId } : r);
+    save('inviteCodes', list);
     return list;
   },
-  updatePreRegisteredStatus: (employeeId, status) => {
-    const list = get('preRegisteredIds').map(r => r.employeeId === employeeId ? { ...r, status } : r);
-    save('preRegisteredIds', list);
-    return list;
-  },
-  deletePreRegisteredId: (employeeId) => {
-    const list = get('preRegisteredIds').filter(r => r.employeeId !== employeeId);
-    save('preRegisteredIds', list);
+  deleteInviteCode: (code) => {
+    const list = get('inviteCodes').filter(r => r.code !== code);
+    save('inviteCodes', list);
     return list;
   },
 
