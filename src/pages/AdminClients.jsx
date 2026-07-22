@@ -82,7 +82,7 @@ export default function AdminClients() {
   };
 
   return (
-    <div ref={containerRef} style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: 40 }}>
+    <div ref={containerRef} style={{ width: '100%', margin: '0 auto', paddingBottom: 40 }}>
       {/* Header */}
       <div className="stagger-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>

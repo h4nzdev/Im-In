@@ -138,7 +138,7 @@ export default function AdminGeofence() {
   ];
 
   return (
-    <div ref={containerRef} style={{ maxWidth: 1100, margin: '0 auto', paddingBottom: 40 }}>
+    <div ref={containerRef} style={{ width: '100%', margin: '0 auto', paddingBottom: 40 }}>
       {/* Page Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>

@@ -62,6 +62,7 @@ export default function Dashboard() {
   const [remoteAttachCheck, setRemoteAttachCheck] = useState(true);
   const [submittingRemote, setSubmittingRemote] = useState(false);
   const [remoteSuccessMessage, setRemoteSuccessMessage] = useState(null);
+  const [allClients] = useState(() => db.getClients());
 
   const containerRef = useRef();
   const btnRef = useRef();
@@ -131,7 +132,7 @@ export default function Dashboard() {
   }, [isClockedIn]);
 
   const handlePunch = () => {
-    if (punching || isOutsideGeofence) return;
+    if (punching || isOutsideGeofence || hasNoClients) return;
     setError('');
     setPunching(true);
     gsap.to(btnRef.current, { scale: 0.93, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' });
@@ -234,6 +235,9 @@ export default function Dashboard() {
   const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
   const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
   const isOutsideGeofence = false; 
+
+  const validClients = (user.assignedClientIds || []).map(id => allClients.find(c => c.id === id)).filter(Boolean);
+  const hasNoClients = !isClockedIn && validClients.length === 0; 
 
   return (
     <div ref={containerRef}>
@@ -405,7 +409,7 @@ export default function Dashboard() {
                   {formatElapsed(shiftMs)}
                 </p>
 
-                {isOutsideGeofence ? (
+                {isOutsideGeofence && !hasNoClients ? (
                   <div className="fade-in" style={{
                     width: '100%', maxWidth: 360, padding: '16px 18px', borderRadius: 20,
                     background: '#fffbeb', border: '1.5px solid #fde047', color: '#92400e',
@@ -435,24 +439,24 @@ export default function Dashboard() {
                 <div style={{ position: 'relative', marginBottom: 20 }}>
                   <div ref={ringRef} style={{
                     position: 'absolute', inset: -20, borderRadius: '50%',
-                    border: `3px solid ${isClockedIn ? '#054daf' : '#054daf'}`,
+                    border: `3px solid ${hasNoClients ? '#64748b' : isClockedIn ? '#054daf' : '#054daf'}`,
                     opacity: 0.3, pointerEvents: 'none'
                   }} />
-                  <button ref={btnRef} onClick={isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch} disabled={punching} style={{
+                  <button ref={btnRef} onClick={hasNoClients ? undefined : (isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch)} disabled={punching || hasNoClients} style={{
                     width: 136, height: 136, borderRadius: '50%', border: 'none', outline: 'none',
-                    cursor: punching ? 'wait' : 'pointer',
-                    background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#043e8a' : '#054daf',
+                    cursor: (punching || hasNoClients) ? 'not-allowed' : 'pointer',
+                    background: hasNoClients ? '#94a3b8' : isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#043e8a' : '#054daf',
                     color: 'white', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'pre-wrap',
-                    boxShadow: isOutsideGeofence ? '0 6px 20px rgba(100,116,139,0.3)' : isClockedIn ? '0 12px 36px rgba(4, 62, 138,0.45)' : '0 12px 36px rgba(5, 77, 175,0.45)',
+                    boxShadow: (hasNoClients || isOutsideGeofence) ? '0 6px 20px rgba(100,116,139,0.3)' : isClockedIn ? '0 12px 36px rgba(4, 62, 138,0.45)' : '0 12px 36px rgba(5, 77, 175,0.45)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    opacity: punching ? 0.85 : 1,
+                    opacity: (punching || hasNoClients) ? 0.85 : 1,
                   }}>
-                    {punching ? (isClockedIn ? '⏳ CLOCK OUT...' : '⏳ CLOCK IN...') : isOutsideGeofence ? '🔒 PERIMETER\nLOCKED' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
+                    {punching ? (isClockedIn ? '⏳ CLOCK OUT...' : '⏳ CLOCK IN...') : hasNoClients ? 'NO\nCLIENTS' : isOutsideGeofence ? '🔒 PERIMETER\nLOCKED' : isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
                   </button>
                 </div>
 
                 {/* Subtle Request Button when not outside geofence */}
-                {!isOutsideGeofence && (
+                {!isOutsideGeofence && !hasNoClients && (
                   <button
                     type="button"
                     onClick={() => setShowRemoteModal(true)}
@@ -483,6 +487,31 @@ export default function Dashboard() {
                       Need remote check-in or exception? <span style={{ textDecoration: 'underline', whiteSpace: 'nowrap', fontWeight: 900 }}>Request here →</span>
                     </span>
                   </button>
+                )}
+
+                {hasNoClients && (
+                  <div className="fade-in" style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.22)',
+                    borderRadius: 50,
+                    padding: '10px 18px',
+                    color: '#991b1b',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    marginTop: 20,
+                    marginBottom: 10,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.08)',
+                    maxWidth: '95%',
+                    textAlign: 'center',
+                    lineHeight: 1.4
+                  }}>
+                    <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                    <span>No active clients assigned. Please contact Admin.</span>
+                  </div>
                 )}
               </>
             )}

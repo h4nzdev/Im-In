@@ -140,6 +140,19 @@ export default function ClockIn() {
   const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
   const isOutsideGeofence = geofence.enabled && distMeters > geofence.radius;
 
+  const validClients = (user.assignedClientIds || []).map(id => allClients.find(c => c.id === id)).filter(Boolean);
+  const hasNoClients = !isClockedIn && validClients.length === 0;
+
+  useEffect(() => {
+    console.log('DEBUG ClockIn - Client Validation:', {
+      isClockedIn,
+      assignedIds: user.assignedClientIds,
+      allClientsCount: allClients.length,
+      validClientsCount: validClients.length,
+      hasNoClients
+    });
+  }, [user.assignedClientIds, allClients, isClockedIn, validClients.length, hasNoClients]);
+
   useEffect(() => {
     if (!ringRef.current) return;
     if (pulseAnim.current) { pulseAnim.current.kill(); pulseAnim.current = null; }
@@ -154,19 +167,20 @@ export default function ClockIn() {
   }, [isClockedIn]);
 
   const handlePunch = () => {
-    if (punching || isOutsideGeofence) return;
+    if (punching || isOutsideGeofence || hasNoClients) return;
     const nextType = isClockedIn ? 'OUT' : 'IN';
     
     if (nextType === 'IN') {
-      if (!user.assignedClientIds || user.assignedClientIds.length === 0) {
-        showToast('No clients have been assigned. Please contact your administrator.');
-        return;
-      }
-      setShiftClient(user.assignedClientIds[0]);
+      setShiftClient(validClients[0].id);
       setShowClientModal(true);
     } else {
       executePunch('OUT');
     }
+  };
+
+  const tryOpenRemoteModal = () => {
+    if (hasNoClients) return;
+    setShowRemoteModal(true);
   };
 
   const executePunch = (nextType) => {
@@ -485,7 +499,7 @@ export default function ClockIn() {
       ) : (
         /* Big Clock Button */
         <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
-          {isOutsideGeofence ? (
+          {isOutsideGeofence && !hasNoClients ? (
             <div className="fade-in" style={{
               width: '100%', maxWidth: 380, padding: '16px 18px', borderRadius: 20,
               background: '#fffbeb', border: '1.5px solid #fde047', color: '#92400e',
@@ -499,7 +513,7 @@ export default function ClockIn() {
               </p>
               <button
                 type="button"
-                onClick={() => setShowRemoteModal(true)}
+                onClick={tryOpenRemoteModal}
                 style={{
                   width: '100%', padding: '11px 16px', borderRadius: 14, background: '#d97706',
                   color: 'white', border: 'none', fontWeight: 800, fontSize: '0.84rem',
@@ -515,31 +529,31 @@ export default function ClockIn() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div ref={ringRef} style={{
               position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-              border: `2px solid ${isClockedIn ? '#022c22' : '#043e8a'}`,
+              border: `2px solid ${hasNoClients ? '#64748b' : isClockedIn ? '#022c22' : '#043e8a'}`,
               opacity: 0.3,
             }} />
-            <button ref={btnRef} onClick={isOutsideGeofence ? () => setShowRemoteModal(true) : handlePunch} disabled={punching} style={{
+            <button ref={btnRef} onClick={hasNoClients ? undefined : (isOutsideGeofence ? tryOpenRemoteModal : handlePunch)} disabled={punching || hasNoClients} style={{
               width: 148, height: 148, borderRadius: '50%', border: 'none',
-              cursor: punching ? 'wait' : 'pointer',
-              background: isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#033373' : '#054daf',
+              cursor: (punching || hasNoClients) ? 'not-allowed' : 'pointer',
+              background: hasNoClients ? '#94a3b8' : isOutsideGeofence ? '#64748b' : punching ? '#475569' : isClockedIn ? '#033373' : '#054daf',
               color: 'white', fontSize: '0.92rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'pre-wrap',
-              boxShadow: isOutsideGeofence
+              boxShadow: (hasNoClients || isOutsideGeofence)
                 ? '0 6px 20px rgba(100,116,139,0.3)'
                 : isClockedIn
                 ? '0 0 60px rgba(6,95,70,0.4), 0 8px 32px rgba(15,23,42,0.25)'
                 : '0 0 60px rgba(4, 62, 138,0.4), 0 8px 32px rgba(15,23,42,0.25)',
               transition: 'all 0.3s',
-              opacity: punching ? 0.85 : 1,
+              opacity: (punching || hasNoClients) ? 0.85 : 1,
             }}>
-              {punching ? (isClockedIn ? '⏳ CLOCKING\nOUT...' : '⏳ CLOCKING\nIN...') : isOutsideGeofence ? '🔒 PERIMETER\nLOCKED' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
+              {punching ? (isClockedIn ? '⏳ CLOCKING\nOUT...' : '⏳ CLOCKING\nIN...') : hasNoClients ? 'NO\nCLIENTS' : isOutsideGeofence ? '🔒 PERIMETER\nLOCKED' : isClockedIn ? 'CLOCK\nOUT' : 'CLOCK\nIN'}
             </button>
           </div>
 
           {/* Subtle Request Button when not outside geofence */}
-          {!isOutsideGeofence && (
+          {!isOutsideGeofence && !hasNoClients && (
             <button
               type="button"
-              onClick={() => setShowRemoteModal(true)}
+              onClick={tryOpenRemoteModal}
               style={{
                 background: 'rgba(5, 77, 175, 0.08)',
                 border: '1px solid rgba(5, 77, 175, 0.22)',
@@ -549,7 +563,7 @@ export default function ClockIn() {
                 fontWeight: 800,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
-                marginTop: 22,
+                marginTop: 20,
                 marginBottom: 10,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -567,6 +581,31 @@ export default function ClockIn() {
                 Need remote check-in or exception? <span style={{ textDecoration: 'underline', whiteSpace: 'nowrap', fontWeight: 900 }}>Request here →</span>
               </span>
             </button>
+          )}
+
+          {hasNoClients && (
+            <div className="fade-in" style={{
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.22)',
+              borderRadius: 50,
+              padding: '10px 18px',
+              color: '#991b1b',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              marginTop: 20,
+              marginBottom: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.08)',
+              maxWidth: '95%',
+              textAlign: 'center',
+              lineHeight: 1.4
+            }}>
+              <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+              <span>No active clients assigned. Please contact Admin.</span>
+            </div>
           )}
         </div>
       )}
@@ -751,6 +790,18 @@ export default function ClockIn() {
           </div>
         </div>
       )}
+
+      {/* ON-SCREEN DEBUG LOG */}
+      <div style={{ marginTop: 40, padding: 20, background: '#1e293b', color: '#10b981', borderRadius: 12, fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+        <strong>DEBUG LOG (Please screenshot this):</strong><br/>
+        User Role: {user.role}<br/>
+        Assigned Client IDs: {JSON.stringify(user.assignedClientIds)}<br/>
+        All Clients Count: {allClients.length}<br/>
+        Valid Clients Count: {validClients.length}<br/>
+        Valid Clients Data: {JSON.stringify(validClients.map(c => c.id))}<br/>
+        isClockedIn: {String(isClockedIn)}<br/>
+        hasNoClients: {String(hasNoClients)}
+      </div>
 
     </div>
   );

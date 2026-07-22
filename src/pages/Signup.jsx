@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ShieldCheck, ArrowRight, Building2, Briefcase, Mail, Key, User, AlertCircle, Sparkles, LogIn, Eye, EyeOff, Info, CheckCircle2, ChevronRight, ChevronLeft, Layers } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -9,6 +9,7 @@ import realynkLogo from '../assets/realynk.png';
 export default function Signup() {
   const navigate = useNavigate();
   const signup = useAuthStore((s) => s.signup);
+  const user = useAuthStore((s) => s.user);
   const [activeTab, setActiveTab] = useState('IDENTITY'); // 'IDENTITY' | 'CREDENTIALS'
   const [form, setForm] = useState({
     name: '',
@@ -117,6 +118,10 @@ export default function Signup() {
       setLoading(false);
     }
   };
+
+  if (user) {
+    return <Navigate to={user.role === 'Admin' ? '/admin' : '/'} replace />;
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', background: '#f8fafc' }}>

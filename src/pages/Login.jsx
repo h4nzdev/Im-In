@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { LogIn, Sparkles, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -8,6 +8,7 @@ import realynkLogo from '../assets/realynk.png';
 export default function Login() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
+  const user = useAuthStore((s) => s.user);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +36,10 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (user) {
+    return <Navigate to={user.role === 'Admin' ? '/admin' : '/'} replace />;
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>

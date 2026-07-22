@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
@@ -383,31 +383,10 @@ export default function Layout() {
               Please enter your 4-digit security PIN to unlock Realynk
             </p>
 
-            <input
-              ref={pinInputRef}
-              type="password"
-              inputMode="numeric"
-              maxLength={4}
-              value={pinEntry}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
-                if (val.length > pinEntry.length) {
-                  const addedDigit = val[val.length - 1];
-                  handlePinDigit(addedDigit);
-                } else {
-                  setPinEntry(val);
-                  setPinError('');
-                }
-              }}
-              style={{ opacity: 0, position: 'absolute', top: 0, left: 0, width: 1, height: 1, pointerEvents: 'none' }}
-              autoFocus
-            />
-
             {/* 4 Circle Dots UI */}
             <div
               ref={pinDotsRef}
-              onClick={() => pinInputRef.current?.focus()}
-              style={{ display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 26, cursor: 'pointer' }}
+              style={{ display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 26 }}
             >
               {[0, 1, 2, 3].map((i) => {
                 const isFilled = i < pinEntry.length;

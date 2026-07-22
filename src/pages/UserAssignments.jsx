@@ -171,21 +171,21 @@ export default function UserAssignments() {
                 key={item.id}
                 onClick={() => toggleTodo(item.id)}
                 style={{
-                  padding: '16px 20px', borderRadius: 16, cursor: 'pointer',
+                  padding: '16px', borderRadius: 16, cursor: 'pointer',
                   background: item.completed ? '#f8fafc' : 'white',
                   border: item.completed ? '1px solid #e2e8f0' : '1.5px solid #bfdbfe',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                  display: 'flex', flexDirection: 'column', gap: 12,
                   transition: 'all 0.2s'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, width: '100%' }}>
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleTodo(item.id); }}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, marginTop: 2 }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, marginTop: 2, flexShrink: 0 }}
                   >
                     {item.completed ? <CheckSquare size={22} color="#10b981" /> : <Square size={22} color="#94a3b8" />}
                   </button>
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{
                       fontWeight: 800, fontSize: '0.98rem',
                       color: item.completed ? '#94a3b8' : '#0f172a',
@@ -194,13 +194,13 @@ export default function UserAssignments() {
                     }}>
                       {item.title}
                     </span>
-                    <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'block', marginTop: 3 }}>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', marginTop: 4, lineHeight: 1.45 }}>
                       {item.description}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, borderTop: item.completed ? '1px solid #e2e8f0' : '1px solid #e2e8f0', paddingTop: 12, marginTop: 4 }}>
                   {item.sopId && (
                     <span style={{ padding: '4px 10px', borderRadius: 10, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
                       SOP Protocol
@@ -208,11 +208,11 @@ export default function UserAssignments() {
                   )}
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteTodo(item.id); }}
-                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 6, opacity: 0.6, transition: 'opacity 0.2s' }}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px 6px', opacity: 0.7, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center' }}
                     onMouseEnter={e => e.currentTarget.style.opacity = 1}
-                    onMouseLeave={e => e.currentTarget.style.opacity = 0.6}
+                    onMouseLeave={e => e.currentTarget.style.opacity = 0.7}
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>

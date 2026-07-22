@@ -97,7 +97,7 @@ export default function MyTeam() {
   });
 
   return (
-    <div ref={containerRef} style={{ maxWidth: 1150, margin: '0 auto', paddingBottom: 60 }}>
+    <div ref={containerRef} style={{ width: '100%', margin: '0 auto', paddingBottom: 60 }}>
       {/* Toast Notification */}
       {toastMsg && (
         <div style={{
@@ -182,11 +182,11 @@ export default function MyTeam() {
 
       {/* Tabs Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 14 }}>
-        <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 5, borderRadius: 16, gap: 4 }}>
+        <div style={{ display: 'flex', background: 'rgba(15,23,42,0.06)', padding: 6, borderRadius: 18, gap: 6, overflowX: 'auto', flexWrap: 'nowrap', width: '100%' }} className="custom-scrollbar">
           {[
-            { id: 'MEMBERS', label: `👥 Team Roster (${myTeamMembers.length})` },
-            { id: 'LEAVES',  label: `🏖️ Leave Requests (${pendingTeamLeaves.length} pending)` },
-            { id: 'PUNCHES', label: `⏱️ Recent Punches (${teamLogs.length})` },
+            { id: 'MEMBERS', label: `Team Roster (${myTeamMembers.length})`, icon: Users },
+            { id: 'LEAVES',  label: `Leave Requests (${pendingTeamLeaves.length} pending)`, icon: Briefcase },
+            { id: 'PUNCHES', label: `Recent Punches (${teamLogs.length})`, icon: Clock },
           ].map(tab => (
             <button
               key={tab.id}
@@ -194,12 +194,12 @@ export default function MyTeam() {
               style={{
                 border: 'none', background: activeTab === tab.id ? 'white' : 'transparent',
                 color: activeTab === tab.id ? '#054daf' : '#64748b',
-                fontWeight: 800, fontSize: '0.86rem', padding: '10px 18px', borderRadius: 12, cursor: 'pointer',
+                fontWeight: 800, fontSize: '0.86rem', padding: '10px 18px', borderRadius: 14, cursor: 'pointer',
                 boxShadow: activeTab === tab.id ? '0 4px 14px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
               }}
             >
-              {tab.label}
+              <tab.icon size={16} /> {tab.label}
             </button>
           ))}
         </div>
@@ -294,15 +294,15 @@ export default function MyTeam() {
                     <div style={{ display: 'flex', gap: 8 }}>
                       <a
                         href={`/logs?user=${m.userId}`}
-                        style={{ flex: 1, padding: '9px 12px', borderRadius: 12, background: '#eff6ff', color: '#054daf', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none', textAlign: 'center', border: '1px solid #bfdbfe' }}
+                        style={{ flex: 1, padding: '10px 12px', borderRadius: 12, background: '#eff6ff', color: '#054daf', fontWeight: 800, fontSize: '0.82rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: '1px solid #bfdbfe' }}
                       >
-                        ⏱️ Logs
+                        <Clock size={15} /> Logs
                       </a>
                       <a
                         href={`/analytics?user=${m.userId}`}
-                        style={{ flex: 1, padding: '9px 12px', borderRadius: 12, background: '#f1f5f9', color: '#0f172a', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none', textAlign: 'center', border: '1px solid #cbd5e1' }}
+                        style={{ flex: 1, padding: '10px 12px', borderRadius: 12, background: '#f8fafc', color: '#0f172a', fontWeight: 800, fontSize: '0.82rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: '1px solid #e2e8f0' }}
                       >
-                        📊 Metrics
+                        <BarChart2 size={15} /> Metrics
                       </a>
                     </div>
                   </div>
@@ -318,7 +318,7 @@ export default function MyTeam() {
         <div>
           {teamLeaves.length === 0 ? (
             <div className="card glass" style={{ padding: 60, textAlign: 'center', borderRadius: 24 }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>🏖️</span>
+              <Briefcase size={48} color="#cbd5e1" style={{ display: 'block', margin: '0 auto 12px' }} />
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>No Team Leave Requests</h3>
               <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: 400, margin: '0 auto' }}>
                 Your managed team members have not submitted any time-off or leave applications yet.

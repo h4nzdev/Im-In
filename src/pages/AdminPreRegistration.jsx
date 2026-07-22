@@ -107,7 +107,7 @@ export default function AdminPreRegistration() {
   };
 
   return (
-    <div ref={containerRef} style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: 40 }}>
+    <div ref={containerRef} style={{ width: '100%', margin: '0 auto', paddingBottom: 40 }}>
       {/* Header */}
       <div className="stagger-item" style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>

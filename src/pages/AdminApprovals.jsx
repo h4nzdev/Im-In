@@ -88,7 +88,7 @@ export default function AdminApprovals() {
   const totalPendingCount = pendingLeaves.length + pendingUsers.length;
 
   return (
-    <div ref={containerRef} style={{ maxWidth: 1040, margin: '0 auto', paddingBottom: 40 }}>
+    <div ref={containerRef} style={{ width: '100%', margin: '0 auto', paddingBottom: 40 }}>
       
       {/* Toast notification */}
       {toast && (
