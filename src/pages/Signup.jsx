@@ -125,7 +125,7 @@ export default function Signup() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', background: '#f8fafc' }}>
-      <div ref={cardRef} className="glass" style={{ width: '100%', borderRadius: 28, padding: '34px 36px', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
+      <div ref={cardRef} className="glass" style={{ width: '100%', maxWidth: 510, borderRadius: 28, padding: '34px 36px', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
 
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -218,12 +218,12 @@ export default function Signup() {
               {/* Tab 1: Identity & Division */}
               {activeTab === 'IDENTITY' && (
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     <div>
                       <label style={{ display: 'block', color: '#475569', fontSize: '0.75rem', fontWeight: 800, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employee ID</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input type="text" value={form.employeeId} onChange={e => { set('employeeId', e.target.value); setIsIdVerified(false); setIdStatusMsg(''); }} onBlur={handleVerifyId} placeholder="e.g. RLK-2026" required style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none', textTransform: 'uppercase' }} />
-                        <button type="button" onClick={handleVerifyId} style={{ padding: '0 16px', borderRadius: 12, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 800, cursor: 'pointer' }}>Verify</button>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <input type="text" value={form.employeeId} onChange={e => { set('employeeId', e.target.value); setIsIdVerified(false); setIdStatusMsg(''); }} onBlur={handleVerifyId} placeholder="e.g. RLK-2026" required style={{ flex: '1 1 120px', width: '100%', padding: '11px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 600, outline: 'none', textTransform: 'uppercase' }} />
+                        <button type="button" onClick={handleVerifyId} style={{ flex: '1 1 auto', padding: '11px 16px', borderRadius: 12, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 800, cursor: 'pointer' }}>Verify</button>
                       </div>
                     </div>
                     <div>
