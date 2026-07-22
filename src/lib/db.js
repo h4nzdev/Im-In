@@ -49,83 +49,161 @@ cleanInitialSetup();
 export async function initSupabaseSync() {
   if (!isSupabaseConfigured || !supabase) return;
   try {
+    // ── PROFILES (users + invite codes) ──────────────────────────────────────
     const { data: profiles, error: pErr } = await supabase.from('profiles').select('*');
-    if (!pErr && profiles && profiles.length > 0) {
-      const currentUsers = get('users') || [];
-      const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
-      const inviteProfiles = profiles.filter(p => p.role === 'InviteCode');
-      if (inviteProfiles.length > 0) {
-        const iCodes = inviteProfiles.map(p => ({
-          code: p.user_id.replace('INV-', ''),
-          status: p.status,
-          generatedAt: p.created_at,
-          usedBy: p.status === 'Used' ? p.name : null
-        }));
-        save('inviteCodes', iCodes);
+    if (!pErr && profiles) {
+      if (profiles.length > 0) {
+        // Pull invite codes from the cloud
+        const inviteProfiles = profiles.filter(p => p.role === 'InviteCode');
+        if (inviteProfiles.length > 0) {
+          const iCodes = inviteProfiles.map(p => ({
+            code: p.user_id.replace('INV-', ''),
+            status: p.status,
+            generatedAt: p.created_at,
+            usedBy: p.status === 'Used' ? p.name : null
+          }));
+          save('inviteCodes', iCodes);
+        }
+
+        // Pull real users from the cloud
+        const currentUsers = get('users') || [];
+        const onlineUsersMap = JSON.parse(localStorage.getItem('realynk_live_online_users')) || {};
+        const realUsersProfiles = profiles.filter(p => p.role !== 'InviteCode');
+        const users = realUsersProfiles.map(p => {
+          const exist = currentUsers.find(u => u.userId === p.user_id);
+          const isOnline = Boolean(p.is_active !== undefined ? p.is_active : (exist?.isActive || onlineUsersMap[p.user_id]));
+          return {
+            userId: p.user_id, name: p.name, email: p.email,
+            password: p.password || 'user123', department: p.department,
+            assignedAccount: p.assigned_account, role: p.role, status: p.status,
+            positionId: p.position_id, deadlineDate: p.deadline_date || null,
+            deadlineTitle: p.deadline_title || null,
+            managedTeam: p.managed_team || exist?.managedTeam || [],
+            isActive: isOnline, createdAt: p.created_at || new Date().toISOString()
+          };
+        });
+        save('users', users);
+      } else {
+        // ── AUTO-MIGRATE: push local users + invite codes up ─────────────────
+        const localUsers = get('users') || [];
+        if (localUsers.length > 0) {
+          const userRows = localUsers.map(u => ({
+            user_id: u.userId, name: u.name, email: u.email,
+            password: u.password || 'user123', department: u.department || 'Management',
+            assigned_account: u.assignedAccount || null, role: u.role,
+            status: u.status || 'Active', position_id: u.positionId || 'POS-001',
+            managed_team: u.managedTeam || []
+          }));
+          await supabase.from('profiles').insert(userRows).then();
+        } else {
+          // Seed default admin
+          await supabase.from('profiles').insert([{
+            user_id: 'ADM-001', name: 'Executive Admin', email: 'admin@realynk.com',
+            password: 'admin123', department: 'Management', role: 'Admin',
+            status: 'Active', position_id: 'POS-001'
+          }]);
+        }
+
+        // Migrate local invite codes
+        const localCodes = get('inviteCodes') || [];
+        if (localCodes.length > 0) {
+          const codeRows = localCodes.map(c => ({
+            user_id: `INV-${c.code}`, name: c.usedBy || 'Invite Code',
+            email: `invite_${c.code}@system.local`, password: 'invite123',
+            department: 'System', role: 'InviteCode', status: c.status,
+            position_id: 'POS-SYS'
+          }));
+          await supabase.from('profiles').insert(codeRows).then();
+        }
       }
-      
-      const realUsersProfiles = profiles.filter(p => p.role !== 'InviteCode');
-      const users = realUsersProfiles.map(p => {
-        const exist = currentUsers.find(u => u.userId === p.user_id);
-        const isOnline = Boolean(p.is_active !== undefined ? p.is_active : (exist?.isActive || onlineUsersMap[p.user_id]));
-        return {
-          userId: p.user_id,
-          name: p.name,
-          email: p.email,
-          password: p.password || 'user123',
-          department: p.department,
-          assignedAccount: p.assigned_account,
-          role: p.role,
-          status: p.status,
-          positionId: p.position_id,
-          deadlineDate: p.deadline_date || null,
-          deadlineTitle: p.deadline_title || null,
-          managedTeam: p.managed_team || exist?.managedTeam || [],
-          isActive: isOnline,
-          createdAt: p.created_at || new Date().toISOString()
-        };
-      });
-      save('users', users);
-    } else if (!pErr && profiles && profiles.length === 0) {
-      // Seed default admin into Supabase if empty
-      const adminAcc = {
-        user_id: 'ADM-001', name: 'Executive Admin', email: 'admin@realynk.com', password: 'admin123',
-        department: 'Management', role: 'Admin', status: 'Active', position_id: 'POS-001'
-      };
-      await supabase.from('profiles').insert([adminAcc]);
     }
 
+    // ── POSITIONS ─────────────────────────────────────────────────────────────
     const { data: pos } = await supabase.from('positions').select('*');
-    if (pos && pos.length > 0) {
-      save('positions', pos.map(p => ({ positionId: p.position_id, positionName: p.position_name, department: p.department })));
-    } else if (pos && pos.length === 0) {
-      const defaultPos = [
-        { position_id: 'POS-001', position_name: 'Executive Administrator', department: 'Management' },
-        { position_id: 'POS-002', position_name: 'Service Delivery Specialist', department: 'Service Delivery' },
-        { position_id: 'POS-003', position_name: 'Shared Services Analyst', department: 'Shared Services' }
-      ];
-      await supabase.from('positions').insert(defaultPos);
+    if (pos) {
+      if (pos.length > 0) {
+        save('positions', pos.map(p => ({ positionId: p.position_id, positionName: p.position_name, department: p.department })));
+      } else {
+        const localPos = get('positions') || [];
+        const posRows = localPos.length > 0
+          ? localPos.map(p => ({ position_id: p.positionId, position_name: p.positionName, department: p.department }))
+          : [
+              { position_id: 'POS-001', position_name: 'Executive Administrator', department: 'Management' },
+              { position_id: 'POS-002', position_name: 'Service Delivery Specialist', department: 'Service Delivery' },
+              { position_id: 'POS-003', position_name: 'Shared Services Analyst', department: 'Shared Services' }
+            ];
+        await supabase.from('positions').insert(posRows).then();
+      }
     }
 
+    // ── ATTENDANCE LOGS ───────────────────────────────────────────────────────
     const { data: logs } = await supabase.from('attendance_logs').select('*');
     if (logs) {
-      if (logs.length > 0 && logs[0]) {
-        knownLogColumns = new Set(Object.keys(logs[0]));
+      if (logs.length > 0) {
+        if (logs[0]) knownLogColumns = new Set(Object.keys(logs[0]));
+        save('logs', logs.map(l => ({
+          logId: l.log_id, userId: l.user_id, type: l.type, timestamp: l.timestamp,
+          latitude: l.latitude, longitude: l.longitude, address: l.address,
+          deviceInfo: l.device_info, status: l.status, lateMinutes: l.late_minutes
+        })));
+      } else {
+        // Auto-migrate local logs
+        const localLogs = get('logs') || [];
+        if (localLogs.length > 0) {
+          const logRows = localLogs.map(l => ({
+            log_id: l.logId, user_id: l.userId, type: l.type, timestamp: l.timestamp,
+            latitude: l.latitude || null, longitude: l.longitude || null,
+            address: l.address || null, device_info: l.deviceInfo || null,
+            status: l.status || null, late_minutes: l.lateMinutes || null
+          }));
+          await supabase.from('attendance_logs').insert(logRows).then();
+        }
       }
-      save('logs', logs.map(l => ({
-        logId: l.log_id, userId: l.user_id, type: l.type, timestamp: l.timestamp,
-        latitude: l.latitude, longitude: l.longitude, address: l.address, deviceInfo: l.device_info,
-        status: l.status, lateMinutes: l.late_minutes
-      })));
     }
 
+    // ── LEAVES ────────────────────────────────────────────────────────────────
     const { data: leaves } = await supabase.from('leaves').select('*');
     if (leaves) {
-      save('leaves', leaves.map(l => ({
-        leaveId: l.leave_id, userId: l.user_id, leaveType: l.leave_type,
-        startDate: l.start_date, endDate: l.end_date, reason: l.reason, status: l.status
-      })));
+      if (leaves.length > 0) {
+        save('leaves', leaves.map(l => ({
+          leaveId: l.leave_id, userId: l.user_id, leaveType: l.leave_type,
+          startDate: l.start_date, endDate: l.end_date, reason: l.reason, status: l.status
+        })));
+      } else {
+        const localLeaves = get('leaves') || [];
+        if (localLeaves.length > 0) {
+          const leaveRows = localLeaves.map(l => ({
+            leave_id: l.leaveId, user_id: l.userId, leave_type: l.leaveType,
+            start_date: l.startDate, end_date: l.endDate,
+            reason: l.reason || null, status: l.status || 'Pending'
+          }));
+          await supabase.from('leaves').insert(leaveRows).then();
+        }
+      }
     }
+
+    // ── AGGREGATED HOURS ─────────────────────────────────────────────────────
+    const { data: aggHours } = await supabase.from('aggregated_hours').select('*');
+    if (aggHours) {
+      if (aggHours.length > 0) {
+        save('aggregated_hours', aggHours.map(a => ({
+          id: a.id, userId: a.user_id, date: a.date,
+          hours: a.hours, clientId: a.client_id, timestamp: a.timestamp
+        })));
+      } else {
+        // Auto-migrate local aggregated hours
+        const localAgg = get('aggregated_hours') || [];
+        if (localAgg.length > 0) {
+          const aggRows = localAgg.map(a => ({
+            id: a.id, user_id: a.userId, date: a.date,
+            hours: a.hours, client_id: a.clientId || null,
+            timestamp: a.timestamp || new Date().toISOString()
+          }));
+          await supabase.from('aggregated_hours').insert(aggRows).then();
+        }
+      }
+    }
+
   } catch (err) {
     console.error('Supabase sync error:', err);
   }
