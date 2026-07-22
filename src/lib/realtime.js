@@ -39,12 +39,14 @@ function handleIncomingPayload(payload) {
 }
 
 let supaChannel = null;
-let currentPresenceKey = null;
+let initPromise = null;
 
-if (isSupabaseConfigured && supabase) {
+async function initChannel() {
+  if (!isSupabaseConfigured || !supabase) return;
+
   const existing = supabase.getChannels().find(c => c.topic === `realtime:${CHANNEL_NAME}`);
   if (existing) {
-    supabase.removeChannel(existing);
+    await supabase.removeChannel(existing);
   }
 
   supaChannel = supabase.channel(CHANNEL_NAME, {
@@ -71,6 +73,8 @@ if (isSupabaseConfigured && supabase) {
     .subscribe();
 }
 
+initPromise = initChannel();
+
 if (bc) {
   bc.addEventListener('message', (e) => {
     if (e.data) handleIncomingPayload(e.data);
@@ -78,11 +82,12 @@ if (bc) {
 }
 
 export const realtimeBus = {
-  broadcast: (eventData) => {
+  broadcast: async (eventData) => {
     handleIncomingPayload(eventData);
     if (bc) {
       try { bc.postMessage(eventData); } catch (e) {}
     }
+    await initPromise;
     if (supaChannel && isSupabaseConfigured) {
       supaChannel.send({
         type: 'broadcast',
@@ -100,6 +105,7 @@ export const realtimeBus = {
   },
 
   trackPresence: async (userId, userInfo) => {
+    await initPromise;
     if (supaChannel && isSupabaseConfigured) {
       try {
         await supaChannel.track({
@@ -116,17 +122,21 @@ export const realtimeBus = {
 
   onPresenceSync: (callback) => {
     presenceListeners.push(callback);
-    // Return current state immediately if available
-    if (supaChannel && isSupabaseConfigured) {
-      const state = supaChannel.presenceState();
-      const onlineMap = {};
-      for (const [key, presences] of Object.entries(state)) {
-        if (presences.length > 0) {
-          onlineMap[key] = presences[0];
+    
+    // Check if already connected and send state immediately
+    initPromise.then(() => {
+      if (supaChannel && isSupabaseConfigured) {
+        const state = supaChannel.presenceState();
+        const onlineMap = {};
+        for (const [key, presences] of Object.entries(state)) {
+          if (presences.length > 0) {
+            onlineMap[key] = presences[0];
+          }
         }
+        callback(onlineMap);
       }
-      callback(onlineMap);
-    }
+    });
+
     return () => {
       presenceListeners = presenceListeners.filter(cb => cb !== callback);
     };
