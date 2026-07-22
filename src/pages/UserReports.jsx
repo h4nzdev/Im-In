@@ -48,7 +48,7 @@ export default function UserReports() {
   let totalHours = aggregatedHours.reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
   return (
-    <div ref={containerRef} style={{ padding: '12px 16px 30px', maxWidth: 1200, margin: '0 auto' }}>
+    <div ref={containerRef}>
       
       {/* Header */}
       <div className="stagger-card glass card" style={{ padding: '12px 20px', borderRadius: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
