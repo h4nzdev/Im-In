@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { MapPin, Lock, Unlock, Search, Save, Navigation, Loader2, CheckCircle2, Shield, AlertTriangle, Sliders, Building2, Globe } from 'lucide-react';
 import { db } from '../lib/db';
+import { realtimeBus } from '../lib/realtime';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -41,6 +42,10 @@ export default function AdminGeofence() {
   const [geoRadius, setGeoRadius] = useState(() => Number(geofence.radius) || 300);
   const [geoEnabled, setGeoEnabled] = useState(() => Boolean(geofence.enabled));
 
+  // Active Users Data
+  const [users, setUsers] = useState(() => db.getUsers());
+  const [logs, setLogs] = useState(() => db.getLogs());
+
   // Search Address States
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -59,6 +64,43 @@ export default function AdminGeofence() {
       { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
     );
   }, []);
+
+  useEffect(() => {
+    const unsub = realtimeBus.subscribe(async (payload) => {
+      if (payload && (payload.type === 'CLOCK_IN' || payload.type === 'CLOCK_OUT')) {
+        await db.syncLogs();
+        setLogs(db.getLogs());
+        setUsers(db.getUsers());
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const activeUserMarkers = useMemo(() => {
+    const markers = [];
+    users.forEach(u => {
+      if (u.activeShift || u.isActive) {
+        const userLogs = logs.filter(l => l.userId === u.userId && l.type === 'IN').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        if (userLogs.length > 0 && userLogs[0].latitude && userLogs[0].longitude) {
+          markers.push({
+            userId: u.userId,
+            name: u.name,
+            lat: userLogs[0].latitude,
+            lng: userLogs[0].longitude,
+            timestamp: userLogs[0].timestamp
+          });
+        }
+      }
+    });
+    return markers;
+  }, [users, logs]);
+
+  const userIcon = useMemo(() => new L.DivIcon({
+    html: `<div style="background:#10b981;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
+    className: 'user-marker-icon',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  }), []);
 
   // Handle address search using Nominatim API
   const handleSearchLocation = async () => {
@@ -440,6 +482,17 @@ export default function AdminGeofence() {
                   weight: 3
                 }}
               />
+              {activeUserMarkers.map(m => (
+                <Marker key={m.userId} position={[m.lat, m.lng]} icon={userIcon}>
+                  <Popup>
+                    <div style={{ fontSize: '0.85rem', color: '#0f172a' }}>
+                      <strong>{m.name}</strong><br/>
+                      <span style={{ color: '#10b981' }}>● Active</span><br/>
+                      <span style={{ color: '#64748b' }}>Clocked in: {new Date(m.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
             </MapContainer>
           </div>
         </div>

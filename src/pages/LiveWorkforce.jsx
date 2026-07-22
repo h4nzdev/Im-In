@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { Activity, Clock, LogOut, MessageSquare, Shield, Users, Search, AlertCircle } from 'lucide-react';
 import { db } from '../lib/db';
+import { realtimeBus } from '../lib/realtime';
 import { showToast, showAlert } from '../lib/alert';
 
 export default function LiveWorkforce() {
@@ -31,6 +32,16 @@ export default function LiveWorkforce() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    const unsub = realtimeBus.subscribe(async (payload) => {
+      if (payload && (payload.type === 'CLOCK_IN' || payload.type === 'CLOCK_OUT')) {
+        await db.syncLogs();
+        setLogs(db.getLogs());
+      }
+    });
+    return () => unsub();
+  }, []);
+
   // Compute active status and shift times
   const activeData = useMemo(() => {
     const map = {};
@@ -41,23 +52,12 @@ export default function LiveWorkforce() {
       const userLogs = logs.filter(l => l.userId === u.userId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       if (userLogs.length > 0) {
         const latest = userLogs[0];
-        if (latest.type === 'Clock In' || latest.type === 'Break End') {
-          onlineMap[u.userId] = true;
-          // Find the actual start time (the Clock In)
-          const lastClockIn = userLogs.find(l => l.type === 'Clock In' && l.date === latest.date);
-          if (lastClockIn) {
-            map[u.userId] = {
-              startTime: new Date(lastClockIn.timestamp).getTime(),
-              status: latest.type === 'Break End' ? 'Active (Returned)' : 'Active',
-              logId: latest.id
-            };
-          }
-        } else if (latest.type === 'Break Start') {
+        if (latest.type === 'IN') {
           onlineMap[u.userId] = true;
           map[u.userId] = {
             startTime: new Date(latest.timestamp).getTime(),
-            status: 'On Break',
-            logId: latest.id
+            status: 'Active',
+            logId: latest.logId || latest.id
           };
         }
       }

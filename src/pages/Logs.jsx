@@ -4,6 +4,7 @@ import { Search, Filter, Clock, MapPin, Smartphone, Download, ChevronLeft, Chevr
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { getRealAddress } from '../lib/geo';
+import { realtimeBus } from '../lib/realtime';
 import { showDeleteConfirm, showPurgeConfirm, showSuccess } from '../lib/alert';
 
 function AddressCell({ log }) {
@@ -54,6 +55,16 @@ export default function Logs() {
       });
     });
     return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    const unsub = realtimeBus.subscribe(async (payload) => {
+      if (payload && (payload.type === 'CLOCK_IN' || payload.type === 'CLOCK_OUT')) {
+        await db.syncLogs();
+        setAllLogs(db.getLogs());
+      }
+    });
+    return () => unsub();
   }, []);
 
   const getUserInfo = (uid) => {

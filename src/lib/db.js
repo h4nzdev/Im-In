@@ -668,6 +668,18 @@ export const db = {
     }
   },
 
+  syncLogs: async () => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const { data: logs } = await supabase.from('attendance_logs').select('*');
+    if (logs && logs.length > 0) {
+      save('logs', logs.map(l => ({
+        logId: l.log_id, userId: l.user_id, type: l.type, timestamp: l.timestamp,
+        latitude: l.latitude, longitude: l.longitude, address: l.address,
+        deviceInfo: l.device_info, status: l.status, lateMinutes: l.late_minutes
+      })));
+    }
+  },
+
   // Returns all Success Leads that manage a given userId (a VA can be in multiple teams)
   getLeadsForUser: (userId) => {
     return db.getUsers().filter(u => u.role === 'Success Lead' && Array.isArray(u.managedTeam) && u.managedTeam.includes(userId));
