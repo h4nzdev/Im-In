@@ -198,7 +198,19 @@ export default function Profile() {
       <div style={outerGridStyle}>
         {/* LEFT COLUMN: IDENTITY & ACCOUNT PILLAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div className="card glass profile-card" style={{ ...cardStyle, textAlign: 'center', paddingTop: 36, paddingBottom: 32 }}>
+          <div className="card glass profile-card" style={{ ...cardStyle, textAlign: 'center', paddingTop: 36, paddingBottom: 32, position: 'relative' }}>
+            <button 
+              onClick={() => setEditing(!editing)} 
+              style={{
+                position: 'absolute', top: 16, right: 16,
+                background: editing ? '#054daf' : 'rgba(5, 77, 175,0.08)', border: 'none',
+                cursor: 'pointer', color: editing ? 'white' : '#054daf', padding: '8px 12px', borderRadius: 10,
+                fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6,
+                transition: 'all 0.15s'
+              }}
+            >
+              {editing ? <X size={14} /> : <Edit3 size={14} />} {editing ? 'Close' : 'Edit'}
+            </button>
             <div style={{
               width: 108, height: 108, borderRadius: '50%', margin: '0 auto 18px',
               background: 'linear-gradient(135deg, #054daf, #043e8a)',
@@ -212,17 +224,6 @@ export default function Profile() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '1.55rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>{user?.name}</h1>
-              <button 
-                onClick={() => setEditing(!editing)} 
-                style={{
-                  background: editing ? '#054daf' : 'rgba(5, 77, 175,0.12)', border: '1px solid rgba(5, 77, 175,0.3)',
-                  cursor: 'pointer', color: editing ? 'white' : '#054daf', padding: '6px 12px', borderRadius: 12,
-                  fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6,
-                  transition: 'all 0.15s'
-                }}
-              >
-                {editing ? <X size={14} /> : <Edit3 size={14} />} {editing ? 'Close Edit' : 'Edit Profile'}
-              </button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>

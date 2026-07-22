@@ -82,7 +82,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: wrap(<ProtectedRoute element={<Dashboard />} />),
+        element: wrap(<ProtectedRoute element={<Dashboard />} preventAdmin />),
       },
       {
         path: 'team',
