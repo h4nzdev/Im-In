@@ -33,14 +33,19 @@ function cleanInitialSetup() {
     ]);
   }
   const g = get('geofence');
-  if (!g) {
-    save('geofence', {
-      enabled: false,
-      lat: 14.5995,
-      lng: 120.9842,
-      radius: 300,
-      addressName: 'Main Headquarters Terminal #1'
-    });
+  const defaultGeo = {
+    enabled: false,
+    lat: 14.5995,
+    lng: 120.9842,
+    radius: 300,
+    addressName: 'Main Headquarters Terminal #1'
+  };
+  if (!g || !g.lat) {
+    save('geofence', defaultGeo);
+  }
+  const gList = get('geofences');
+  if (!gList || gList.length === 0) {
+    save('geofences', [{ id: 'global', ...defaultGeo }]);
   }
 }
 
@@ -292,13 +297,37 @@ export async function initSupabaseSync() {
       if (!geoErr.message.includes('schema cache')) { console.error('[Sync] geofences fetch error:', geoErr.message); hasError = true; }
     } else if (geofences) {
       if (geofences.length > 0) {
-        save('geofence', { addressName: geofences[0].address_name, lat: geofences[0].lat, lng: geofences[0].lng, radius: geofences[0].radius, enabled: geofences[0].enabled });
+        const mapped = geofences.map(g => ({
+          id: g.id || `geo_${Date.now()}_${Math.random()}`,
+          addressName: g.address_name,
+          lat: g.lat,
+          lng: g.lng,
+          radius: g.radius,
+          enabled: g.enabled
+        }));
+        save('geofence', mapped[0]);
+        save('geofences', mapped);
       } else {
-        const localGeo = get('geofence');
-        if (localGeo && Object.keys(localGeo).length > 0) {
-          const { error: geoInsErr } = await supabase.from('geofences').insert([{ id: 'global', address_name: localGeo.addressName, lat: localGeo.lat, lng: localGeo.lng, radius: localGeo.radius, enabled: localGeo.enabled ?? true }]);
+        const localGeos = get('geofences') || [];
+        if (localGeos.length > 0) {
+          const rows = localGeos.map(g => ({
+            id: g.id,
+            address_name: g.addressName,
+            lat: g.lat,
+            lng: g.lng,
+            radius: g.radius,
+            enabled: g.enabled ?? true
+          }));
+          const { error: geoInsErr } = await supabase.from('geofences').insert(rows);
           if (geoInsErr) { console.error('[Sync] geofences insert error:', geoInsErr.message); hasError = true; }
-          else console.log('[Sync] Migrated Geofence settings');
+          else console.log('[Sync] Migrated Multiple Geofence settings');
+        } else {
+          const localGeo = get('geofence');
+          if (localGeo && Object.keys(localGeo).length > 0) {
+            const { error: geoInsErr } = await supabase.from('geofences').insert([{ id: 'global', address_name: localGeo.addressName, lat: localGeo.lat, lng: localGeo.lng, radius: localGeo.radius, enabled: localGeo.enabled ?? true }]);
+            if (geoInsErr) { console.error('[Sync] geofences insert error:', geoInsErr.message); hasError = true; }
+            else console.log('[Sync] Migrated Geofence settings');
+          }
         }
       }
     }
@@ -407,6 +436,84 @@ export const db = {
       supabase.from('geofences').upsert({ id: 'global', address_name: next.addressName, lat: next.lat, lng: next.lng, radius: next.radius, enabled: next.enabled ?? true }).then();
     }
     return next;
+  },
+  getGeofences: () => {
+    const list = get('geofences');
+    if (!list || list.length === 0) {
+      const single = db.getGeofence();
+      const initial = [{
+        id: 'global',
+        addressName: single.addressName,
+        lat: single.lat,
+        lng: single.lng,
+        radius: single.radius,
+        enabled: single.enabled
+      }];
+      save('geofences', initial);
+      return initial;
+    }
+    return list;
+  },
+  getGeofenceEnabled: () => {
+    const savedEn = localStorage.getItem(KEY('geofence_enabled'));
+    if (savedEn === null) {
+      const g = db.getGeofence();
+      return g.enabled;
+    }
+    return JSON.parse(savedEn);
+  },
+  setGeofenceEnabled: (enabled) => {
+    localStorage.setItem(KEY('geofence_enabled'), JSON.stringify(Boolean(enabled)));
+    const g = db.getGeofence();
+    g.enabled = enabled;
+    save('geofence', g);
+    
+    const list = db.getGeofences().map(item => ({ ...item, enabled }));
+    save('geofences', list);
+    
+    if (isSupabaseConfigured && supabase) {
+      list.forEach(item => {
+        supabase.from('geofences').upsert({
+          id: item.id,
+          address_name: item.addressName,
+          lat: item.lat,
+          lng: item.lng,
+          radius: item.radius,
+          enabled: item.enabled
+        }).then();
+      });
+    }
+  },
+  saveGeofences: (list) => {
+    save('geofences', list);
+    if (list.length > 0) {
+      save('geofence', list[0]);
+    }
+    if (isSupabaseConfigured && supabase) {
+      list.forEach(item => {
+        supabase.from('geofences').upsert({
+          id: item.id,
+          address_name: item.addressName,
+          lat: item.lat,
+          lng: item.lng,
+          radius: item.radius,
+          enabled: item.enabled
+        }).then();
+      });
+    }
+  },
+  deleteGeofence: (id) => {
+    const list = db.getGeofences().filter(g => g.id !== id);
+    save('geofences', list);
+    if (list.length > 0) {
+      save('geofence', list[0]);
+    } else {
+      localStorage.removeItem(KEY('geofence'));
+    }
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('geofences').delete().eq('id', id).then();
+    }
+    return list;
   },
 
   // Users
@@ -687,6 +794,27 @@ export const db = {
       })));
     }
   },
+
+  // Lightweight re-sync of is_active and status from the profiles table.
+  // Called on a background interval so LiveWorkforce stays fresh.
+  syncProfiles: async () => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const { data: profiles, error } = await supabase.from('profiles').select('user_id, is_active, status, active_shift_json');
+    if (error || !profiles) return;
+    const current = get('users') || [];
+    const updated = current.map(u => {
+      const remote = profiles.find(p => p.user_id === u.userId);
+      if (!remote) return u;
+      return {
+        ...u,
+        isActive: Boolean(remote.is_active),
+        status: remote.status || u.status,
+        activeShift: remote.active_shift_json ?? u.activeShift,
+      };
+    });
+    save('users', updated);
+  },
+
 
   // Returns all Success Leads that manage a given userId (a VA can be in multiple teams)
   getLeadsForUser: (userId) => {

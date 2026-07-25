@@ -91,11 +91,20 @@ function AdminNotificationHeader() {
     e.stopPropagation();
     const updated = notifications.filter(n => n.id !== id);
     setNotifications(updated);
-    db.deleteNotification(id);
+    // Persist removal to localStorage immediately
+    localStorage.setItem('realynk_admin_notifications', JSON.stringify(updated));
+    // LOGNTF- ids are derived from attendance_logs polling — they are never written
+    // to the admin_notifications Supabase table, so skip the DB call for those.
+    if (!id.startsWith('LOGNTF-')) {
+      db.deleteNotification(id);
+    }
   };
 
   const clearAllNotifications = (e) => {
     if (e) e.stopPropagation();
+    // Delete DB-sourced (NOT-) notifications from Supabase before clearing list
+    const dbNotifs = notifications.filter(n => !n.id.startsWith('LOGNTF-'));
+    dbNotifs.forEach(n => db.deleteNotification(n.id));
     setNotifications([]);
     localStorage.setItem('realynk_admin_notifications', JSON.stringify([]));
   };

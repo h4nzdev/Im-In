@@ -137,11 +137,36 @@ export default function ClockIn() {
   const lastLog = sortedLogs[0];
   const isClockedIn = lastLog?.type === 'IN';
 
-  const geofence = db.getGeofence();
+  const geofences = db.getGeofences();
+  const geofenceEnabled = db.getGeofenceEnabled();
   const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
   const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
-  const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
-  const isOutsideGeofence = geofence.enabled && distMeters > geofence.radius;
+
+  let isOutsideGeofence = false;
+  let closestGeofence = geofences[0] || { addressName: 'Designated Boundary', lat: 14.5995, lng: 120.9842, radius: 300 };
+  let distMeters = 0;
+
+  if (geofenceEnabled && geofences.length > 0) {
+    let insideAny = false;
+    let minDistance = Infinity;
+    geofences.forEach(gf => {
+      const dist = calculateDistanceMeters(currentLat, currentLng, gf.lat, gf.lng);
+      if (dist <= gf.radius) {
+        insideAny = true;
+      }
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestGeofence = gf;
+      }
+    });
+    isOutsideGeofence = !insideAny;
+    distMeters = minDistance;
+  } else {
+    if (geofences.length > 0) {
+      closestGeofence = geofences[0];
+      distMeters = calculateDistanceMeters(currentLat, currentLng, closestGeofence.lat, closestGeofence.lng);
+    }
+  }
 
   const validClients = (user.assignedClientIds || []).map(id => allClients.find(c => c.id === id)).filter(Boolean);
   const hasNoClients = !isClockedIn && validClients.length === 0;
@@ -304,10 +329,8 @@ export default function ClockIn() {
     setTimeout(() => {
       const nowObj = new Date();
       const nextType = isClockedIn ? 'OUT' : 'IN';
-      const geofence = db.getGeofence();
       const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
       const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
-      const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
 
       const newLog = db.addLog({
         logId: `REM-${Date.now()}`,
@@ -316,7 +339,7 @@ export default function ClockIn() {
         timestamp: nowObj.toISOString(),
         latitude: currentLat,
         longitude: currentLng,
-        address: `${Math.round(distMeters)}m outside ${geofence.addressName} (Remote Exception)`,
+        address: `${Math.round(distMeters)}m outside ${closestGeofence.addressName} (Remote Exception)`,
         deviceInfo: navigator.userAgent.slice(0, 80),
         status: 'REMOTE_PENDING',
         note: `[${remoteCategory}] ${remoteNote}`,
@@ -538,7 +561,7 @@ export default function ClockIn() {
                 <AlertTriangle size={18} color="#d97706" /> Perimeter Boundary Restriction
               </div>
               <p style={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#78350f', margin: '0 0 14px' }}>
-                You are currently <strong>{Math.round(distMeters)}m</strong> outside the designated <strong>{geofence.addressName}</strong> boundary (max {geofence.radius}m). Standard GPS tap is restricted.
+                You are currently outside all designated boundaries. Closest is <strong>{closestGeofence.addressName}</strong> (Offset: {Math.round(distMeters)}m, allowed radius: {closestGeofence.radius}m). Standard GPS tap is restricted.
               </p>
               <button
                 type="button"
@@ -646,9 +669,9 @@ export default function ClockIn() {
       }}>
         <div style={{ padding: '12px 16px', background: 'rgba(15,23,42,0.03)', borderBottom: '1px solid rgba(15,23,42,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>Current Biometric Geolocation</p>
-          {geofence.enabled ? (
+          {geofenceEnabled ? (
             <span style={{ fontSize: '0.72rem', fontWeight: 800, color: isOutsideGeofence ? '#dc2626' : '#10b981', background: isOutsideGeofence ? '#fef2f2' : '#ecfdf5', padding: '3px 8px', borderRadius: 8 }}>
-              {isOutsideGeofence ? '⚠️ Outside Perimeter Circle' : '🟢 Inside Perimeter Circle'}
+              {isOutsideGeofence ? '⚠️ Outside All Perimeter Circles' : '🟢 Inside Perimeter Circle'}
             </span>
           ) : (
             <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 8 }}>
@@ -659,20 +682,23 @@ export default function ClockIn() {
         <MapContainer center={[currentLat, currentLng]} zoom={15} style={{ height: 210 }}>
           <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='© OpenStreetMap © CARTO' />
           <Marker position={[currentLat, currentLng]}>
-            <Popup>Your Current Location ({isOutsideGeofence ? 'Outside Geofence' : 'Inside Geofence'})</Popup>
+            <Popup>Your Location</Popup>
           </Marker>
-          <Circle
-            center={[geofence.lat, geofence.lng]}
-            radius={geofence.radius}
-            pathOptions={{
-              color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
-              fillColor: geofence.enabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
-              fillOpacity: 0.25,
-              weight: 2
-            }}
-          >
-            <Popup>{geofence.addressName} Perimeter ({geofence.radius}m)</Popup>
-          </Circle>
+          {geofences.map(gf => (
+            <Circle
+              key={gf.id}
+              center={[gf.lat, gf.lng]}
+              radius={gf.radius}
+              pathOptions={{
+                color: geofenceEnabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
+                fillColor: geofenceEnabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
+                fillOpacity: 0.25,
+                weight: 2
+              }}
+            >
+              <Popup>{gf.addressName} Perimeter ({gf.radius}m)</Popup>
+            </Circle>
+          ))}
         </MapContainer>
       </div>
 
@@ -749,7 +775,7 @@ export default function ClockIn() {
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} color="#d97706" />
-                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {geofence.addressName}</span>
+                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {closestGeofence.addressName}</span>
                 </div>
               </div>
 

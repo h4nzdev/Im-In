@@ -20,6 +20,26 @@ export default function LiveWorkforce() {
     return () => unsubPresence();
   }, []);
 
+  // Re-sync users from localStorage (which is kept fresh by initSupabaseSync)
+  // every 10 seconds so is_active changes from Supabase show up without a reload.
+  useEffect(() => {
+    const refresh = () => setUsers(db.getUsers());
+    const interval = setInterval(refresh, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Pull is_active + status from Supabase profiles every 15 s.
+  // This is the main driver for showing Online vs Offline correctly.
+  useEffect(() => {
+    const poll = async () => {
+      await db.syncProfiles();
+      setUsers(db.getUsers());
+    };
+    poll(); // run immediately on mount
+    const interval = setInterval(poll, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -43,6 +63,8 @@ export default function LiveWorkforce() {
       if (payload && (payload.type === 'CLOCK_IN' || payload.type === 'CLOCK_OUT')) {
         await db.syncLogs();
         setLogs(db.getLogs());
+        // Refresh users too so is_active changes are picked up
+        setUsers(db.getUsers());
       }
     });
     return () => unsub();
@@ -174,7 +196,14 @@ export default function LiveWorkforce() {
               statusLabel = shiftInfo.status;
             }
 
-            const isOnline = Boolean(livePresence[u.userId]);
+            // isOnline: true if the Supabase Presence channel has this user,
+            // OR if the DB profile says is_active=true,
+            // OR if they have an open shift in logs (most reliable for cross-tab).
+            const isOnline = Boolean(
+              livePresence[u.userId] ||
+              u.isActive ||
+              shiftInfo
+            );
             const isOnBreak = statusLabel === 'On Break';
 
             return (

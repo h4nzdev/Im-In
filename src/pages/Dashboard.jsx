@@ -266,11 +266,36 @@ export default function Dashboard() {
   const todayLogs = sortedLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString());
   const mapCenter = location || (lastLog?.latitude ? { lat: lastLog.latitude, lng: lastLog.longitude } : { lat: 14.5995, lng: 120.9842 });
 
-  const geofence = db.getGeofence();
+  const geofences = db.getGeofences();
+  const geofenceEnabled = db.getGeofenceEnabled();
   const currentLat = Number(location?.lat ?? lastLog?.latitude ?? 14.5995) || 14.5995;
   const currentLng = Number(location?.lng ?? lastLog?.longitude ?? 120.9842) || 120.9842;
-  const distMeters = calculateDistanceMeters(currentLat, currentLng, geofence.lat, geofence.lng);
-  const isOutsideGeofence = false; 
+
+  let isOutsideGeofence = false;
+  let closestGeofence = geofences[0] || { addressName: 'Designated Boundary', lat: 14.5995, lng: 120.9842, radius: 300 };
+  let distMeters = 0;
+
+  if (geofenceEnabled && geofences.length > 0) {
+    let insideAny = false;
+    let minDistance = Infinity;
+    geofences.forEach(gf => {
+      const dist = calculateDistanceMeters(currentLat, currentLng, gf.lat, gf.lng);
+      if (dist <= gf.radius) {
+        insideAny = true;
+      }
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestGeofence = gf;
+      }
+    });
+    isOutsideGeofence = !insideAny;
+    distMeters = minDistance;
+  } else {
+    if (geofences.length > 0) {
+      closestGeofence = geofences[0];
+      distMeters = calculateDistanceMeters(currentLat, currentLng, closestGeofence.lat, closestGeofence.lng);
+    }
+  } 
 
   const validClients = (user.assignedClientIds || []).map(id => allClients.find(c => c.id === id)).filter(Boolean);
   const hasNoClients = !isClockedIn && validClients.length === 0; 
@@ -571,9 +596,15 @@ export default function Dashboard() {
               <MapPin size={18} color="#054daf" />
               <p style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>Live Geolocation</p>
             </div>
-            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', background: '#ecfdf5', padding: '4px 10px', borderRadius: 8, border: '1px solid #a7f3d0' }}>
-              🔓 Quick Punch (Unrestricted)
-            </span>
+            {geofenceEnabled ? (
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: isOutsideGeofence ? '#dc2626' : '#10b981', background: isOutsideGeofence ? '#fef2f2' : '#ecfdf5', padding: '4px 10px', borderRadius: 8, border: isOutsideGeofence ? '1px solid #fecaca' : '1px solid #a7f3d0' }}>
+                {isOutsideGeofence ? '⚠️ Outside Boundaries' : '🟢 Inside Perimeter'}
+              </span>
+            ) : (
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: 8, border: '1px solid #cbd5e1' }}>
+                🔓 Quick Punch (Unrestricted)
+              </span>
+            )}
           </div>
           <MapContainer center={[currentLat, currentLng]} zoom={15} style={{ flex: 1, minHeight: 280, width: '100%' }}>
             <TileLayer
@@ -581,20 +612,23 @@ export default function Dashboard() {
               attribution='© OpenStreetMap © CARTO'
             />
             <Marker position={[currentLat, currentLng]}>
-              <Popup>Your Current Location ({isOutsideGeofence ? 'Outside Geofence' : 'Inside Geofence'})</Popup>
+              <Popup>Your Location</Popup>
             </Marker>
-            <Circle
-              center={[geofence.lat, geofence.lng]}
-              radius={geofence.radius}
-              pathOptions={{
-                color: geofence.enabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
-                fillColor: geofence.enabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
-                fillOpacity: 0.25,
-                weight: 2
-              }}
-            >
-              <Popup>{geofence.addressName} Perimeter ({geofence.radius}m)</Popup>
-            </Circle>
+            {geofences.map(gf => (
+              <Circle
+                key={gf.id}
+                center={[gf.lat, gf.lng]}
+                radius={gf.radius}
+                pathOptions={{
+                  color: geofenceEnabled ? (isOutsideGeofence ? '#ef4444' : '#10b981') : '#054daf',
+                  fillColor: geofenceEnabled ? (isOutsideGeofence ? '#f87171' : '#34d399') : '#60a5fa',
+                  fillOpacity: 0.25,
+                  weight: 2
+                }}
+              >
+                <Popup>{gf.addressName} Perimeter ({gf.radius}m)</Popup>
+              </Circle>
+            ))}
           </MapContainer>
         </div>
       </div>

@@ -37,7 +37,8 @@ export default function AdminDashboard() {
   const [activeShiftsMap, setActiveShiftsMap] = useState(() => JSON.parse(localStorage.getItem('realynk_live_active_shifts')) || {});
   const [now, setNow] = useState(Date.now());
 
-  const [geofence] = useState(() => db.getGeofence());
+  const [geofences] = useState(() => db.getGeofences());
+  const [geofenceEnabled] = useState(() => db.getGeofenceEnabled());
   const containerRef = useRef();
 
   useEffect(() => {
@@ -328,13 +329,13 @@ export default function AdminDashboard() {
                 <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(5, 77, 175,0.15)', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={22} />
                 </div>
-                <span style={{ padding: '4px 10px', borderRadius: 20, background: geofence?.enabled ? '#ecfdf5' : '#f1f5f9', color: geofence?.enabled ? '#059669' : '#64748b', fontSize: '0.74rem', fontWeight: 800, border: geofence?.enabled ? '1px solid #a7f3d0' : '1px solid #e2e8f0' }}>
-                  {geofence?.enabled ? 'Strict Geofence ON' : 'Geofence Unrestricted'}
+                <span style={{ padding: '4px 10px', borderRadius: 20, background: geofenceEnabled ? '#ecfdf5' : '#f1f5f9', color: geofenceEnabled ? '#059669' : '#64748b', fontSize: '0.74rem', fontWeight: 800, border: geofenceEnabled ? '1px solid #a7f3d0' : '1px solid #e2e8f0' }}>
+                  {geofenceEnabled ? `${geofences.length} Active Zones` : 'Geofence Unrestricted'}
                 </span>
               </div>
               <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Terminal Geofence Map</h3>
               <p style={{ color: '#64748b', fontSize: '0.84rem', lineHeight: 1.5, margin: '0 0 20px', fontWeight: 600 }}>
-                Active center: <strong>{geofence?.addressName || 'Wilson Street, Cebu City'}</strong> ({geofence?.radius || 300}m radius). Configure interactive map pin.
+                Active centers: <strong>{geofences.length > 0 ? geofences.map(g => g.addressName).slice(0, 2).join(', ') + (geofences.length > 2 ? ` (+${geofences.length - 2} more)` : '') : 'Wilson Street, Cebu City'}</strong>. Configure interactive map pin.
               </p>
             </div>
             <button
