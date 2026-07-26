@@ -426,7 +426,8 @@ export default function Layout() {
 
   const developerLinks = [
     { category: 'Main', items: [
-      { to: '/developer',     icon: Activity,  label: 'Bug Tracker' },
+      { to: '/developer',     icon: Activity,  label: 'System Dashboard' },
+      { to: '/developer/bugs', icon: Bug, label: 'Bug Reports' },
     ]},
     { category: 'Preferences', items: [
       { to: '/settings',      icon: Settings,  label: 'Settings'  },

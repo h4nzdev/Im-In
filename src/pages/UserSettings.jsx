@@ -122,9 +122,9 @@ export default function UserSettings() {
               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(15,23,42,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Moon size={20} color="#475569" />
               </div>
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>Dark Mode</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b' }}>A darker theme for low-light environments</p>
+                <span style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>- A darker theme for low-light environments</span>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

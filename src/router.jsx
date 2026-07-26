@@ -28,6 +28,7 @@ const AdminClients = lazy(() => import('./pages/AdminClients'));
 const UserReports = lazy(() => import('./pages/UserReports'));
 const UserSettings = lazy(() => import('./pages/UserSettings'));
 const DeveloperDashboard = lazy(() => import('./pages/DeveloperDashboard'));
+const DeveloperBugs = lazy(() => import('./pages/DeveloperBugs'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -161,6 +162,10 @@ export const router = createBrowserRouter([
       {
         path: 'developer',
         element: wrap(<ProtectedRoute element={<DeveloperDashboard />} />),
+      },
+      {
+        path: 'developer/bugs',
+        element: wrap(<ProtectedRoute element={<DeveloperBugs />} />),
       },
       {
         path: 'profile',

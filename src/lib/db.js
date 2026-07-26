@@ -974,12 +974,26 @@ export const db = {
     r.unshift(newBug);
     save('bug_reports', r);
     window.dispatchEvent(new Event('bug_reports_updated'));
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('bug_reports').insert([{
+        id: newBug.id,
+        description: newBug.description,
+        status: newBug.status,
+        user_id: newBug.userId,
+        user_name: newBug.userName,
+        user_role: newBug.userRole,
+        timestamp: newBug.timestamp
+      }]).then(({ error }) => { if (error) console.error('[DB] addBugReport error:', error.message); });
+    }
     return newBug;
   },
   updateBugStatus: (id, status) => {
     const r = get('bug_reports').map(x => x.id === id ? { ...x, status } : x);
     save('bug_reports', r);
     window.dispatchEvent(new Event('bug_reports_updated'));
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('bug_reports').update({ status }).eq('id', id).then(({ error }) => { if (error) console.error('[DB] updateBugStatus error:', error.message); });
+    }
     return r;
   }
 };
