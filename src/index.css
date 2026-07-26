@@ -213,6 +213,33 @@ select option {
 .btn-primary:active { transform: translateY(0); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
+.btn-warning {
+  background: linear-gradient(135deg, #054daf, #043e8a) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-weight: 800 !important;
+  cursor: pointer;
+  width: 100%;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(5, 77, 175, 0.25);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.btn-warning:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 24px rgba(5, 77, 175, 0.4); 
+  background: linear-gradient(135deg, #065fbd, #054daf) !important;
+}
+.btn-warning:active { transform: translateY(0); }
+
 .stats-grid {
   display: grid;
   grid-auto-flow: column;

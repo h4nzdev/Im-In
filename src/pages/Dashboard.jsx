@@ -53,7 +53,6 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [punching, setPunching] = useState(false);
   const [shiftMs, setShiftMs] = useState(0);
-  const [attendanceMode, setAttendanceMode] = useState('TAP');
 
   // Remote / Exception Clock-In Request States
   const [showRemoteModal, setShowRemoteModal] = useState(false);
@@ -401,68 +400,7 @@ export default function Dashboard() {
           <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: isClockedIn ? 'rgba(5, 77, 175,0.08)' : 'rgba(5, 77, 175,0.05)', filter: 'blur(30px)', zIndex: 0 }} />
           
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            {/* Attendance Mode Switcher at Top of Card */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              gap: 4, padding: 5, borderRadius: 50, background: '#f1f5f9', border: '1px solid #cbd5e1',
-              marginBottom: 28, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
-            }}>
-              <button
-                type="button"
-                onClick={() => setAttendanceMode('TAP')}
-                style={{
-                  padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'TAP' ? '#054daf' : 'transparent',
-                  color: attendanceMode === 'TAP' ? '#ffffff' : '#475569',
-                  fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'TAP' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
-                  transition: 'all 0.2s', whiteSpace: 'nowrap'
-                }}
-              >
-                📍 GPS Tap
-              </button>
-              <button
-                type="button"
-                onClick={() => setAttendanceMode('FACE')}
-                style={{
-                  padding: '8px 18px', borderRadius: 50, border: 'none', outline: 'none', cursor: 'pointer',
-                  background: attendanceMode === 'FACE' ? '#054daf' : 'transparent',
-                  color: attendanceMode === 'FACE' ? '#ffffff' : '#475569',
-                  fontWeight: 800, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: attendanceMode === 'FACE' ? '0 4px 12px rgba(5, 77, 175,0.25)' : 'none',
-                  transition: 'all 0.2s', whiteSpace: 'nowrap'
-                }}
-              >
-                👤 Face AI
-                <span style={{
-                  padding: '2px 7px', borderRadius: 10,
-                  background: attendanceMode === 'FACE' ? 'rgba(255,255,255,0.25)' : '#dbeafe',
-                  color: attendanceMode === 'FACE' ? '#ffffff' : '#043e8a',
-                  fontSize: '0.68rem', fontWeight: 900
-                }}>SOON</span>
-              </button>
-            </div>
 
-            {attendanceMode === 'FACE' ? (
-              <div style={{ padding: '24px 18px', borderRadius: 20, textAlign: 'center', marginBottom: 16, border: '1.5px dashed #93c5fd', background: 'linear-gradient(180deg, rgba(239,246,255,0.9), rgba(255,255,255,0.95))', width: '100%', maxWidth: 360, boxShadow: '0 8px 24px rgba(5, 77, 175,0.06)' }}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dbeafe', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '2rem', boxShadow: '0 6px 18px rgba(5, 77, 175,0.15)' }}>
-                  🧑‍💻
-                </div>
-                <span style={{ padding: '4px 10px', borderRadius: 20, background: '#043e8a', color: 'white', fontWeight: 800, fontSize: '0.72rem', display: 'inline-block', marginBottom: 10 }}>
-                  ⚡ COMING SOON
-                </span>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
-                  AI Facial Verification
-                </h4>
-                <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '0 0 16px', lineHeight: 1.45 }}>
-                  Frictionless hands-free attendance check-in via 3D facial neural recognition is finalizing security audits.
-                </p>
-                <div style={{ padding: '8px 12px', borderRadius: 12, background: 'white', border: '1px solid #e2e8f0', fontSize: '0.75rem', color: '#334155', fontWeight: 700, display: 'inline-block' }}>
-                  🔒 Neural Biometric Template Engine v2.4
-                </div>
-              </div>
-            ) : (
-              <>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
                   <Timer size={16} color={isClockedIn ? "#054daf" : "#64748b"} /> Active Shift Elapsed
                 </span>
@@ -480,19 +418,14 @@ export default function Dashboard() {
                       <AlertTriangle size={18} color="#d97706" /> Perimeter Boundary Restriction
                     </div>
                     <p style={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#78350f', margin: '0 0 14px' }}>
-                      You are currently <strong>{Math.round(distMeters)}m</strong> outside the designated <strong>{geofence.addressName}</strong> boundary (max {geofence.radius}m). Standard GPS tap is restricted.
+                      You are currently <strong>{Math.round(distMeters)}m</strong> outside the designated <strong>{closestGeofence.addressName}</strong> boundary (max {closestGeofence.radius}m). Standard GPS tap is restricted.
                     </p>
                     <button
                       type="button"
+                      className="btn-warning"
                       onClick={() => setShowRemoteModal(true)}
-                      style={{
-                        width: '100%', padding: '11px 16px', borderRadius: 14, background: '#d97706',
-                        color: 'white', border: 'none', fontWeight: 800, fontSize: '0.84rem',
-                        cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(217,119,6,0.3)'
-                      }}
                     >
-                      <FileText size={16} /> Request Admin Exception / Remote Check-In
+                      <FileText size={16} /> Request Remote Check-In
                     </button>
                   </div>
                 ) : null}
@@ -574,8 +507,7 @@ export default function Dashboard() {
                     <span>No active clients assigned. Please contact Admin.</span>
                   </div>
                 )}
-              </>
-            )}
+
 
             {lastLog && (
               <div style={{ background: 'rgba(15,23,42,0.04)', borderRadius: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -709,7 +641,7 @@ export default function Dashboard() {
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} color="#d97706" />
-                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {geofence.addressName}</span>
+                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {closestGeofence.addressName}</span>
                 </div>
               </div>
 

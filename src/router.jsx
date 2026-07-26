@@ -26,6 +26,8 @@ const LiveWorkforce = lazy(() => import('./pages/LiveWorkforce'));
 const AdminPreRegistration = lazy(() => import('./pages/AdminPreRegistration'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
 const UserReports = lazy(() => import('./pages/UserReports'));
+const UserSettings = lazy(() => import('./pages/UserSettings'));
+const DeveloperDashboard = lazy(() => import('./pages/DeveloperDashboard'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -151,6 +153,14 @@ export const router = createBrowserRouter([
       {
         path: 'user-reports',
         element: wrap(<ProtectedRoute element={<UserReports />} />),
+      },
+      {
+        path: 'settings',
+        element: wrap(<ProtectedRoute element={<UserSettings />} />),
+      },
+      {
+        path: 'developer',
+        element: wrap(<ProtectedRoute element={<DeveloperDashboard />} />),
       },
       {
         path: 'profile',

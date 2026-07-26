@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2, AlertTriangle, Loader } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2, AlertTriangle, Loader, Settings } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
@@ -236,7 +236,7 @@ export default function Layout() {
   const syncStatus = useSyncStatus();
   const [dismissedSyncError, setDismissedSyncError] = useState(false);
   
-  const [openNavSections, setOpenNavSections] = useState({ 'Main': true, 'Workforce': true, 'Operations': true, 'Records': true, 'Team Management': true });
+  const [openNavSections, setOpenNavSections] = useState({ 'Main': true, 'Workforce': true, 'Operations': true, 'Records': true, 'Team Management': true, 'Preferences': true });
 
   // 4-Digit Quick Access PIN Lock State
   const [pinEntry, setPinEntry] = useState('');
@@ -360,6 +360,7 @@ export default function Layout() {
 
   const isAdmin = user?.role === 'Admin';
   const isSuccessLead = user?.role === 'Success Lead';
+  const isDeveloper = user?.role === 'Developer';
 
   const userLinks = [
     { category: 'Main', items: [
@@ -373,6 +374,9 @@ export default function Layout() {
     { category: 'Records', items: [
       { to: '/logs',      icon: Clock,           label: 'Logs'      },
       { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+    ]},
+    { category: 'Preferences', items: [
+      { to: '/settings',  icon: Settings,        label: 'Settings'  },
     ]}
   ];
   
@@ -389,6 +393,9 @@ export default function Layout() {
     { category: 'Records', items: [
       { to: '/logs',      icon: Clock,           label: 'Logs'      },
       { to: '/leaves',    icon: Briefcase,       label: 'Leaves'    },
+    ]},
+    { category: 'Preferences', items: [
+      { to: '/settings',  icon: Settings,        label: 'Settings'  },
     ]}
   ];
   
@@ -411,9 +418,22 @@ export default function Layout() {
     { category: 'Records', items: [
       { to: '/admin/logs',      icon: Clock,     label: 'Logs'      },
       { to: '/admin/leaves',    icon: FileText,  label: 'Leaves'    },
+    ]},
+    { category: 'Preferences', items: [
+      { to: '/settings',        icon: Settings,  label: 'Settings'  },
     ]}
   ];
-  const links = isAdmin ? adminLinks : isSuccessLead ? successLeadLinks : userLinks;
+
+  const developerLinks = [
+    { category: 'Main', items: [
+      { to: '/developer',     icon: Activity,  label: 'Bug Tracker' },
+    ]},
+    { category: 'Preferences', items: [
+      { to: '/settings',      icon: Settings,  label: 'Settings'  },
+    ]}
+  ];
+
+  const links = isAdmin ? adminLinks : isDeveloper ? developerLinks : isSuccessLead ? successLeadLinks : userLinks;
 
   const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(to + '/');
 

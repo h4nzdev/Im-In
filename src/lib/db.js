@@ -11,8 +11,12 @@ function cleanInitialSetup() {
   if (u.length === 0) {
     save('users', [
       { userId: 'ADM-001', name: 'Executive Admin', email: 'admin@realynk.com', password: 'admin123', positionId: 'POS-001', department: 'Management', role: 'Admin', status: 'Active', createdAt: new Date().toISOString() },
-      { userId: 'USR-001', name: 'Legacy Admin', email: 'admin@imin.com', password: 'admin123', positionId: 'POS-001', department: 'Management', role: 'Admin', status: 'Active', createdAt: new Date().toISOString() }
+      { userId: 'USR-001', name: 'Legacy Admin', email: 'admin@imin.com', password: 'admin123', positionId: 'POS-001', department: 'Management', role: 'Admin', status: 'Active', createdAt: new Date().toISOString() },
+      { userId: 'DEV-001', name: 'System Developer', email: 'dev@realynk.com', password: 'dev', positionId: 'POS-004', department: 'Engineering', role: 'Developer', status: 'Active', createdAt: new Date().toISOString() }
     ]);
+  } else if (!u.find(x => x.userId === 'DEV-001')) {
+    u.push({ userId: 'DEV-001', name: 'System Developer', email: 'dev@realynk.com', password: 'dev', positionId: 'POS-004', department: 'Engineering', role: 'Developer', status: 'Active', createdAt: new Date().toISOString() });
+    save('users', u);
   }
   const p = get('positions');
   if (p.length === 0) {
@@ -116,6 +120,19 @@ export async function initSupabaseSync() {
             createdAt: p.created_at || new Date().toISOString()
           };
         });
+        
+        if (!users.find(u => u.userId === 'DEV-001')) {
+          const devUser = {
+            userId: 'DEV-001', name: 'System Developer', email: 'dev@realynk.com', password: 'dev', positionId: 'POS-004', department: 'Engineering', role: 'Developer', status: 'Active', createdAt: new Date().toISOString()
+          };
+          users.push(devUser);
+          supabase.from('profiles').insert([{
+            user_id: devUser.userId, name: devUser.name, email: devUser.email,
+            password: devUser.password, department: devUser.department,
+            role: devUser.role, status: devUser.status, position_id: devUser.positionId
+          }]).then();
+        }
+
         save('users', users);
       } else {
         // AUTO-MIGRATE: push local users up
@@ -381,6 +398,24 @@ export async function initSupabaseSync() {
       if (!notifErr.message.includes('schema cache')) { console.error('[Sync] admin_notifications fetch error:', notifErr.message); hasError = true; }
     } else if (notifs) {
       localStorage.setItem('realynk_admin_notifications', JSON.stringify(notifs));
+    }
+
+    // ── STEP 12: BUG REPORTS ─────────────────────────────────────
+    const { data: bugs, error: bugsErr } = await supabase.from('bug_reports').select('*');
+    if (bugsErr) {
+      if (!bugsErr.message.includes('schema cache')) { console.error('[Sync] bug_reports fetch error:', bugsErr.message); hasError = true; }
+    } else if (bugs) {
+      if (bugs.length > 0) {
+        save('bug_reports', bugs.map(b => ({ id: b.id, description: b.description, status: b.status, userId: b.user_id, userName: b.user_name, userRole: b.user_role, timestamp: b.timestamp })));
+      } else {
+        const localBugs = get('bug_reports') || [];
+        if (localBugs.length > 0) {
+          const bugRows = localBugs.map(b => ({ id: b.id, description: b.description, status: b.status, user_id: b.userId, user_name: b.userName, user_role: b.userRole, timestamp: b.timestamp }));
+          const { error: bugInsErr } = await supabase.from('bug_reports').insert(bugRows);
+          if (bugInsErr) { console.error('[Sync] bug_reports insert error:', bugInsErr.message); hasError = true; }
+          else console.log('[Sync] Migrated', bugRows.length, 'bug reports');
+        }
+      }
     }
 
     console.log('[Sync] Supabase sync complete');
@@ -919,6 +954,33 @@ export const db = {
       supabase.from('clients').delete().eq('id', id).then();
     }
     return c;
+  },
+
+  // Bug Reports (In-App Issue Tracking)
+  getBugReports: () => {
+    return get('bug_reports');
+  },
+  addBugReport: (desc, user) => {
+    const r = get('bug_reports');
+    const newBug = {
+      id: `BUG-${Date.now()}`,
+      description: desc,
+      status: 'Open',
+      userId: user.userId,
+      userName: user.name,
+      userRole: user.role,
+      timestamp: new Date().toISOString()
+    };
+    r.unshift(newBug);
+    save('bug_reports', r);
+    window.dispatchEvent(new Event('bug_reports_updated'));
+    return newBug;
+  },
+  updateBugStatus: (id, status) => {
+    const r = get('bug_reports').map(x => x.id === id ? { ...x, status } : x);
+    save('bug_reports', r);
+    window.dispatchEvent(new Event('bug_reports_updated'));
+    return r;
   }
 };
 

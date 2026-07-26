@@ -29,7 +29,8 @@ export default function Login() {
     setLoading(true);
     try {
       const user = login(email, password);
-      navigate(user.role === 'Admin' ? '/admin' : '/');
+      const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/';
+      navigate(targetRoute);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -38,7 +39,8 @@ export default function Login() {
   };
 
   if (user) {
-    return <Navigate to={user.role === 'Admin' ? '/admin' : '/'} replace />;
+    const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/';
+    return <Navigate to={targetRoute} replace />;
   }
 
   return (
