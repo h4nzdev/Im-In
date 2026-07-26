@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2, AlertTriangle, Loader, Settings } from 'lucide-react';
+import { LogOut, LayoutDashboard, Calendar, Shield, Briefcase, FileText, Clock, BarChart2, UserCheck, Smartphone, Download, X, CheckCircle2, Users, BookOpen, Bell, MapPin, Activity, UserPlus, Building2, ChevronDown, Trash2, AlertTriangle, Loader, Settings, Bug } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import BottomNav from './BottomNav';
 import realynkLogo from '../assets/realynk.png';
