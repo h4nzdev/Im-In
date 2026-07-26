@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { gsap } from 'gsap';
-import { LogOut, Edit3, Check, X, Bell, Shield, Moon, Key, Settings as SettingsIcon, Smartphone, Clock, Calendar, Briefcase, Mail, Award, MapPin, UserCheck, Activity, Lock, FileText } from 'lucide-react';
+import { LogOut, Edit3, Shield, Clock, Calendar, Briefcase, Mail, Award, UserCheck, Activity, FileText } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 import { showSuccess } from '../lib/alert';
@@ -31,88 +31,7 @@ export default function Profile() {
     assignedAccount: user?.assignedAccount || ''
   });
 
-  // Settings toggles
-  const [prefs, setPrefs] = useState(() => {
-    const p = localStorage.getItem(`imin_prefs_${user.userId}`);
-    if (p) return JSON.parse(p);
-    return { notifs: true, autoLocation: true, darkMode: false };
-  });
 
-  const pageRef = useRef();
-  const position = positions.find(p => p.positionId === user?.positionId);
-
-  // Reactive window width for true responsiveness
-  const [winW, setWinW] = useState(window.innerWidth);
-  useEffect(() => {
-    const onResize = () => setWinW(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(pageRef.current.querySelectorAll('.card'), {
-        y: 28, opacity: 0, duration: 0.6, stagger: 0.08, ease: 'power3.out',
-      });
-    });
-    return () => ctx.revert();
-  }, [user]);
-
-  const togglePref = (k) => {
-    const next = { ...prefs, [k]: !prefs[k] };
-    setPrefs(next);
-    localStorage.setItem(`imin_prefs_${user.userId}`, JSON.stringify(next));
-  };
-
-  const handleSetPin = async () => {
-    const currentPin = localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin || '';
-    const { value: newPin } = await Swal.fire({
-      title: '🔒 Quick Access 4-Digit PIN',
-      text: 'Set up or update your 4-digit numeric PIN for offline check-in & terminal validation.',
-      input: 'password',
-      inputAttributes: {
-        maxlength: 4,
-        autocapitalize: 'off',
-        autocorrect: 'off',
-        inputmode: 'numeric',
-        pattern: '[0-9]*',
-        placeholder: '• • • •'
-      },
-      inputValue: currentPin,
-      showCancelButton: true,
-      confirmButtonText: '💾 Save PIN',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        confirmButton: 'swal-custom-btn swal-btn-primary',
-        cancelButton: 'swal-custom-btn swal-btn-cancel'
-      },
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Please enter a 4-digit numeric PIN!';
-        }
-        if (!/^\d{4}$/.test(value)) {
-          return 'PIN must be exactly 4 digits (e.g. 1234)';
-        }
-        return null;
-      }
-    });
-
-    if (newPin) {
-      if (!isInspectingOther && updateProfile) {
-        updateProfile({ pin: newPin });
-      } else {
-        db.updateUser(user.userId, { pin: newPin });
-        localStorage.setItem(`realynk_user_pin_${user.userId}`, newPin);
-        const stored = JSON.parse(localStorage.getItem('user') || 'null');
-        if (stored && stored.userId === user.userId) {
-          localStorage.setItem('user', JSON.stringify({ ...stored, pin: newPin }));
-        }
-      }
-      showSuccess('PIN Saved!', `4-Digit Security PIN configured (` + newPin.replace(/./g, '•') + `) and saved to async storage.`);
-    }
-  };
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -412,115 +331,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Preferences & Settings */}
-          <div className="card glass profile-card" style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, marginBottom: isMobile ? 18 : 24 }}>
-              <div style={{ width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: 12, background: 'rgba(5, 77, 175,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#054daf', flexShrink: 0 }}>
-                <SettingsIcon size={isMobile ? 18 : 22} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ fontSize: isMobile ? '0.98rem' : '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Preferences & System Settings</h2>
-                {!isMobile && <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '2px 0 0', fontWeight: 600 }}>Configure notifications, geolocation locks, and app tools</p>}
-              </div>
-            </div>
 
-            {/* Shared row style helper */}
-            {[
-              {
-                icon: <Bell size={isMobile ? 16 : 18} />,
-                label: 'Email Shift Reminders',
-                sub: 'Receive notifications prior to shift start',
-                action: (
-                  <button
-                    onClick={() => togglePref('notifs')}
-                    style={{ width: 44, height: 24, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0, background: prefs.notifs ? '#054daf' : '#cbd5e1', transition: 'background 0.2s' }}
-                  >
-                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: prefs.notifs ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }} />
-                  </button>
-                ),
-              },
-              {
-                icon: <Shield size={isMobile ? 16 : 18} />,
-                label: 'Biometric Geolocation Lock',
-                sub: 'Attach GPS coordinates on punch attempts',
-                action: (
-                  <button
-                    onClick={() => togglePref('autoLocation')}
-                    style={{ width: 44, height: 24, borderRadius: 20, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0, background: prefs.autoLocation ? '#054daf' : '#cbd5e1', transition: 'background 0.2s' }}
-                  >
-                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: prefs.autoLocation ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }} />
-                  </button>
-                ),
-              },
-              {
-                icon: <Key size={isMobile ? 16 : 18} />,
-                label: 'Security & Credentials',
-                sub: 'Update corporate login password',
-                iconBg: '#f1f5f9',
-                action: (
-                  <button
-                    onClick={() => showSuccess('Reset Link Sent', 'Password reset instructions sent to ' + user.email)}
-                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: '1px solid rgba(15,23,42,0.15)', background: 'white', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.82rem', cursor: 'pointer', color: '#334155', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                  >
-                    Reset Password
-                  </button>
-                ),
-              },
-              {
-                icon: <Lock size={isMobile ? 16 : 18} />,
-                label: 'Quick Access 4-Digit PIN',
-                sub: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'PIN Active (••••) – Offline Check-In enabled' : 'Set up 4-digit PIN for offline & terminal access',
-                iconBg: 'rgba(5, 77, 175,0.1)',
-                iconColor: '#054daf',
-                action: (
-                  <button
-                    onClick={handleSetPin}
-                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: '1px solid #054daf', background: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'rgba(5,77,175,0.08)' : '#054daf', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.82rem', cursor: 'pointer', color: localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? '#054daf' : 'white', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                  >
-                    {localStorage.getItem(`realynk_user_pin_${user.userId}`) || user.pin ? 'Change PIN' : 'Set PIN'}
-                  </button>
-                ),
-              },
-              {
-                icon: <Smartphone size={isMobile ? 16 : 18} />,
-                label: 'Install Realynk Enterprise App',
-                sub: 'Add 1-tap check-in app to home screen',
-                iconBg: 'rgba(5, 77, 175,0.12)',
-                iconColor: '#054daf',
-                isLast: true,
-                action: (
-                  <button
-                    onClick={() => context?.openInstallModal?.()}
-                    style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 10, border: 'none', background: '#054daf', fontWeight: 800, fontSize: isMobile ? '0.74rem' : '0.84rem', cursor: 'pointer', color: 'white', boxShadow: '0 4px 12px rgba(5,77,175,0.3)', transition: 'all 0.15s', flexShrink: 0, whiteSpace: 'nowrap' }}
-                  >
-                    Install App
-                  </button>
-                ),
-              },
-            ].map(({ icon, label, sub, iconBg = '#f1f5f9', iconColor = '#475569', action, isLast }) => (
-              <div
-                key={label}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  gap: isMobile ? 10 : 14,
-                  paddingBottom: isLast ? 0 : (isMobile ? 14 : 18),
-                  marginBottom: isLast ? 0 : (isMobile ? 14 : 18),
-                  borderBottom: isLast ? 'none' : '1px solid rgba(15,23,42,0.06)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 13, flex: 1, minWidth: 0 }}>
-                  <div style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: 10, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
-                    {icon}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontWeight: 700, fontSize: isMobile ? '0.82rem' : '0.92rem', color: '#1e293b', display: 'block', marginBottom: 1 }}>{label}</span>
-                    <span style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', color: '#64748b', display: 'block', lineHeight: 1.3 }}>{sub}</span>
-                  </div>
-                </div>
-                {action}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

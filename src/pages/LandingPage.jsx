@@ -157,8 +157,28 @@ export default function LandingPage() {
 
   const activeRoleData = roles.find(r => r.id === activeRole);
 
+  const mobileStyles = `
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; text-align: center; padding-top: 40px !important; }
+      .hero-left { display: flex; flex-direction: column; align-items: center; text-align: center; }
+      .hero-left p { margin: 0 auto 32px !important; }
+      .roles-grid { grid-template-columns: 1fr !important; }
+      .role-tabs { flex-direction: row !important; overflow-x: auto; padding-bottom: 12px; white-space: nowrap; }
+      .role-tabs::-webkit-scrollbar { height: 4px; }
+      .role-tabs::-webkit-scrollbar-thumb { background: rgba(5, 77, 175, 0.2); border-radius: 4px; }
+      .role-tabs button { flex: 0 0 auto; }
+      .role-content { padding: 32px 24px !important; min-height: auto !important; }
+      .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 30px !important; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr !important; }
+      .hero-title { font-size: 2.2rem !important; }
+    }
+  `;
+
   return (
     <div style={{ minHeight: '100vh', background: softBg, fontFamily: "'Inter', sans-serif", overflowX: 'hidden' }} onMouseMove={handleMouseMove}>
+      <style>{mobileStyles}</style>
       
       {/* ─── Navigation ──────────────────────────────────────────────────────── */}
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 5%', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 10 }}>
@@ -182,14 +202,14 @@ export default function LandingPage() {
       </nav>
 
       {/* ─── Interactive Hero Section ────────────────────────────────────────── */}
-      <section style={{ padding: '60px 5% 120px', maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', position: 'relative' }}>
+      <section className="hero-grid" style={{ padding: '60px 5% 120px', maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', position: 'relative' }}>
         
         {/* Left: Copy */}
-        <div ref={heroRef} style={{ zIndex: 2 }}>
+        <div ref={heroRef} className="hero-left" style={{ zIndex: 2 }}>
           <div style={{ display: 'inline-block', padding: '8px 20px', borderRadius: 30, background: softBg, boxShadow: softInset, color: accentColor, fontWeight: 800, fontSize: '0.85rem', marginBottom: 32, letterSpacing: '1px', textTransform: 'uppercase' }}>
             Enterprise Workforce Platform
           </div>
-          <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.2rem)', fontWeight: 900, color: headingColor, margin: '0 0 24px', lineHeight: 1.15, letterSpacing: '-1.5px' }}>
+          <h1 className="hero-title" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.2rem)', fontWeight: 900, color: headingColor, margin: '0 0 24px', lineHeight: 1.15, letterSpacing: '-1.5px' }}>
             Manage your teams with <span style={{ color: accentColor, position: 'relative' }}>
               absolute precision.
               <svg style={{ position: 'absolute', bottom: -10, left: 0, width: '100%', height: 12 }} viewBox="0 0 200 12" preserveAspectRatio="none">
@@ -271,7 +291,7 @@ export default function LandingPage() {
 
       {/* ─── Animated Statistics Section ─────────────────────────────────────── */}
       <section ref={statsRef} style={{ padding: '60px 5%', background: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, textAlign: 'center' }}>
+        <div className="stats-grid" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, textAlign: 'center' }}>
           {stats.map((st, i) => (
             <div key={i}>
               <div style={{ fontSize: '3.5rem', fontWeight: 900, color: headingColor, letterSpacing: '-1px', display: 'flex', alignItems: 'baseline', justifyContent: 'center' }}>
@@ -295,10 +315,10 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div ref={roleRef} style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 40, alignItems: 'center' }}>
+        <div ref={roleRef} className="roles-grid" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 40, alignItems: 'center' }}>
           
           {/* Tabs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="role-tabs" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {roles.map((r) => (
               <button 
                 key={r.id}
@@ -321,7 +341,7 @@ export default function LandingPage() {
           </div>
 
           {/* Active Content */}
-          <div style={{ padding: 48, borderRadius: 40, background: softBg, boxShadow: softInset, minHeight: 350, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="role-content" style={{ padding: 48, borderRadius: 40, background: softBg, boxShadow: softInset, minHeight: 350, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
              <h3 style={{ fontSize: '2rem', fontWeight: 900, color: headingColor, margin: '0 0 16px' }}>{activeRoleData.title}</h3>
              <p style={{ fontSize: '1.1rem', color: textColor, lineHeight: 1.7, marginBottom: 32, maxWidth: 500 }}>
                {activeRoleData.desc}
@@ -342,7 +362,7 @@ export default function LandingPage() {
 
       {/* ─── Standard Features Grid ────────────────────────────────────────── */}
       <section style={{ padding: '40px 5% 100px', maxWidth: 1400, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 30 }}>
           {features.map((feat, index) => (
             <div 
               key={index} 
