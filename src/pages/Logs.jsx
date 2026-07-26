@@ -348,13 +348,13 @@ export default function Logs() {
       )}
 
       {/* Stats */}
-      <div className="card stats-grid" style={{ gap: 10, marginBottom: 16 }}>
+      <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
         {[
-          { label: 'Total Records', value: totalEntries, color: '#0f172a' },
-          { label: 'Time-In', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#043e8a' },
-          { label: 'Time-Out', value: filteredLogs.filter(l => l.type === 'OUT').length, color: '#dc2626' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="stat-card glass" style={{ padding: '14px 10px', borderRadius: 16, textAlign: 'center' }}>
+          { label: 'Total Records', value: totalEntries, color: '#0f172a', span: 1 },
+          { label: 'Time-In', value: filteredLogs.filter(l => l.type === 'IN').length, color: '#043e8a', span: 1 },
+          { label: 'Time-Out', value: filteredLogs.filter(l => l.type === 'OUT').length, color: '#dc2626', span: 2 },
+        ].map(({ label, value, color, span }) => (
+          <div key={label} className="stat-card glass" style={{ gridColumn: span === 2 ? '1 / -1' : 'auto', padding: '14px 10px', borderRadius: 16, textAlign: 'center' }}>
             <p style={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 4px' }}>{label}</p>
             <p style={{ color, fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>{value}</p>
           </div>
