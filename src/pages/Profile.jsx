@@ -31,7 +31,25 @@ export default function Profile() {
     assignedAccount: user?.assignedAccount || ''
   });
 
+  const pageRef = useRef();
+  const position = positions.find(p => p.positionId === user?.positionId);
 
+  // Reactive window width for true responsiveness
+  const [winW, setWinW] = useState(window.innerWidth);
+  useEffect(() => {
+    const onResize = () => setWinW(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(pageRef.current.querySelectorAll('.card'), {
+        y: 28, opacity: 0, duration: 0.6, stagger: 0.08, ease: 'power3.out',
+      });
+    });
+    return () => ctx.revert();
+  }, [user]);
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
