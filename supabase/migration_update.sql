@@ -36,3 +36,17 @@ VALUES
   ('RLK-1003', 'Elena Rostova', 'e.rostova@realynk.net', 'password123', 'Service Delivery', 'Healthcare Billing Operations', 'User', 'Active', 'POS-002', NULL, NULL)
 ON CONFLICT (user_id) DO UPDATE
 SET name = EXCLUDED.name, email = EXCLUDED.email, department = EXCLUDED.department, deadline_date = EXCLUDED.deadline_date, deadline_title = EXCLUDED.deadline_title;
+
+-- 6. Create Bug Reports table for the Developer Dashboard
+CREATE TABLE IF NOT EXISTS bug_reports (
+  id VARCHAR(255) PRIMARY KEY,
+  description TEXT NOT NULL,
+  status VARCHAR(50) DEFAULT 'Open',
+  user_id VARCHAR(255),
+  user_name VARCHAR(255),
+  user_role VARCHAR(50),
+  timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. Disable RLS for Bug Reports
+ALTER TABLE bug_reports DISABLE ROW LEVEL SECURITY;

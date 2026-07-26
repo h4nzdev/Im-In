@@ -103,7 +103,7 @@ export default function UserSettings() {
                 style={{ 
                   padding: '12px 24px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8,
                   fontWeight: 800, cursor: 'pointer', border: 'none', background: '#054daf', color: 'white',
-                  opacity: saving ? 0.7 : 1
+                  opacity: saving ? 0.7 : 1, whiteSpace: 'nowrap', flexShrink: 0
                 }}
               >
                 <Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}
@@ -150,7 +150,7 @@ export default function UserSettings() {
             </div>
             <button 
               onClick={() => setShowBugModal(true)}
-              style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'transparent', color: '#475569', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+              style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'transparent', color: '#475569', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               <Bug size={16} /> Report a Bug
             </button>
