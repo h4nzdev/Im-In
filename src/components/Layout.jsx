@@ -364,7 +364,7 @@ export default function Layout() {
 
   const userLinks = [
     { category: 'Main', items: [
-      { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
     ]},
     { category: 'Workforce', items: [
@@ -382,7 +382,7 @@ export default function Layout() {
   
   const successLeadLinks = [
     { category: 'Main', items: [
-      { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/analytics', icon: BarChart2,       label: 'Analytics' },
     ]},
     { category: 'Team Management', items: [
@@ -436,7 +436,7 @@ export default function Layout() {
 
   const links = isAdmin ? adminLinks : isDeveloper ? developerLinks : isSuccessLead ? successLeadLinks : userLinks;
 
-  const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(to + '/');
+  const isActive = (to) => to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname === to || location.pathname.startsWith(to + '/');
 
   const handleLogout = () => { logout(); navigate('/login'); };
 

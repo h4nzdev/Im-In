@@ -4,6 +4,7 @@ import { createBrowserRouter, Link, useRouteError } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import Layout from './components/Layout';
 
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -80,11 +81,16 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
+    element: wrap(<LandingPage />),
+    errorElement: <ErrorFallback />
+  },
+  {
+    path: '/',
     element: <Layout />,
     errorElement: <ErrorFallback />,
     children: [
       {
-        index: true,
+        path: 'dashboard',
         element: wrap(<ProtectedRoute element={<Dashboard />} preventAdmin />),
       },
       {

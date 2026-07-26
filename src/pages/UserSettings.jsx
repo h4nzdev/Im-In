@@ -90,18 +90,18 @@ export default function UserSettings() {
                 required
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-              {saveSuccess ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 12 }}>
+              {saveSuccess && (
                 <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <CheckCircle2 size={16} /> Saved successfully
                 </span>
-              ) : <span />}
+              )}
               <button 
                 type="submit" 
                 disabled={saving}
                 className="btn-primary"
                 style={{ 
-                  padding: '12px 24px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8,
+                  width: '100%', padding: '12px 24px', borderRadius: 12, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
                   fontWeight: 800, cursor: 'pointer', border: 'none', background: '#054daf', color: 'white',
                   opacity: saving ? 0.7 : 1, whiteSpace: 'nowrap', flexShrink: 0
                 }}
@@ -119,19 +119,19 @@ export default function UserSettings() {
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(15,23,42,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(15,23,42,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Moon size={20} color="#475569" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>Dark Mode</p>
-                <span style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>- A darker theme for low-light environments</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>Dark Mode</p>
+                  <span style={{ padding: '4px 8px', borderRadius: 10, background: '#dbeafe', color: '#054daf', fontSize: '0.65rem', fontWeight: 800, whiteSpace: 'nowrap' }}>COMING SOON</span>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>A darker theme for low-light environments</p>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ padding: '4px 10px', borderRadius: 12, background: '#dbeafe', color: '#054daf', fontSize: '0.72rem', fontWeight: 800 }}>
-                COMING SOON
-              </span>
-              <div style={{ width: 44, height: 24, borderRadius: 24, background: '#e2e8f0', position: 'relative', opacity: 0.5, cursor: 'not-allowed' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: 44, height: 24, borderRadius: 24, background: '#e2e8f0', position: 'relative', opacity: 0.5, cursor: 'not-allowed', flexShrink: 0 }}>
                 <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'white', position: 'absolute', top: 2, left: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
               </div>
             </div>
@@ -143,14 +143,14 @@ export default function UserSettings() {
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 20px', paddingBottom: 12, borderBottom: '1px solid #f1f5f9' }}>
             Support
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>Help & Feedback</p>
               <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b' }}>Encountered an issue? Let us know.</p>
             </div>
             <button 
               onClick={() => setShowBugModal(true)}
-              style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'transparent', color: '#475569', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+              style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid #cbd5e1', background: 'transparent', color: '#475569', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', width: '100%' }}
             >
               <Bug size={16} /> Report a Bug
             </button>

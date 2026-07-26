@@ -29,7 +29,7 @@ export default function Login() {
     setLoading(true);
     try {
       const user = login(email, password);
-      const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/';
+      const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/dashboard';
       navigate(targetRoute);
     } catch (err) {
       setError(err.message);
@@ -39,7 +39,7 @@ export default function Login() {
   };
 
   if (user) {
-    const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/';
+    const targetRoute = user.role === 'Admin' ? '/admin' : user.role === 'Developer' ? '/developer' : '/dashboard';
     return <Navigate to={targetRoute} replace />;
   }
 
