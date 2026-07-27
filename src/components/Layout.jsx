@@ -632,7 +632,7 @@ export default function Layout() {
           <div style={{ position: 'relative', zIndex: 30, width: '100%' }}>
             {isAdmin && <AdminNotificationHeader />}
           </div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ width: '100%' }}>
             <Outlet context={{ openInstallModal: () => setShowModal(true) }} />
           </div>
         </main>
