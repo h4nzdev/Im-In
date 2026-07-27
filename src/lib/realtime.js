@@ -64,8 +64,8 @@ async function initChannel() {
       const state = supaChannel.presenceState();
       const onlineMap = {};
       for (const [key, presences] of Object.entries(state)) {
-        if (presences.length > 0) {
-          onlineMap[key] = presences[0];
+        if (presences.length > 0 && presences[0].userId) {
+          onlineMap[presences[0].userId] = presences[0];
         }
       }
       presenceListeners.forEach(cb => cb(onlineMap));
@@ -129,8 +129,8 @@ export const realtimeBus = {
         const state = supaChannel.presenceState();
         const onlineMap = {};
         for (const [key, presences] of Object.entries(state)) {
-          if (presences.length > 0) {
-            onlineMap[key] = presences[0];
+          if (presences.length > 0 && presences[0].userId) {
+            onlineMap[presences[0].userId] = presences[0];
           }
         }
         callback(onlineMap);
