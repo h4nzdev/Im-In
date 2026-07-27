@@ -616,8 +616,8 @@ export default function Dashboard() {
 
       {/* Remote & Exception Attendance Request Modal */}
       {showRemoteModal && (
-        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: 20 }}>
-          <div className="card glass fade-in" style={{ width: '100%', maxWidth: 520, background: 'white', borderRadius: 26, padding: 28, border: '1px solid rgba(15,23,42,0.1)', boxShadow: '0 25px 50px rgba(15,23,42,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 999999, overflowY: 'auto' }}>
+          <div className="fade-in" style={{ width: '100%', maxWidth: 600, padding: '32px 24px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid #f1f5f9', paddingBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(217,119,6,0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -716,9 +716,8 @@ export default function Dashboard() {
       <TodosWidget />
       {/* EOD Report Modal */}
       {showEODModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(6px)' }} onClick={() => setShowEODModal(false)} />
-          <div className="fade-in card glass" style={{ position: 'relative', width: '90%', maxWidth: 500, padding: 32, borderRadius: 28, boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}>
+        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 999999, overflowY: 'auto' }}>
+          <div className="fade-in" style={{ width: '100%', maxWidth: 600, padding: '32px 24px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(5, 77, 175, 0.15)', color: '#054daf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
