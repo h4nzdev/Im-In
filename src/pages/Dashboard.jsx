@@ -43,6 +43,20 @@ function hoursWeek(logs, userId) {
   return (ms / 3600000).toFixed(1);
 }
 
+function hoursLastWeek(logs, userId) {
+  const start = new Date(); start.setDate(start.getDate() - start.getDay() - 7); start.setHours(0,0,0,0);
+  const end = new Date(); end.setDate(end.getDate() - end.getDay()); end.setHours(0,0,0,0);
+  const mine = logs.filter(l => l.userId === userId && new Date(l.timestamp) >= start && new Date(l.timestamp) < end)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  let ms = 0, openIn = null;
+  mine.forEach(l => {
+    if (l.type === 'IN') openIn = l;
+    else if (openIn) { ms += new Date(l.timestamp) - new Date(openIn.timestamp); openIn = null; }
+  });
+  if (openIn) ms += end - new Date(openIn.timestamp);
+  return (ms / 3600000).toFixed(1);
+}
+
 export default function Dashboard() {
   const { user: authUser } = useAuthStore();
   const user = db.getUserById(authUser.userId) || authUser;
@@ -380,8 +394,9 @@ export default function Dashboard() {
       <div className="card stats-grid" style={{ gap: 20, marginBottom: 24 }}>
         {[
           { label: 'Today Worked', value: `${hoursToday(logs, user.userId)}h`, color: '#043e8a', bg: 'rgba(5, 77, 175,0.1)' },
-          { label: 'Weekly Total', value: `${hoursWeek(logs, user.userId)}h`, color: '#054daf', bg: 'rgba(5, 77, 175,0.08)' },
-          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#054daf' : '#64748b', bg: isClockedIn ? 'rgba(5, 77, 175,0.15)' : 'rgba(100,116,139,0.1)', wide: true },
+          { label: 'This Week', value: `${hoursWeek(logs, user.userId)}h`, color: '#054daf', bg: 'rgba(5, 77, 175,0.08)' },
+          { label: 'Last Week', value: `${hoursLastWeek(logs, user.userId)}h`, color: '#64748b', bg: 'rgba(100,116,139,0.08)' },
+          { label: 'Punch Status', value: isClockedIn ? 'Clocked In' : 'Clocked Out', color: isClockedIn ? '#10b981' : '#64748b', bg: isClockedIn ? 'rgba(16, 185, 129,0.12)' : 'rgba(100,116,139,0.1)', wide: true },
         ].map(({ label, value, color, bg, wide }) => (
           <div key={label} className={`stat-card glass glass-hover${wide ? ' stat-status' : ''}`} style={{ padding: 22, borderRadius: 20, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
