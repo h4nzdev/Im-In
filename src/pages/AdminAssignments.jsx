@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
-import { BookOpen, Plus, Search, Filter, Trash2, Edit3, ShieldAlert, CheckCircle2, Users, FileText, AlertTriangle, ArrowRight, X, Sparkles } from 'lucide-react';
+import { BookOpen, Plus, Search, Filter, Trash2, Edit3, ShieldAlert, CheckCircle2, Users, FileText, AlertTriangle, ArrowRight, X, Sparkles, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../lib/db';
 import { showDeleteConfirm, showSuccess } from '../lib/alert';
 
 export default function AdminAssignments() {
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState(() => db.getAssignments());
   const [search, setSearch] = useState('');
   const [targetFilter, setTargetFilter] = useState('All');
@@ -18,7 +20,8 @@ export default function AdminAssignments() {
     target: 'Service Delivery',
     priority: 'High',
     description: '',
-    status: 'Active'
+    status: 'Active',
+    assignedUsers: ''
   });
 
   const containerRef = useRef();
@@ -42,7 +45,8 @@ export default function AdminAssignments() {
       target: 'Service Delivery',
       priority: 'High',
       description: '',
-      status: 'Active'
+      status: 'Active',
+      assignedUsers: ''
     });
     setShowModal(true);
   };
@@ -55,7 +59,8 @@ export default function AdminAssignments() {
       target: sop.target || 'All Departments',
       priority: sop.priority || 'Medium',
       description: sop.description || '',
-      status: sop.status || 'Active'
+      status: sop.status || 'Active',
+      assignedUsers: Array.isArray(sop.assignedUsers) ? sop.assignedUsers.join(', ') : (sop.assignedUsers || '')
     });
     setShowModal(true);
   };
@@ -64,13 +69,18 @@ export default function AdminAssignments() {
     e.preventDefault();
     if (!form.title.trim()) return;
 
+    const submission = { 
+      ...form, 
+      assignedUsers: form.assignedUsers.split(',').map(u => u.trim()).filter(Boolean) 
+    };
+
     if (editingId) {
-      db.updateAssignment(editingId, form);
+      db.updateAssignment(editingId, submission);
     } else {
       const newId = `SOP-${Math.floor(100 + Math.random() * 900)}`;
       db.addAssignment({
         id: newId,
-        ...form,
+        ...submission,
         createdAt: new Date().toISOString().split('T')[0]
       });
     }
@@ -167,24 +177,21 @@ export default function AdminAssignments() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="card glass sop-card" style={{ padding: 16, borderRadius: 20, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 260, background: 'white', padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(15,23,42,0.12)' }}>
-          <Search size={18} color="#94a3b8" />
-          <input
-            type="text"
-            placeholder="Search SOP title, department target, or protocol notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '0.92rem', padding: 0 }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: 'white', padding: '12px 20px', borderRadius: 24, marginBottom: 24, display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', gap: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+        <Search size={18} color="#94a3b8" style={{ flexShrink: 0 }} />
+        <input
+          type="text"
+          placeholder="Search SOP title, department target, or protocol notes..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '0.92rem', padding: '0 8px', flex: 1 }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderLeft: '1px solid #cbd5e1', paddingLeft: 16, flexShrink: 0 }}>
           <Filter size={16} color="#64748b" />
           <select
             value={targetFilter}
             onChange={(e) => setTargetFilter(e.target.value)}
-            style={{ width: 'auto', padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(15,23,42,0.12)', background: 'white', fontWeight: 700, fontSize: '0.88rem' }}
+            style={{ width: 'auto', border: 'none', background: 'transparent', fontWeight: 700, fontSize: '0.88rem', outline: 'none', color: '#0f172a', padding: 0 }}
           >
             <option value="All">All Targets / Departments</option>
             <option value="Service Delivery">Service Delivery</option>
@@ -201,7 +208,7 @@ export default function AdminAssignments() {
           const pb = getPriorityBadge(sop.priority);
           return (
             <div key={sop.id} className="card glass sop-card" style={{ padding: 24, borderRadius: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'white', border: '1px solid rgba(15,23,42,0.08)' }}>
-              <div>
+              <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/sop/${sop.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(5, 77, 175,0.08)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
                     {sop.type || 'SOP Protocol'}
@@ -211,31 +218,34 @@ export default function AdminAssignments() {
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px', lineHeight: 1.3 }}>
-                  {sop.title}
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {sop.title} <ExternalLink size={14} color="#94a3b8" />
                 </h3>
 
-                <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 0 16px', lineHeight: 1.5 }}>
+                <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 0 16px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {sop.description || 'No detailed procedures provided for this protocol.'}
                 </p>
               </div>
 
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Assigned Target</span>
-                  <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{sop.target}</span>
+                  <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Target</span>
+                  <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', display: 'flex', gap: 4 }}>
+                    {sop.target} 
+                    {sop.assignedUsers?.length > 0 && <span style={{ color: '#054daf' }}>+{sop.assignedUsers.length} Users</span>}
+                  </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
-                    onClick={() => handleOpenEdit(sop)}
+                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(sop); }}
                     style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid #e2e8f0', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569', transition: 'all 0.15s' }}
                     title="Edit Protocol"
                   >
                     <Edit3 size={16} />
                   </button>
                   <button
-                    onClick={() => handleDelete(sop.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(sop.id); }}
                     style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#dc2626', transition: 'all 0.15s' }}
                     title="Delete Protocol"
                   >
@@ -318,19 +328,32 @@ export default function AdminAssignments() {
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', color: '#475569', fontSize: '0.78rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>Target Department / Account</label>
-                <select
-                  value={form.target}
-                  onChange={(e) => setForm({ ...form, target: e.target.value })}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontWeight: 700 }}
-                >
-                  <option value="Service Delivery">Service Delivery</option>
-                  <option value="Shared Services">Shared Services</option>
-                  <option value="FinTech Global Support">FinTech Global Support</option>
-                  <option value="Healthcare Billing Operations">Healthcare Billing Operations</option>
-                  <option value="All Departments">All Enterprise Departments</option>
-                </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', color: '#475569', fontSize: '0.78rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>Target Department</label>
+                  <select
+                    value={form.target}
+                    onChange={(e) => setForm({ ...form, target: e.target.value })}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontWeight: 700 }}
+                  >
+                    <option value="Service Delivery">Service Delivery</option>
+                    <option value="Shared Services">Shared Services</option>
+                    <option value="FinTech Global Support">FinTech Global Support</option>
+                    <option value="Healthcare Billing Operations">Healthcare Billing Operations</option>
+                    <option value="All Departments">All Enterprise Departments</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: '#475569', fontSize: '0.78rem', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>Assigned Specific Users</label>
+                  <input
+                    type="text"
+                    value={form.assignedUsers}
+                    onChange={(e) => setForm({ ...form, assignedUsers: e.target.value })}
+                    placeholder="User IDs (comma separated)"
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', fontWeight: 600 }}
+                  />
+                </div>
               </div>
 
               <div>

@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { CheckSquare, Square, Plus, Trash2, BookOpen, AlertCircle, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckSquare, Square, Plus, Trash2, BookOpen, AlertCircle, CheckCircle2, Clock, Sparkles, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { db } from '../lib/db';
 
 export default function UserAssignments() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState(() => db.getAssignments());
   const [todoList, setTodoList] = useState(() => {
     return JSON.parse(localStorage.getItem(`realynk_todos_${user?.userId}`)) || [];
@@ -202,9 +204,17 @@ export default function UserAssignments() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, borderTop: item.completed ? '1px solid #e2e8f0' : '1px solid #e2e8f0', paddingTop: 12, marginTop: 4 }}>
                   {item.sopId && (
-                    <span style={{ padding: '4px 10px', borderRadius: 10, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
-                      SOP Protocol
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ padding: '4px 10px', borderRadius: 10, background: 'rgba(5, 77, 175,0.1)', color: '#054daf', fontWeight: 800, fontSize: '0.72rem' }}>
+                        SOP Protocol
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/sop/${item.sopId}`); }}
+                        style={{ padding: '4px 10px', borderRadius: 10, background: '#0f172a', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.72rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <ExternalLink size={12} /> View Full Protocol
+                      </button>
+                    </div>
                   )}
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteTodo(item.id); }}

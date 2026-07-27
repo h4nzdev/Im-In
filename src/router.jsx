@@ -30,6 +30,7 @@ const UserReports = lazy(() => import('./pages/UserReports'));
 const UserSettings = lazy(() => import('./pages/UserSettings'));
 const DeveloperDashboard = lazy(() => import('./pages/DeveloperDashboard'));
 const DeveloperBugs = lazy(() => import('./pages/DeveloperBugs'));
+const SOPViewer = lazy(() => import('./pages/SOPViewer'));
 
 const Loading = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -172,6 +173,10 @@ export const router = createBrowserRouter([
       {
         path: 'developer/bugs',
         element: wrap(<ProtectedRoute element={<DeveloperBugs />} />),
+      },
+      {
+        path: 'sop/:id',
+        element: wrap(<ProtectedRoute element={<SOPViewer />} />),
       },
       {
         path: 'profile',
