@@ -9,6 +9,7 @@ import { realtimeBus } from '../lib/realtime';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useSyncStatus } from '../lib/useSyncStatus';
 import { db } from '../lib/db';
+import { showAlert } from '../lib/alert';
 
 function AdminNotificationHeader() {
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('realynk_admin_notifications')) || []);
@@ -258,11 +259,15 @@ export default function Layout() {
     // 0. Track Presence for Live Roster
     realtimeBus.trackPresence(user.userId, user);
 
-    // 1. Listen for Admin Force Logout
+    // 1. Listen for Admin Force Logout & Direct Messages
     const unsub = realtimeBus.subscribe((payload) => {
-      if (payload && payload.type === 'ADMIN_FORCE_LOGOUT' && payload.targetUserId === user.userId) {
-        logout();
-        navigate('/login');
+      if (payload && payload.targetUserId === user.userId) {
+        if (payload.type === 'ADMIN_FORCE_LOGOUT') {
+          logout();
+          navigate('/login');
+        } else if (payload.type === 'DIRECT_MESSAGE') {
+          showAlert(`Message from ${payload.senderName || 'Admin'}`, payload.message, 'info');
+        }
       }
     });
 

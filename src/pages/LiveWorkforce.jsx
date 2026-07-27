@@ -13,6 +13,8 @@ export default function LiveWorkforce() {
   const [now, setNow] = useState(Date.now());
   const [search, setSearch] = useState('');
   const [livePresence, setLivePresence] = useState({});
+  const [msgModal, setMsgModal] = useState({ open: false, userName: '', userId: '' });
+  const [msgText, setMsgText] = useState('');
   const containerRef = useRef();
 
   useEffect(() => {
@@ -128,8 +130,17 @@ export default function LiveWorkforce() {
     });
   };
 
-  const handleSendMessage = (name) => {
-    showToast(`Direct message interface opened for ${name} (Mock)`);
+  const handleSendMessage = (userId, name) => {
+    setMsgModal({ open: true, userName: name, userId: userId });
+    setMsgText('');
+  };
+
+  const submitMessage = (e) => {
+    e.preventDefault();
+    if (!msgText.trim()) return;
+    realtimeBus.broadcast({ type: 'DIRECT_MESSAGE', targetUserId: msgModal.userId, message: msgText, senderName: 'Admin' });
+    showToast(`Message sent to ${msgModal.userName}`);
+    setMsgModal({ open: false, userName: '', userId: '' });
   };
 
   return (
@@ -251,7 +262,7 @@ export default function LiveWorkforce() {
                 {/* Recommended Actions */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <button
-                    onClick={() => handleSendMessage(u.name)}
+                    onClick={() => handleSendMessage(u.userId, u.name)}
                     style={{
                       padding: '10px', borderRadius: 12, border: '1px solid #bfdbfe', background: '#eff6ff',
                       color: '#054daf', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
@@ -292,6 +303,42 @@ export default function LiveWorkforce() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Message Modal */}
+      {msgModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="card glass fade-in" style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>Direct Message</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#64748b' }}>Send a real-time alert to <strong>{msgModal.userName}</strong>.</p>
+            
+            <form onSubmit={submitMessage} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <textarea
+                autoFocus
+                placeholder="Type your message here..."
+                value={msgText}
+                onChange={e => setMsgText(e.target.value)}
+                style={{ width: '100%', minHeight: 100, padding: 14, borderRadius: 12, border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+              />
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setMsgModal({ open: false, userName: '', userId: '' })}
+                  style={{ flex: 1, padding: 12, borderRadius: 12, background: '#f1f5f9', border: 'none', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!msgText.trim()}
+                  style={{ flex: 2, padding: 12, borderRadius: 12, background: '#054daf', border: 'none', color: 'white', fontWeight: 700, cursor: msgText.trim() ? 'pointer' : 'not-allowed', opacity: msgText.trim() ? 1 : 0.6 }}
+                >
+                  Send Alert
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
