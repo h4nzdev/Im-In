@@ -634,14 +634,14 @@ export default function Dashboard() {
             </div>
 
             <form onSubmit={handleRemoteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 14, border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>
+              <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 14, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span><strong>Employee:</strong> {user.name}</span>
                   <span><strong>Punch Type:</strong> <strong style={{ color: isClockedIn ? '#dc2626' : '#054daf' }}>{isClockedIn ? 'CLOCK OUT' : 'CLOCK IN'}</strong></span>
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={14} color="#d97706" />
-                  <span>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {closestGeofence.addressName}</span>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: 8, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                  <MapPin size={16} color="#d97706" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ lineHeight: 1.4 }}>GPS Offset: <strong>{Math.round(distMeters)}m outside</strong> {closestGeofence.addressName}</span>
                 </div>
               </div>
 
@@ -677,34 +677,34 @@ export default function Dashboard() {
                 />
               </div>
 
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '10px 12px', background: '#eff6ff', borderRadius: 12, border: '1px solid #bfdbfe' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', padding: '14px 16px', background: '#eff6ff', borderRadius: 12, border: '1px solid #bfdbfe' }}>
                 <input
                   type="checkbox"
                   checked={remoteAttachCheck}
                   onChange={e => setRemoteAttachCheck(e.target.checked)}
                   required
-                  style={{ marginTop: 3, accentColor: '#054daf' }}
+                  style={{ marginTop: 2, accentColor: '#054daf', width: 20, height: 20, flexShrink: 0 }}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#033373', fontWeight: 600, lineHeight: 1.4 }}>
+                <span style={{ fontSize: '0.85rem', color: '#033373', fontWeight: 600, lineHeight: 1.45 }}>
                   I certify that my current coordinates and time stamp represent true operational attendance. I consent to executive GPS audit verification.
                 </span>
               </label>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                <button
+                  type="submit"
+                  disabled={submittingRemote}
+                  style={{ width: '100%', padding: '14px', borderRadius: 14, background: submittingRemote ? '#64748b' : '#d97706', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: submittingRemote ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: submittingRemote ? 'none' : '0 6px 20px rgba(217,119,6,0.35)' }}
+                >
+                  {submittingRemote ? <><Loader2 size={18} className="spin" /> Submitting...</> : <><Send size={18} /> Submit Attendance Request</>}
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowRemoteModal(false)}
                   disabled={submittingRemote}
-                  style={{ flex: 1, padding: '13px', borderRadius: 14, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer' }}
+                  style={{ width: '100%', padding: '14px', borderRadius: 14, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingRemote}
-                  style={{ flex: 2, padding: '13px', borderRadius: 14, background: submittingRemote ? '#64748b' : '#d97706', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.92rem', cursor: submittingRemote ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: submittingRemote ? 'none' : '0 6px 20px rgba(217,119,6,0.35)' }}
-                >
-                  {submittingRemote ? <><Loader2 size={18} className="spin" /> Submitting Request...</> : <><Send size={18} /> Submit Attendance Request</>}
+                  Cancel Request
                 </button>
               </div>
             </form>
